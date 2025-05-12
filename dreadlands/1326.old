@@ -1,0 +1,295 @@
+sub EVENT_SAY { 
+    if ($text=~/hail/i) {
+        # Display a popup when the player hails the NPC
+        quest::popup("Items of Temporal Flux", 
+            "Greetings, traveler. I have been sent back in time from the <c \"#F0D700\">Plane of Innovation</c> to assist in correcting the many <c \"#F0D700\">time anomalies</c> "
+            . "that have been appearing due to the <c \"#F0D700\">Chronomancer's</c> meddlesome behavior. His manipulation of time has caused disruptions throughout the realms.<br><br>"
+            . "During your journey, you may come across items in a state of <c \"#F0D700\">temporal flux</c>. These are items that exist both here and in other times, caught in the flow of time itself.<br><br>"
+            . "I need you to bring such items back to me for further study. However, be aware, some of these items may be <c \"#F0D700\">attracted</c> to similar objects in our time.<br><br>"
+            . "By <c \"#F0D700\">fusing</c> them together, you may be able to create something far more valuable. Proceed with caution, but know that the rewards could be <c \"#F0D700\">lucrative</c>.");
+    }
+}
+
+sub EVENT_ITEM {
+    my $turn_in_item = 31709;  # Item that must always be turned in
+    my $helm_turn_in_item = 31712;  # Item required for helms
+    my $melee_arm_turn_in_item = 32353;  # Item required for melee arms
+    my $caster_arm_turn_in_item = 32354;  # Item required for caster arms
+    my $caster_glove_turn_in_item = 32472;  # Item required for caster gloves
+    my $melee_glove_turn_in_item = 32469;  # Item required for melee gloves
+    my $caster_shoe_turn_in_item = 32473;  # Item required for caster shoes
+    my $melee_boots_turn_in_item = 32474;  # Item required for melee boots
+
+    # New items for pants
+    my $int_caster_pants_turn_in_item = 33110; # INT caster pants
+    my $chain_and_leather_pants_turn_in_item = 33111; # Chain and leather pants
+    my $plate_pants_turn_in_item = 33112; # Plate pants
+
+    my %item_reward = (
+        147814 => 600083,
+        147835 => 600084,
+        147856 => 600085,
+        147877 => 600086,
+        147898 => 600087,
+        147919 => 600088,
+        147940 => 600089,
+        147961 => 600090,
+        147982 => 600091,
+        148003 => 600092,
+        148024 => 600093,
+        147796 => 600094,
+        147709 => 600095,
+        147730 => 600096,
+        147754 => 600097,
+        147772 => 600098,
+        # Helms below require 31712
+        147715 => 32266,
+        147736 => 32267,
+        147763 => 32268,
+        147778 => 32269,
+        147802 => 32270,
+        147823 => 32255,
+        147844 => 32256,
+        147865 => 32261,
+        147886 => 32257,
+        147907 => 32262,
+        147928 => 32263,
+        147949 => 32264,
+        147970 => 32265,
+        147991 => 32258,
+        148012 => 32259,
+        148033 => 32260
+    );
+
+    my %caster_arm_reward = (
+        147751 => 32381,  # CLR
+        147826 => 32355,  # MAG
+        147847 => 32356,  # WIZ
+        147868 => 32357,  # NEC
+        147889 => 32358,  # ENC
+        147910 => 32359,  # SHM
+        148015 => 32376,  # DRU
+        148036 => 32377,  # BST
+    );
+
+    my %melee_arm_reward = (
+        147727 => 32379,  # WAR
+        147748 => 32380,  # PAL
+        147787 => 32452,  # SK
+        147811 => 32378,  # BRD
+        147931 => 32360,  # ROG
+        147952 => 32361,  # BER
+        147973 => 32374,  # RNG
+        147994 => 32375,  # MNK
+    );
+
+    my %caster_glove_reward = (
+        147817 => 32485,  # MAG
+        147838 => 32486,  # WIZ
+        147859 => 32487,  # NEC
+        147880 => 32488,  # ENC
+        147901 => 32489,  # SHM
+        148006 => 33001,  # DRU
+        148027 => 33002,  # BST
+        147757 => 33006,  # CLR
+    );
+
+    my %melee_glove_reward = (
+        147922 => 32490,  # ROG
+        147943 => 32532,  # BER
+        147964 => 32533,  # RNG
+        147985 => 33000,  # MNK
+        147808 => 33003,  # BRD
+        147724 => 33004,  # WAR
+        147745 => 33005,  # PAL
+        147784 => 33007,  # SHD
+    );
+
+    my %caster_shoe_reward = (
+        147820 => 33008,  # MAG
+        147841 => 33009,  # WIZ
+        147862 => 33010,  # NEC
+        147883 => 33011,  # ENC
+        147904 => 33012,  # SHM
+        148009 => 33013,  # DRU
+        148030 => 33014,  # BST
+        147760 => 33022,  # CLR
+    );
+
+    # Check for melee boots hand-in (32474) and corresponding class items
+    my %melee_boots_reward = (
+        147925 => 33015,  # ROG
+        147946 => 33016,  # BER
+        147967 => 33017,  # RNG
+        147988 => 33018,  # MNK
+        147799 => 33019,  # BRD
+        147712 => 33020,  # WAR
+        147733 => 33021,  # PAL
+        147775 => 33023,  # SHD
+    );
+
+    # New reward hashes for pants
+    my %int_caster_pants_reward = (
+        147829 => 33168, # MAG
+        147850 => 33169, # WIZ
+        147871 => 33170, # NEC
+        147892 => 33171, # ENC
+    );
+
+    my %chain_and_leather_pants_reward = (
+        147913 => 33161, # SHM
+        147934 => 33162, # ROG
+        147955 => 33163, # BER
+        147976 => 33164, # RNG
+        147997 => 33165, # MNK
+        148018 => 33166, # DRU
+        148039 => 33167, # BST
+    );
+
+    my %plate_pants_reward = (
+        147805 => 33172, # BRD
+        147718 => 33173, # WAR
+        147739 => 33174, # PAL
+        147766 => 33175, # CLR
+        147781 => 33176, # SHD
+    );
+
+    # Check if the player handed in the required item (31709) and one of the specific items
+    foreach my $item_id (keys %item_reward) {
+        if (plugin::check_handin(\%itemcount, $turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($item_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+        # Check for helms requiring 31712
+        if (plugin::check_handin(\%itemcount, $helm_turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($item_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+    }
+
+    # Check for caster arms hand-in (32354) and corresponding class items
+    foreach my $item_id (keys %caster_arm_reward) {
+        if (plugin::check_handin(\%itemcount, $caster_arm_turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($caster_arm_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your caster arm reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+    }
+
+    # Check for melee arms hand-in (32353) and corresponding class items
+    foreach my $item_id (keys %melee_arm_reward) {
+        if (plugin::check_handin(\%itemcount, $melee_arm_turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($melee_arm_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your melee arm reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+    }
+
+    # Check for caster gloves hand-in (32472) and corresponding class items
+    foreach my $item_id (keys %caster_glove_reward) {
+        if (plugin::check_handin(\%itemcount, $caster_glove_turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($caster_glove_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your caster glove reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+    }
+
+    # Check for melee gloves hand-in (32469) and corresponding class items
+    foreach my $item_id (keys %melee_glove_reward) {
+        if (plugin::check_handin(\%itemcount, $melee_glove_turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($melee_glove_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your melee glove reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+    }
+
+    # Check for caster shoes hand-in (32473) and corresponding class items
+    foreach my $item_id (keys %caster_shoe_reward) {
+        if (plugin::check_handin(\%itemcount, $caster_shoe_turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($caster_shoe_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your caster shoe reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+    }
+
+    # Check for melee boots hand-in (32474) and corresponding class items
+    foreach my $item_id (keys %melee_boots_reward) {
+        if (plugin::check_handin(\%itemcount, $melee_boots_turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($melee_boots_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your melee boot reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+    }
+
+    # Check for INT caster pants hand-in (33110) and corresponding class items
+    foreach my $item_id (keys %int_caster_pants_reward) {
+        if (plugin::check_handin(\%itemcount, $int_caster_pants_turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($int_caster_pants_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your INT caster pants reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+    }
+
+    # Check for chain and leather pants hand-in (33111) and corresponding class items
+    foreach my $item_id (keys %chain_and_leather_pants_reward) {
+        if (plugin::check_handin(\%itemcount, $chain_and_leather_pants_turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($chain_and_leather_pants_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your chain and leather pants reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+    }
+
+    # Check for plate pants hand-in (33112) and corresponding class items
+    foreach my $item_id (keys %plate_pants_reward) {
+        if (plugin::check_handin(\%itemcount, $plate_pants_turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($plate_pants_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your plate pants reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+    }
+
+    # Check for Aegis of Burning Hate upgrade (28366 + 33105 -> 33106)
+    	if (plugin::check_handin(\%itemcount, 28366 => 1, 33105 => 1)) {
+            quest::summonitem(33106);  # Give the upgraded Aegis of Burning Hate
+            $client->Message(14, "Your Aegis of Burning Hate has been upgraded!");  # Green text message to the client
+            quest::exp(2000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the upgrade
+            return;
+    	}
+
+    # Check for Grand Ornate Bow of Flux (257) and Cursed Flame +2 (28624) hand-in
+	if (plugin::check_handin(\%itemcount, 257 => 1, 28624 => 1)) {
+        quest::summonitem(261);  # Reward: Cursed Flame +3 (261)
+        $client->Message(14, "Here is your upgraded bow!");  # Green text message to the client
+        quest::exp(1000);  # Optional: Reward some experience points
+        quest::ding();  # Optional: Play a sound when the player receives the reward
+        return;
+}    
+
+    # Handle return items that don't match any expected hand-ins
+    plugin::return_items(\%itemcount);
+}

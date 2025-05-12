@@ -1,0 +1,32 @@
+-- Item Click Event Handling
+function event_item_click(e)
+    -- Debug message to verify if the event is triggered
+    eq.debug("Item Click Event Triggered")
+
+    -- Check if the item field is valid
+    if not e.item or not e.item:ID() then
+        eq.debug("Error: 'e.item' is nil or 'e.item:ID()' is nil. Item click event data is not properly passed.")
+        return
+    end
+
+    local item_id = e.item:ID()
+    
+    -- Debug message to verify the item ID
+    eq.debug("Item ID: " .. item_id)
+
+    -- Check if the item_id is valid and in the configuration
+    if kill_tracker_config[item_id] then
+        local char_id = e.self:GetID()
+        local kill_count_key = "KillTracker_" .. item_id .. "_" .. char_id
+        local current_kills = tonumber(eq.get_data(kill_count_key)) or 0
+        local required_kills = kill_tracker_config[item_id].required_kills
+
+        -- Send a message to the player with their progress
+        e.self:Message(15, "Kill Tracker for item " .. item_id .. ": " .. current_kills .. " / " .. required_kills)
+        return 1
+    else
+        eq.debug("Item ID " .. item_id .. " is not in the kill tracker configuration.")
+    end
+
+    return 0
+end

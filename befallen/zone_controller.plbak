@@ -1,0 +1,16 @@
+sub EVENT_SPAWN_ZONE {
+
+    
+foreach my $npc_entity ($entity_list->GetNPCList()) {
+        my $npc = $npc_entity->CastToNPC();
+        my $mob_level = int(rand(3)) + 25;  
+
+        # Ensure the initial scaled level doesn't exceed 75
+        $mob_level = ($mob_level <= 75) ? $mob_level : 75;
+
+        # Scale the existing NPC to the desired level
+        if(!$npc->IsPet()) {
+        $npc->ScaleNPC($mob_level);
+        }
+    }
+}

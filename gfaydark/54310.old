@@ -1,0 +1,35 @@
+sub EVENT_SAY {
+    if ($text =~ /Hail/i) {
+        quest::whisper("Greetings $name. I can transport you to one of the following locations. Please select your destination by clicking the options below: " . 
+                        quest::saylink("Najena", 1) . ", " . 
+                        quest::saylink("Arena", 1) . ", " . 
+                        quest::saylink("Unrest", 1) . ", " . 
+                        quest::saylink("Wave Event", 1) . ", " . 
+                        quest::saylink("Mines of Gloomingdeep", 1) . ", or " . 
+                        quest::saylink("Befallen", 1) . ".");
+    }
+    elsif ($text =~ /Najena/i) {
+        quest::whisper("Very well! I will transport you to Najena.");
+        quest::movepc(44, 852.36, -18.86, 4.06);
+    }
+    elsif ($text =~ /Arena/i) {
+        quest::whisper("Very well! I will transport you to Arena.");
+        quest::movepc(77, 140.77, -942.40, 50.85);
+    }
+    elsif ($text =~ /Unrest/i) {
+        quest::whisper("Very well! I will transport you to Unrest.");
+        quest::movepc(63, 202.71, -12.21, 4.06, 367);
+    }
+    elsif ($text =~ /Wave Event/i || $text =~ /The_Wave_Event/i) {
+        quest::whisper("Very well! I will transport you to The Wave Event.");
+        quest::movepc(492, -15.21, -50.81, -9.87);
+    }
+    elsif ($text =~ /Mines of Gloomingdeep/i) {
+        quest::whisper("Very well! I will transport you to the Mines of Gloomingdeep.");
+        quest::movepc(189, 18, -147, 20);
+    }
+    elsif ($text =~ /Befallen/i) {
+        quest::whisper("Very well! I will transport you to Befallen.");
+        quest::movepc(36, 38.57, -77.56, 3.33, 384.50);
+    }
+}

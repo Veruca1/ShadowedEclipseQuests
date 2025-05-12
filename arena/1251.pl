@@ -1,0 +1,95 @@
+	# Flags to prevent multiple spawns
+my $drelzna_spawned = 0;
+my $najena_spawned = 0;
+my $puppets_spawned = 0;
+
+sub EVENT_SPAWN {
+  quest::setnexthpevent(75); # Set first health event at 75% health
+  quest::modifynpcstat("hp", 100000); # Set initial HP (adjust as needed)
+  quest::shout("Hehehehehehooooo! Well well well, who wants to be my new puppet now?"); # New shout on spawn
+  
+  # Start timers for checking NPCs and buffs
+  quest::settimer("check_44105_alive", 30);
+  quest::settimer("check_1226_buff", 30);
+}
+
+sub EVENT_HP {
+  if ($hpevent == 75) {
+    # Spawn minion puppets at 75% health
+    if (!$puppets_spawned) {
+      quest::shout("Arise my puppets!");
+      quest::spawn2(44146, 0, 0, $x, $y, $z, $h); # Spawn puppet 1
+      quest::spawn2(44147, 0, 0, $x, $y, $z, $h); # Spawn puppet 2
+      $puppets_spawned = 1; # Set flag to prevent multiple spawns
+    }
+    quest::setnexthpevent(50); # Set next health event at 50% health
+  }
+  elsif ($hpevent == 50) {
+    # Spawn Fabled Drelzna at 50% health
+    if (!$drelzna_spawned) {
+      quest::shout("Here is one of my favorite puppets, I'm sure you'll agree, shes to die for!");
+      quest::spawn2(44105, 0, 0, $x, $y, $z, $h); # Spawn Fabled Drelzna
+      $drelzna_spawned = 1; # Set flag to prevent multiple spawns
+    }
+    quest::setnexthpevent(20); # Set next health event at 20% health
+  }
+  elsif ($hpevent == 20) {
+    # Spawn Fabled Najena at 20% health
+    if (!$najena_spawned) {
+      quest::shout("Behold! The true master of this realm on my side!");
+      quest::spawn2(1226, 0, 0, $x, $y, $z, $h); # Spawn Fabled Najena
+      $najena_spawned = 1; # Set flag to prevent multiple spawns
+    }
+  }
+}
+
+sub EVENT_TIMER {
+  if ($timer eq "check_44105_alive") {
+    # Check if NPC 44105 is alive
+    my $target_npc_44105 = $entity_list->GetMobByNpcTypeID(44105);
+
+    if ($target_npc_44105) {
+      # NPC 44105 is alive, modify the stats
+      quest::modifynpcstat("min_hit", $npc->GetMinDMG() + 50);
+      quest::modifynpcstat("max_hit", $npc->GetMaxDMG() + 100);
+    }
+  }
+  
+  if ($timer eq "check_1226_buff") {
+    # Check if NPC 1226 is alive
+    my $target_npc_1226 = $entity_list->GetMobByNpcTypeID(1226);
+
+    if ($target_npc_1226) {
+      # NPC 1226 is alive, cast the buff on self
+      $npc->CastSpell(22733,206069);  
+
+    } else {
+      # NPC 1226 is not alive, remove the buff with ID 50000
+      $npc->BuffFadeBySpellID(22733);
+    }
+  }
+}
+
+sub EVENT_COMBAT {
+  if ($combat_state == 1) {
+    quest::shout("You must not be allowed to proceed any further!");
+  } elsif ($combat_state == 0) {
+    # Not in combat, despawn NPCs 1226 and 44105
+    my $target_npc_1226 = $entity_list->GetMobByNpcTypeID(1226);
+    if ($target_npc_1226) {
+      $target_npc_1226->Depop(1); # Despawn with respawn enabled
+    }
+    
+    my $target_npc_44105 = $entity_list->GetMobByNpcTypeID(44105);
+    if ($target_npc_44105) {
+      $target_npc_44105->Depop(1); # Despawn with respawn enabled
+    }
+  }
+}
+
+sub EVENT_DEATH_COMPLETE {
+  # Stop all timers when this NPC dies
+  quest::stoptimer("check_44105_alive");
+  quest::stoptimer("check_1226_buff");
+  quest::signalwith(77027, 10, 2);  # Notify NPC with ID 77027 with a 2-second delay when NPC The Puppet Master Dies
+}

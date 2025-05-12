@@ -1,0 +1,88 @@
+sub EVENT_SPAWN {
+    quest::settimer("phase_check", 1);        # Checks the phase based on boss HP every second
+    quest::settimer("totem_summon", 30);      # Summons totems every 30 seconds
+    quest::settimer("skeleton_summon", 37);   # Summons skeletons every 37 seconds
+}
+
+sub EVENT_TIMER {
+    if ($timer eq "phase_check") {
+        if ($npc->GetHPRatio() > 75) {
+            Phase1_Mechanics();
+        } elsif ($npc->GetHPRatio() <= 75 && $npc->GetHPRatio() > 40) {
+            Phase2_Mechanics();
+        } elsif ($npc->GetHPRatio() <= 40) {
+            Phase3_Mechanics();
+        }
+    }
+
+    if ($timer eq "totem_summon") {
+        Summon_Totems();
+    }
+
+    if ($timer eq "skeleton_summon") {
+        Summon_Skeletons();
+    }
+}
+
+sub Phase1_Mechanics {
+    if (!$npc->GetNPCVariable("BoneShieldShouted")) {
+        quest::shout("The Revenant casts Bone Shield, reducing incoming damage!");
+        $npc->SetNPCVariable("BoneShieldShouted", 1);
+    }
+    quest::castspell(33633, $npc->GetID());  # Bone Shield spell
+}
+
+sub Phase2_Mechanics {
+    if (!$npc->GetNPCVariable("CursedAuraShouted")) {
+        quest::shout("The air becomes thick with a Cursed Aura, reducing healing!");
+        $npc->SetNPCVariable("CursedAuraShouted", 1);
+    }
+    quest::castspell(33634, $npc->GetID());  # Cursed Aura spell
+
+    # Shadow Vortex: Target a random player for debuff
+    my $target = $npc->GetHateTop();
+    if ($target) {
+        quest::castspell(33635, $target->GetID());  # Shadow Vortex
+        if (!$target->GetNPCVariable("ShadowVortexShouted")) {
+            quest::shout("A Shadow Vortex engulfs " . $target->GetName() . ", increasing their damage!");
+            $target->SetNPCVariable("ShadowVortexShouted", 1);
+        }
+    }
+}
+
+sub Phase3_Mechanics {
+    if (!$npc->GetNPCVariable("BloodSacrificeShouted")) {
+        quest::shout("The Revenant sacrifices a minion, bolstering its power!");
+        $npc->SetNPCVariable("BloodSacrificeShouted", 1);
+    }
+    quest::castspell(33636, $npc->GetID());  # Blood Sacrifice spell
+}
+
+sub Summon_Totems {
+    my $totem_count = plugin::RandomRange(1, 3);  # Summons 1-3 totems randomly
+
+    for (my $i = 0; $i < $totem_count; $i++) {
+        my $x = $npc->GetX() + plugin::RandomRange(-10, 10);  # Randomize spawn location slightly
+        my $y = $npc->GetY() + plugin::RandomRange(-10, 10);
+        my $z = $npc->GetZ();
+        quest::spawn2(1255, 0, 0, $x, $y, $z, $npc->GetHeading());  # Spawn the totem NPC
+    }
+}
+
+sub Summon_Skeletons {
+    my $skeleton_count = plugin::RandomRange(1, 2);  # Summons 1-2 skeletons
+
+    for (my $i = 0; $i < $skeleton_count; $i++) {
+        my $x = $npc->GetX() + plugin::RandomRange(-15, 15);  # Randomize spawn location
+        my $y = $npc->GetY() + plugin::RandomRange(-15, 15);
+        my $z = $npc->GetZ();
+        quest::spawn2(1254, 0, 0, $x, $y, $z, $npc->GetHeading());  # Spawn the skeleton NPCs
+    }
+}
+
+sub EVENT_DEATH_COMPLETE {
+    quest::shout("The Malignant Revenant has been defeated!");  # End encounter message
+    quest::stoptimer("phase_check");
+    quest::stoptimer("totem_summon");
+    quest::stoptimer("skeleton_summon");
+}

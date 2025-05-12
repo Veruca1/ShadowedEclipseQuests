@@ -1,0 +1,26 @@
+sub EVENT_ITEM_CLICK {
+    my $item_id = 694;  # ID of the item being clicked (Wijdan at Your Service)
+    my $npc_id = 1206;  # ID of the portable vendor NPC
+
+    if ($itemid == $item_id) {  # Check if the clicked item ID matches
+        # Check if the player has aggro (is in combat with any NPC)
+        if ($client->GetAggroCount() > 0) {
+            quest::message(314, "You cannot use this while in combat with an enemy.");
+            return;
+        }
+
+        # Check if the NPC is already spawned
+        if (!quest::isnpcspawned($npc_id)) {
+            # If not spawned, proceed to spawn the NPC
+            my $x = $client->GetX();
+            my $y = $client->GetY();
+            my $z = $client->GetZ();
+            my $h = $client->GetHeading();
+
+            quest::spawn2($npc_id, 0, 0, $x, $y, $z, $h);  # Spawn at player's location
+            quest::say("A portable vendor appears, ready to assist you with your banking needs. It will vanish after two minutes.");
+        } else {
+            quest::message(314, "A portable vendor is already available.");
+        }
+    }
+}

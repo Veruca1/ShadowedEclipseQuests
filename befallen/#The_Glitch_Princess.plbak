@@ -1,0 +1,48 @@
+sub EVENT_SPAWN {
+    #variables to set hp and get flag to set hp
+    my $hp_key = $npc->GetNPCTypeID( . "60-hp");
+    my $hp_percentage = 0.60;
+    my $new_max_hp = $max_hp * $hp_percentage;
+    #checks if the 60% key exsists if it doesnt it sets it to 60% hp event
+    if (quest::get_data($hp_key) == 1){
+        quest::setnexthpevent(20);
+        # Modify the NPC's max HP
+        quest::modifynpcstat("max_hp", $new_max_hp);
+        # Set the NPC's current HP to the new max HP
+        $npc->SetHP($new_max_hp);
+    }else{
+        quest::setnexthpevent(60);
+    }
+    
+}
+
+
+sub EVENT_HP {
+    #first hp check
+    if ($hpevent == 60) {
+        
+        my $hp_key = $npc->GetNPCTypeID( . "60-hp");
+        quest::set_data($hp_key, 1);
+        quest::depop()
+        my $x = 1;
+        my $y = 1;
+        my $z = 1;
+        my $h = 1;
+        my $boss_id = 36117;
+        quest::spawn2($boss_id, 0, 0, 60.96, -393.62, -38.22, 207);
+    }
+    #second HP check
+    elsif ($hpevent == 20) {
+
+        my $spell_divine = 207;
+        $npc->SpellFinished($spell_divine);
+    }
+
+}
+
+sub EVENT_DEATH_COMPLETE {
+    #deletes the key on death
+    my $hp_key = $npc->GetNPCTypeID( . "60-hp");
+    my $hp_key_value = quest::get_data($hp_key);
+    quest::delete_data($hp_key_value);
+}

@@ -1,0 +1,91 @@
+sub EVENT_SAY {
+    if ($text =~ /hail/i) {
+        plugin::Whisper("Welcome to the Arena! I am Bad Chad Alderland, your announcer for today's grand event. I have been sent here by The Eternal Covenant to find the best of the best to help combat The Shadowed Eclipse and eventually strike them up in the Plane of Hate itself? Do you have what it takes? You can choose between a [" . quest::saylink("5-wave encounter") . "] or a [" . quest::saylink("10-wave encounter") . "]. It should go without saying of course that there is risk vs reward. So, which will it be?");
+    }
+    elsif ($text =~ /5-wave encounter/i) {
+        plugin::Whisper("You've chosen the 5-wave encounter. Prepare yourself! The event will begin shortly. Good luck! Rewards include:");
+        plugin::Whisper(" - Up to 5 alternate currency coins");
+        plugin::Whisper(" - A chance at an illusion item");
+        plugin::Whisper(" - A very rare chance at an item from the merchant shop");
+        quest::set_data("wave_event", "5"); # Store wave event selection in data bucket
+        quest::settimer("wave1", 10); # Start the first wave in 10 seconds
+    }
+    elsif ($text =~ /10-wave encounter/i) {
+        plugin::Whisper("You've chosen the 10-wave encounter. Brace yourself for a tougher challenge! The event will begin shortly. Best of luck! Rewards include:");
+        plugin::Whisper(" - Between 5 and 10 alternate currency coins");
+        plugin::Whisper(" - An increased chance at an illusion item");
+        plugin::Whisper(" - Better odds at receiving gear from the merchant shop");
+        quest::set_data("wave_event", "10"); # Store wave event selection in data bucket
+        quest::settimer("wave1", 10); # Start the first wave in 10 seconds
+    }
+}
+
+sub EVENT_TIMER {
+    if ($timer eq "wave1") {
+        quest::stoptimer("wave1");
+        quest::shout("The first wave is about to begin!");
+        quest::spawn2(1227, 0, 0, 5.24, 391.55, -5.52, 261);
+    }
+    elsif ($timer eq "wave2") {
+        quest::stoptimer("wave2");
+        quest::shout("It is time. Wave 2...Begin!");
+        quest::spawn2(1228, 0, 0, 88.10, 36.13, -5.50, 293);
+    }
+    elsif ($timer eq "wave3") {
+        quest::stoptimer("wave3");
+        quest::shout("It is time. Wave 3...Begin!");
+        quest::spawn2(1229, 0, 0, 243.27, 303.45, -5.50, 335.75); # Correct location for NPC 1229
+    }
+    elsif ($timer eq "wave4") {
+        quest::stoptimer("wave4");
+        quest::shout("It is time. Wave 4...Begin!");
+        quest::spawn2(1230, 0, 0, -362.55, -53.82, -4.05, 423);
+        quest::spawn2(1231, 0, 0, -183.37, 370.49, -4.00, 213.25);
+    }
+    elsif ($timer eq "wave5") {
+        quest::stoptimer("wave5");
+        quest::shout("It is time. Wave 5...Begin!");
+        quest::spawn2(1232, 0, 0, -4.22, -480.98, -6.39, 1.25);
+        quest::spawn2(502004, 0, 0, -4.22, -480.98, -6.39, 1.25);
+    }
+    elsif ($timer eq "wave6") {
+        quest::stoptimer("wave6");
+        quest::shout("It is time. Wave 6...Begin!");
+        quest::spawn2(1240, 0, 0, -151.12, 48.17, -5.81, 119.25);
+	quest::spawn2(1241, 0, 0, -142.63, 79.00, -5.81, 129.25);
+    }
+}
+
+sub EVENT_SIGNAL {
+    my $wave_event = quest::get_data("wave_event"); # Retrieve the value from the data bucket
+
+    if ($signal == 1) {
+        quest::shout("Fantastic! Rest up. Your next opponent is in 1 minute!");
+        quest::settimer("wave2", 60); # Start the rest period timer for wave 2
+    }
+    elsif ($signal == 2) {
+        quest::shout("Fantastic! Rest up. Your next opponent is in 2 minutes!");
+        quest::settimer("wave3", 120); # Start the rest period timer for wave 3
+    }
+    elsif ($signal == 3) {
+        quest::shout("Fantastic! Rest up. Your next opponent is in 2.5 minutes!");
+        quest::settimer("wave4", 150); # Start the rest period timer for wave 4
+    }
+    elsif ($signal == 4) {
+        quest::shout("Fantastic! Rest up. Your next opponent is in 1 minute!");
+        quest::settimer("wave5", 60); # Start the rest period timer for wave 5
+    }
+    elsif ($signal == 5) {
+        if ($wave_event eq "5") {
+            quest::shout("Congratulations, you have beaten the 5-wave event, here is your reward. Now go show The Eclipse what we are made of!");
+            quest::spawn2(77028, 0, 0, 3.33, 53.83, 6.75, 511.25); # Spawn the chest
+        } elsif ($wave_event eq "10") {
+            quest::shout("Fantastic! Rest up. Your next opponent is in 3 minutes!");
+            quest::settimer("wave6", 180); # Start the rest period timer for wave 6
+        }
+    }
+}
+
+sub EVENT_ITEM {
+    plugin::return_items(\%itemcount); # Return any items that are handed in
+}

@@ -1,0 +1,26 @@
+local last_player_name = ""  -- Initialize variable to store the name of the player attacking the NPC
+local webhook_channel = "victory"  -- Set the Discord webhook channel name
+
+function event_combat(e)
+    if e.joined then  -- Combat starts
+        if e.other then
+            last_player_name = e.other:GetCleanName()  -- Store player's name if available
+        else
+            last_player_name = ""
+        end
+    end
+end
+
+function event_death(e)
+    local npc_name = e.self:GetCleanName()  -- Get the NPC's name
+    local player_name = last_player_name ~= "" and last_player_name or "Unknown"  -- Use the stored player's name or "Unknown" if no name was captured
+
+    -- Announce in-game
+    e.self:Shout(string.format("%s has been killed by %s", npc_name, player_name))
+
+    -- Send message to Discord
+    eq.discord_send(webhook_channel, string.format("%s has been killed by %s", npc_name, player_name))
+
+    -- Optionally clear the player's name after death
+    last_player_name = ""
+end

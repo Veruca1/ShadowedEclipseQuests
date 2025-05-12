@@ -1,0 +1,34 @@
+sub EVENT_DEATH_COMPLETE {
+    # Define the zone ID for Tower of Frozen Shadow
+    my $tofs_zone_id = 111;
+
+    # List of NPC IDs to be excluded from spawning NPC 1618
+    my @excluded_npc_ids = (1618, 1619, 1620, 1621, 1622, 1624, 1640);
+
+    # Check if the current zone is Tower of Frozen Shadow
+    if ($zoneid == $tofs_zone_id) {
+        # Get the ID of the dead NPC
+        my $dead_npc_id = $npc->GetNPCTypeID();
+
+        # Check if the dead NPC's ID is in the excluded list
+        if (!grep { $_ == $dead_npc_id } @excluded_npc_ids) {
+            # Set the chance to spawn NPC 1618 to 100% (guaranteed)
+            my $chance_to_spawn = 15; # 15% chance
+
+            # Since the chance is always 100%, spawn NPC 1618 directly
+            if ($chance_to_spawn == 100) {
+                # NPC ID to spawn (1618)
+                my $npc_to_spawn = 1618;
+
+                # Get the location of the dead NPC
+                my $x = $npc->GetX();
+                my $y = $npc->GetY();
+                my $z = $npc->GetZ();
+                my $h = $npc->GetHeading();
+
+                # Spawn NPC 1618 at the death location
+                quest::spawn2($npc_to_spawn, 0, 0, $x, $y, $z, $h);
+            }
+        }
+    }
+}

@@ -1,0 +1,73 @@
+sub EVENT_SAY {
+    if ($text=~/hail/i) {
+        # Display a popup when the player hails the NPC
+        quest::popup("Items of Temporal Flux", 
+            "Greetings, traveler. I have been sent back in time from the <c \"#F0D700\">Plane of Innovation</c> to assist in correcting the many <c \"#F0D700\">time anomalies</c> "
+            . "that have been appearing due to the <c \"#F0D700\">Chronomancer's</c> meddlesome behavior. His manipulation of time has caused disruptions throughout the realms.<br><br>"
+            . "During your journey, you may come across items in a state of <c \"#F0D700\">temporal flux</c>. These are items that exist both here and in other times, caught in the flow of time itself.<br><br>"
+            . "I need you to bring such items back to me for further study. However, be aware, some of these items may be <c \"#F0D700\">attracted</c> to similar objects in our time.<br><br>"
+            . "By <c \"#F0D700\">fusing</c> them together, you may be able to create something far more valuable. Proceed with caution, but know that the rewards could be <c \"#F0D700\">lucrative</c>.");
+    }
+}
+
+sub EVENT_ITEM {
+    my $turn_in_item = 31709;  # Item that must always be turned in
+    my $helm_turn_in_item = 31712;  # Item required for helms
+    my %item_reward = (
+        147814 => 600083,
+        147835 => 600084,
+        147856 => 600085,
+        147877 => 600086,
+        147898 => 600087,
+        147919 => 600088,
+        147940 => 600089,
+        147961 => 600090,
+        147982 => 600091,
+        148003 => 600092,
+        148024 => 600093,
+        147796 => 600094,
+        147709 => 600095,
+        147730 => 600096,
+        147754 => 600097,
+        147772 => 600098,
+        # Helms below require 31712
+        147715 => 32266,
+        147736 => 32267,
+        147763 => 32268,
+        147778 => 32269,
+        147802 => 32270,
+        147823 => 32255,
+        147844 => 32256,
+        147865 => 32261,
+        147886 => 32257,
+        147907 => 32262,
+        147928 => 32263,
+        147949 => 32264,
+        147970 => 32265,
+        147991 => 32258,
+        148012 => 32259,
+        148033 => 32260
+    );
+
+    # Check if the player handed in the required item (31709) and one of the specific items
+    foreach my $item_id (keys %item_reward) {
+        if (plugin::check_handin(\%itemcount, $turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($item_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+        # Check for helms requiring 31712
+        if (plugin::check_handin(\%itemcount, $helm_turn_in_item => 1, $item_id => 1)) {
+            quest::summonitem($item_reward{$item_id});  # Give the corresponding reward item
+            $client->Message(14, "Here is your reward!");  # Green text message to the client
+            quest::exp(1000);  # Optional: Reward some experience points
+            quest::ding();  # Optional: Play a sound when the player receives the reward
+            return;
+        }
+    }
+
+    # Return items if the turn-in is invalid
+    plugin::return_items(\%itemcount);
+}

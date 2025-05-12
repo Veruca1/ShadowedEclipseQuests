@@ -1,0 +1,34 @@
+# Timer for flipping special ability
+my $toggle_timer;
+
+sub EVENT_COMBAT {
+    if ($combat_state == 1) {  # NPC has entered combat
+        # Start the timer when combat starts
+        $toggle_timer = quest::settimer("toggle_magic_resist", 5);  # 5 seconds interval
+    }
+    else {  # NPC has left combat
+        # Stop the timer when combat ends
+        quest::stoptimer("toggle_magic_resist");
+    }
+}
+
+sub EVENT_TIMER {
+    # Flip special ability 20.1 on/off every 5 seconds
+    if ($timer eq "toggle_magic_resist") {
+        # Check if special ability 20.1 is set (magic resist)
+        my $has_magic_resist = $npc->GetSpecialAbility(20.1);
+        
+        if ($has_magic_resist) {
+            # Disable magic resist
+            $npc->SetSpecialAbility(20.1, 0);
+        } else {
+            # Enable magic resist
+            $npc->SetSpecialAbility(20.1, 1);
+        }
+    }
+}
+
+sub EVENT_DEATH {
+    # Clean up timer on death
+    quest::stoptimer("toggle_magic_resist");
+}

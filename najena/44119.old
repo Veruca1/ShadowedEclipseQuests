@@ -1,0 +1,92 @@
+# Initialize a variable to keep track of the last vanish location
+my $vanish_count = 0;
+
+sub EVENT_SPAWN {
+    # Set a timer to trigger every 25 seconds after an initial delay
+    quest::settimer("start_tricks", 25);
+}
+
+sub EVENT_COMBAT {
+    if ($combat_state == 1) {
+        # Ensure an elemental attacks the player throughout the fight, but only spawn one
+        my $elemental_id = quest::ChooseRandom(31006, 170210, 170229, 170225); # New elemental IDs
+        quest::spawn2($elemental_id, 0, 0, $x + 10, $y + 10, $z, $h);
+        quest::shout("Behold my magical prowess!");
+
+        # Start the timer for performing tricks
+        quest::settimer("magician_tricks", 25);
+    } elsif ($combat_state == 0) {
+        # Stop tricks when combat ends
+        quest::stoptimer("magician_tricks");
+        quest::shout("You have proven yourself... this time.");
+    }
+}
+
+sub EVENT_TIMER {
+    if ($timer eq "magician_tricks") {
+        if ($combat_state == 1) { # Ensure the NPC is in combat before performing tricks
+            my $random_ability = quest::ChooseRandom(1, 2, 3);
+
+            if ($random_ability == 1) {
+                # Spawn a random elemental
+                my $elemental_id = quest::ChooseRandom(31006, 170210, 170229, 170225); # New elemental IDs
+                quest::shout("Feel the might of my elementals!");
+                quest::spawn2($elemental_id, 0, 0, $x + 10, $y + 10, $z, $h);
+            } elsif ($random_ability == 2) {
+                # Depop current NPC and spawn at new location with the same HP percentage
+                my $x_loc;
+                my $y_loc;
+                my $z_loc;
+                my $heading;
+
+                if ($vanish_count % 2 == 0) {
+                    # First vanish location
+                    $x_loc = 350.91;
+                    $y_loc = -30.77;
+                    $z_loc = 4.55;
+                    $heading = 105;
+                } else {
+                    # Second vanish location
+                    $x_loc = 456.37;
+                    $y_loc = -48.45;
+                    $z_loc = 4.35;
+                    $heading = 412.00;
+                }
+
+                quest::shout("Watch as I vanish!");
+
+                # Capture the current HP percentage
+                my $hp_percentage = ($npc->GetHP() / $npc->GetMaxHP()) * 100;
+
+                # Depop the current NPC
+                quest::depop();
+
+                # Spawn a new NPC at the desired location
+                my $new_npc_id = $npc->GetNPCTypeID(); # Get the NPC's type ID
+                my $new_npc = quest::spawn2($new_npc_id, 0, 0, $x_loc, $y_loc, $z_loc, $heading);
+                my $new_npc_entity = $entity_list->GetNPCByID($new_npc);
+
+                if ($new_npc_entity) {
+                    # Set the new NPC's HP to the same percentage as before
+                    my $new_hp = $new_npc_entity->GetMaxHP() * ($hp_percentage / 100);
+                    $new_npc_entity->SetHP($new_hp);
+                    quest::setnexthpevent(30); # Line 73 - correctly setting the next HP event
+                }
+
+                # Increment vanish count to alternate locations
+                $vanish_count++;
+            } elsif ($random_ability == 3) {
+                # Create a magical barrier that absorbs damage for 4 seconds
+                quest::shout("A magical barrier protects me!");
+                $npc->SetInvul(1); # Temporarily make the NPC invulnerable
+                quest::settimer("invul_end", 4); # Set a timer to end invulnerability after 4 seconds
+            }
+        }
+    } elsif ($timer eq "invul_end") {
+        $npc->SetInvul(0); # End invulnerability
+        quest::stoptimer("invul_end");
+    } elsif ($timer eq "start_tricks") {
+        quest::stoptimer("start_tricks");
+        quest::settimer("magician_tricks", 25); # Start the tricks timer after the initial delay
+    }
+}

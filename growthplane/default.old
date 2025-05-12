@@ -1,0 +1,55 @@
+sub EVENT_SPAWN {
+    # List of NPC template IDs (npc_id) that should not perform the hunt
+    my @excluded_npc_ids = (
+        1832, 127001, 127106, 127007, 127097, 127098, 127020, 127047, 
+        127093, 127018, 127023, 127022, 127035, 127040, 127039, 127096, 
+        127019, 127017, 127021, 127042, 127015, 127016
+    );
+
+    my $npc_template_id = $npc->GetNPCTypeID(); # Get the template ID (npc_id)
+
+    # Check if the NPC's template ID is in the excluded list
+    if (!grep { $_ == $npc_template_id } @excluded_npc_ids) {
+        # Start the hunt timer for NPCs that are not excluded
+        quest::settimer("hunt", 10);
+        
+        # Perform stat modifications
+        $npc->SetLevel(70);  # Set all NPCs to level 70
+        $npc->ScaleNPC($npc->GetLevel(), 1); # Scale stats based on npc_scale_global_base
+
+        # Set default stats
+        $npc->ModifyNPCStat("ac", "9500");
+        $npc->ModifyNPCStat("min_hit", $npc->GetMinDMG() + 2800);
+        $npc->ModifyNPCStat("max_hit", $npc->GetMaxDMG() + 600);
+
+        # Set all resists to 110
+        $npc->ModifyNPCStat($_, "110") for ("cr", "dr", "fr", "mr", "pr", "phr");
+
+        # Modify primary stats
+        $npc->ModifyNPCStat($_, "950") for ("agi", "cha", "dex", "int", "sta", "str", "wis");
+
+        # Set additional stats
+        $npc->ModifyNPCStat("atk", "950");
+        $npc->ModifyNPCStat("accuracy", "950");
+        $npc->ModifyNPCStat("attack_delay", "0");
+        $npc->ModifyNPCStat("avoidance", "33");
+        $npc->ModifyNPCStat("heroic_strikethrough", "3");
+
+        # Set HP to 250,000
+        $npc->ModifyNPCStat("hp", "250000");
+
+        # Set run speed to 2.5
+        $npc->ModifyNPCStat("runspeed", "2.5");
+
+        # Apply Special Abilities
+        $npc->SetSpecialAbility(2, 1);  # Enrage
+        $npc->SetSpecialAbility(3, 1);  # Rampage
+        $npc->SetSpecialAbility(5, 1);  # Flurry
+        $npc->SetSpecialAbility(6, 1);  # Triple Attack
+        $npc->SetSpecialAbility(8, 1);  # Dual Wield
+        $npc->SetSpecialAbility(10, 1); # Magic Attack
+        $npc->SetSpecialAbility(14, 1); # Uncharmable
+        $npc->SetSpecialAbility(16, 1); # Unsnareable
+        $npc->SetSpecialAbility(21, 1); # Immune to Fleeing
+    }
+}
