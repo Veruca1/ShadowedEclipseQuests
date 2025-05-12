@@ -14,7 +14,7 @@ sub EVENT_SAY {
 
         foreach my $aa_id (sort keys %aa_rewards) {
             $client->GrantAlternateAdvancementAbility($aa_id, 1);
-            
+            $client->GrantAlternateAdvancementAbility(28, 1);
             
         }
     }
