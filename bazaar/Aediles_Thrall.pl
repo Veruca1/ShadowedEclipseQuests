@@ -3,7 +3,7 @@
 # DATABASE: PEQ PoP-LoY
 # LAST EDIT DATE: July 10, 2009
 # VERSION: 1.0
-# DEVELOPER: Congdar
+# DEVELOPER: Congdar    
 #
 # *** NPC INFORMATION ***
 #
