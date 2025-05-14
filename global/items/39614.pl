@@ -1,6 +1,6 @@
 sub EVENT_ITEM_CLICK {
     # Define the item ID to summon
-    my $summon_item_id = 24724;
+    my $summon_item_id = 39603;
 
     # Summon the item (adds the item to the player's inventory)
     $client->SummonItem($summon_item_id);

@@ -19,9 +19,9 @@ sub EVENT_SPAWN {
 
     my %base_stats = (
         ac                   => 15000, 
-        max_hp               => 1700000,     
-        min_hit              => 6000,   
-        max_hit              => 7500,
+        max_hp               => 5000000,     
+        min_hit              => 8000,   
+        max_hit              => 9500,
         accuracy             => 1800,
         avoidance            => 80,    
         slow_mitigation      => 80,
@@ -41,9 +41,9 @@ sub EVENT_SPAWN {
 
     my %boss_stats = (
         ac                   => 20000, 
-        max_hp               => 3500000,     
+        max_hp               => 10500000,     
         min_hit              => 7000,   
-        max_hit              => 9500,
+        max_hit              => 10500,
         accuracy             => 2000,
         avoidance            => 90,    
         slow_mitigation      => 90,

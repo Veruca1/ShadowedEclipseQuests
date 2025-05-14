@@ -23,10 +23,10 @@ sub EVENT_SPAWN {
     $is_boss = ($raw_name =~ /^#/ || $npc_id == 1919) ? 1 : 0;
 
     my %base_stats = (
-        ac                   => 16000, 
-        max_hp               => 1900000,     
+        ac                   => 18000, 
+        max_hp               => 6000000,     
         min_hit              => 8000,   
-        max_hit              => 9700,
+        max_hit              => 10700,
         accuracy             => 1800,
         avoidance            => 110,    
         slow_mitigation      => 80,
@@ -47,9 +47,9 @@ sub EVENT_SPAWN {
 
     my %boss_stats = (
         ac                   => 20000, 
-        max_hp               => 3750000,     
+        max_hp               => 12000000,     
         min_hit              => 9000,   
-        max_hit              => 10500,
+        max_hit              => 11500,
         accuracy             => 2000,
         avoidance            => 110,    
         slow_mitigation      => 90,
