@@ -47,7 +47,7 @@ sub ApplyDamageToEntities {
     foreach my $entity ($entity_list->GetClientList()) {
         my $distance = $entity->CalculateDistance($npc_x, $npc_y, $npc_z);
         if ($distance <= $radius) {
-            quest::shout("Applying 20000 damage to player: $entity");  # Debugging line (shout)
+           # quest::shout("Applying 20000 damage to player: $entity");  # Debugging line (shout)
             $entity->Damage($npc, 20000, 0, 1, 0);  # Apply 20000 damage to player
         }
     }

@@ -1,6 +1,6 @@
 sub EVENT_SPAWN {
     # Cast Aura of Insight (spell ID 8926) on the bard itself
-    plugin::pet_spawn_scaling($npc, $entity_list);
+  #  plugin::pet_spawn_scaling($npc, $entity_list);
     $npc->CastSpell(8926, $npc->GetID());
 
     # Get the NPC's group
