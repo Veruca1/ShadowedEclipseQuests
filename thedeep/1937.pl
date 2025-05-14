@@ -5,6 +5,9 @@ sub EVENT_SIGNAL {
         quest::shout("So... you’ve come. The mortal who walks Nyseria’s whispers like a tightrope.");
         quest::settimer("shout2_$npcid", 7);
     }
+    elsif ($signal == 500) {
+    quest::spawn2(1938, 0, 0, -503.69, -1242.68, 4.06, 0);
+}
 }
 
 sub EVENT_TIMER {
