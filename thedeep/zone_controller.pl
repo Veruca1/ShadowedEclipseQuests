@@ -13,6 +13,17 @@ my $engaged = 0;
 my $current_npc_eid = 0;
 
 sub EVENT_SPAWN {
+    my $npc_id = 1937;
+    my $zone = $zoneid;
+    my $instance_ver = $instanceversion;
+
+    if ($zone == 164 && $instance_ver == 1) {
+        if (!quest::isnpcspawned($npc_id)) {
+            #quest::spawn2($npc_id, 0, 0, 719.59, -56.16, 41.41, 73);
+        }
+    }
+
+    # Zigzag logic init
     @active_npcs = @npc_ids;
     $engaged = 0;
     $current_npc_eid = 0;
@@ -20,9 +31,9 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_TIMER {
-    if ($timer eq "zigzag") {
-        return if $engaged || !@active_npcs;
+    return if $engaged || !@active_npcs;
 
+    if ($timer eq "zigzag") {
         # Depop previous if exists
         if ($current_npc_eid && $entity_list->GetNPCByID($current_npc_eid)) {
             $entity_list->GetNPCByID($current_npc_eid)->Depop();
@@ -38,17 +49,13 @@ sub EVENT_TIMER {
 
 sub EVENT_SIGNAL {
     if ($signal == 250) {
-        # NPC engaged, stop spawning
         $engaged = 1;
         quest::stoptimer("zigzag");
-    }
-    elsif ($signal >= 1000 && $signal <= 1003) {
-        # One of the Zigzag NPCs died
+    } elsif ($signal >= 1000 && $signal <= 1003) {
         my $dead_npc_id = 1941 + ($signal - 1000);
         @active_npcs = grep { $_ != $dead_npc_id } @active_npcs;
         $engaged = 0;
         $current_npc_eid = 0;
-
         if (@active_npcs) {
             quest::settimer("zigzag", 8);
         }
