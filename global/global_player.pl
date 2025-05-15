@@ -4,6 +4,12 @@ sub EVENT_SAY {
     # Handle auto-loot and lootfilter related commands
     return if plugin::handle_autoloot_commands($client, $text);
 
+    # Handle #enter to rejoin expedition
+    if ($text =~ /^#enter$/i) {
+        plugin::handle_enter_command($client);
+        return;
+    }
+
     # Handle #model command
     if ($text =~ /#model/i) {
         plugin::model_change($text);
@@ -56,6 +62,7 @@ sub EVENT_SAY {
         }
     }
 }
+
 
 sub EVENT_DISCOVER_ITEM {
     my $discovereditem = quest::varlink($itemid);

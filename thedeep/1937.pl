@@ -6,8 +6,20 @@ sub EVENT_SIGNAL {
         quest::settimer("shout2_$npcid", 7);
     }
     elsif ($signal == 500) {
-    quest::spawn2(1938, 0, 0, -503.69, -1242.68, 4.06, 0);
-}
+        if (!quest::isnpcspawned(1938)) {
+            quest::spawn2(1938, 0, 0, 338.67, -337.53, -59.20, 448.25);
+        }
+    }
+    elsif ($signal == 600) {
+        if (!quest::isnpcspawned(1939)) {
+            quest::spawn2(1939, 0, 0, 1260.49, 873.12, -61.22, 111.75);
+        }
+    }
+    elsif ($signal == 700) {
+        if (!quest::isnpcspawned(1940)) {
+            quest::spawn2(1940, 0, 0, 2685.94, -1016.83, -52.28, 383.75);
+        }
+    }    
 }
 
 sub EVENT_TIMER {
@@ -31,5 +43,15 @@ sub EVENT_TIMER {
     elsif ($timer eq "shout5_$npcid") {
         quest::shout("Come then, child of defiance. Let us not waste what little time the moons grant us.");
         quest::stoptimer("shout5_$npcid");
+
+        if (!quest::isnpcspawned(1938)) {
+            quest::spawn2(1938, 0, 0, 338.67, -337.53, -59.20, 448.25);
+        }
+        if (!quest::isnpcspawned(1939)) {
+            quest::spawn2(1939, 0, 0, 1260.49, 873.12, -61.22, 111.75);
+        }
+        if (!quest::isnpcspawned(1940)) {
+            quest::spawn2(1940, 0, 0, 2685.94, -1016.83, -52.28, 383.75);
+        }
     }
-}
+} 

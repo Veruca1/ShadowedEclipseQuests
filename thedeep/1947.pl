@@ -1,0 +1,159 @@
+my $balancing = 0;
+my $demogorgon_engaged = 0;
+my $spawned_engage_timer = 20;
+my $spawn_add_timer = 2;
+my $spawned_npc_id = 0;
+my $combat_engaged = 0;
+
+sub EVENT_SPAWN {
+    quest::setnexthpevent(85);
+    $npc->SetSpecialAbility(19, 1); # Melee immune
+    quest::settimer("balance_check", 1);
+}
+
+sub EVENT_HP {
+    if ($hpevent == 85) {
+        $npc->SetSpecialAbility(19, 0); # Remove melee immunity
+        my $clone_id = quest::spawn2(1460, 0, 0, $x + 5, $y + 5, $z, $h);
+        my $clone = $entity_list->GetMobByID($clone_id);
+        $clone->SetHP($npc->GetHP());
+        quest::setnexthpevent(50);
+        $balancing = 1;
+    }
+    elsif ($hpevent == 50 && $balancing) {
+    $balancing = 0;
+    quest::depopall(1460); # End balance
+    quest::setnexthpevent(45); # Prepare for next phase
+}
+
+elsif ($hpevent == 45) {
+    $npc->SetHP($npc->GetMaxHP() * 0.45);
+
+    # FULL LOCKDOWN
+    $npc->WipeHateList();
+    $npc->SetNPCFactionID(0);
+    $npc->SetSpecialAbility(24, 1); # No aggro
+    $npc->SetSpecialAbility(25, 1); # No assist
+    $npc->SetSpecialAbility(35, 1); # Unattackable
+    $npc->SetInvul(1);
+
+    quest::modifynpcstat("hp_regen", 0); # Stop regen
+    apply_room_root_spell(); # Root everyone in room
+
+    quest::shout("Ah, you mortals thought you could defeat me. I planned for a demogorgon to wield my power long ago!");
+
+    # Spawn Demogorgon
+    $spawned_npc_id = quest::spawn2(1949, 0, 0, 1783.50, 45.45, -72.98, 258.25);
+
+    # Start 20s timer
+    $spawned_engage_timer = 20;
+    quest::settimer("countdown_timer", 1);
+    }
+    elsif ($hpevent == 20) {
+        $npc->SetSpecialAbility(20, 0); # Remove spell immunity
+        quest::setnexthpevent(10);
+        $spawn_add_timer = 4;
+        quest::settimer("spawn_adds", 5);
+    }
+    elsif ($hpevent == 10) {
+        # Already increased add count at 20% to 4
+        quest::setnexthpevent(1);
+    }
+    elsif ($hpevent == 1) {
+        $npc->SetInvul(1);
+        quest::stoptimer("spawn_adds");
+        $npc->GMMove(1783.50, 45.45, -72.98, 258.25); # Burrower room
+        quest::shout("You cannot run... face your end in my true domain!");
+        quest::settimer("final_burn_timer", 50); # 50s kill timer
+    }
+}
+
+sub EVENT_SIGNAL {
+    if ($signal == 45) {
+        # UNLOCK THO
+        $npc->WipeHateList();
+        $npc->SetNPCFactionID(623); # Back to normal faction
+        $npc->SetSpecialAbility(24, 0);
+        $npc->SetSpecialAbility(25, 0);
+        $npc->SetSpecialAbility(35, 0);
+        $npc->SetInvul(0);
+
+        quest::shout("You have destroyed my vessel... but I am not yet finished!");
+
+        # Become immune to spell damage until 20%
+        $npc->SetSpecialAbility(20, 1); # Spell immunity
+        quest::setnexthpevent(20);
+    }
+    elsif ($signal == 999) {
+    $combat_engaged = 1;
+    quest::stoptimer("countdown_timer");
+    #quest::shout("Combat engaged! Countdown stopped.");
+    }
+}
+
+sub EVENT_TIMER {
+    if ($timer eq "balance_check" && $balancing) {
+        my $tho = $npc;
+        my $host = $entity_list->GetNPCByNPCTypeID(1460);
+        return unless $host;
+
+        my $tho_hp = $tho->GetHP() / $tho->GetMaxHP() * 100;
+        my $host_hp = $host->GetHP() / $host->GetMaxHP() * 100;
+
+        if (abs($tho_hp - $host_hp) > 5) {
+            quest::shout("The balance has failed. The entities retreat!");
+            quest::depopall(1947);
+            quest::depopall(1460);
+            quest::depopall(1948);
+            quest::stoptimer("balance_check");
+        }
+    }
+    elsif ($timer eq "countdown_timer") {
+        return if $combat_engaged;
+        quest::shout("$spawned_engage_timer...");
+        $spawned_engage_timer--;
+
+        if ($spawned_engage_timer <= 0) {
+            quest::stoptimer("countdown_timer");
+
+            my $npc_obj = $entity_list->GetMobByID($spawned_npc_id);
+            if ($npc_obj) {
+                $npc_obj->Depop();
+                $spawned_npc_id = 0;
+            }
+
+            my @clients = $entity_list->GetClientList();
+            foreach my $c (@clients) {
+                $c->Kill(); # Optional room wipe
+            }
+        }
+    }
+    elsif ($timer eq "spawn_adds") {
+        for (1..$spawn_add_timer) {
+            quest::spawn2(1948, 0, 0, $x + int(rand(15)) - 7, $y + int(rand(15)) - 7, $z, 0);
+        }
+    }
+    elsif ($timer eq "final_burn_timer") {
+        quest::shout("You took too long... I will return!");
+        quest::depopall(1947);
+        quest::depopall(1460);
+        quest::depopall(1948);
+    }
+}
+
+sub EVENT_AGGRO {
+    $combat_engaged = 1;
+}
+
+sub EVENT_COMBAT {
+    $combat_engaged = ($combat_state == 1) ? 1 : 0;
+}
+
+sub apply_room_root_spell {
+    my @clients = $entity_list->GetClientList();
+    foreach my $client (@clients) {
+        if ($client->CalculateDistance($x, $y, $z) <= 100) {
+            $client->CastSpell(17512, $client->GetID()); # Unresistable root
+        }
+    }
+}
