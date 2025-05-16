@@ -19,7 +19,7 @@ sub EVENT_SPAWN {
 
     if ($zone == 164 && $instance_ver == 1) {
         if (!quest::isnpcspawned($npc_id)) {
-            #quest::spawn2($npc_id, 0, 0, 719.59, -56.16, 41.41, 73);
+            quest::spawn2($npc_id, 0, 0, 719.59, -56.16, 41.41, 73);
         }
     }
 
@@ -51,13 +51,18 @@ sub EVENT_SIGNAL {
     if ($signal == 250) {
         $engaged = 1;
         quest::stoptimer("zigzag");
+
     } elsif ($signal >= 1000 && $signal <= 1003) {
         my $dead_npc_id = 1941 + ($signal - 1000);
         @active_npcs = grep { $_ != $dead_npc_id } @active_npcs;
         $engaged = 0;
         $current_npc_eid = 0;
+
         if (@active_npcs) {
             quest::settimer("zigzag", 8);
+        } else {
+            # All 4 NPCs are defeated, spawn 1947
+            quest::spawn2(1947, 0, 0, 2287.70, -999.23, -59.20, 398);
         }
     }
 }
