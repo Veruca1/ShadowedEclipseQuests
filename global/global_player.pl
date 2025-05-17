@@ -23,6 +23,12 @@ sub EVENT_SAY {
         plugin::logtargets_toggle($client, "");  # status check
     }
 
+    # Handle #augment command
+    if ($text =~ /^#?augment$/i) {
+        plugin::FindAndUseAugmentSealer($client);
+        return;
+    }
+
     # Handle teleportation for Paludal Caverns
     elsif ($zoneid == 156) {
         my $char_id = $client->CharacterID();
@@ -62,6 +68,8 @@ sub EVENT_SAY {
         }
     }
 }
+
+
 
 
 sub EVENT_DISCOVER_ITEM {

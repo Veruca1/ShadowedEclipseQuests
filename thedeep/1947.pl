@@ -13,14 +13,18 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_HP {
-    if ($hpevent == 85) {
-        $npc->SetSpecialAbility(19, 0); # Remove melee immunity
-        my $clone_id = quest::spawn2(1460, 0, 0, $x + 5, $y + 5, $z, $h);
-        my $clone = $entity_list->GetMobByID($clone_id);
+   if ($hpevent == 85) {
+    $npc->SetSpecialAbility(19, 0); # Remove melee immunity
+
+    my $clone_id = quest::spawn2(1460, 0, 0, $npc->GetX() + 5, $npc->GetY() + 5, $npc->GetZ(), $npc->GetHeading());
+    my $clone = $entity_list->GetMobByID($clone_id);
+    if ($clone) {
         $clone->SetHP($npc->GetHP());
-        quest::setnexthpevent(50);
-        $balancing = 1;
     }
+
+    quest::setnexthpevent(50);
+    $balancing = 1;
+}
     elsif ($hpevent == 50 && $balancing) {
         $balancing = 0;
         quest::depopall(1460); # End balance
@@ -36,6 +40,7 @@ sub EVENT_HP {
         $npc->SetInvul(1);
         quest::modifynpcstat("hp_regen", 0);
         apply_room_root_spell();
+        quest::shout("Feel the grip of the void!");
         quest::shout("Ah, you mortals thought you could defeat me. I planned for a demogorgon to wield my power long ago!");
         $spawned_npc_id = quest::spawn2(1949, 0, 0, 1783.50, 45.45, -72.98, 258.25);
         $spawned_engage_timer = 20;
@@ -180,10 +185,23 @@ sub EVENT_COMBAT {
 }
 
 sub apply_room_root_spell {
+    my $cx = $npc->GetX();
+    my $cy = $npc->GetY();
+    my $cz = $npc->GetZ();
+
+    quest::debug("apply_room_root_spell: Target location = ($cx, $cy, $cz)");
+
     my @clients = $entity_list->GetClientList();
+    quest::debug("apply_room_root_spell: Found " . scalar(@clients) . " clients.");
+
     foreach my $client (@clients) {
-        if ($client->CalculateDistance($x, $y, $z) <= 100) {
-            $client->CastSpell(17512, $client->GetID()); # Unresistable root
+        my $dist = $client->CalculateDistance($cx, $cy, $cz);
+        quest::debug("Checking client " . $client->GetCleanName() . " (ID: " . $client->GetID() . ") at distance $dist");
+        if ($dist <= 100) {
+            quest::debug(" -> In range. NPC casting Deathgrip Roots on " . $client->GetCleanName());
+            $npc->CastSpell(17512, $client->GetID()); # NPC casts root spell on client
+        } else {
+            quest::debug(" -> Out of range. No action on " . $client->GetCleanName());
         }
     }
 }
