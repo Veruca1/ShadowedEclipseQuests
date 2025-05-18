@@ -33,7 +33,7 @@ sub EVENT_TIMER {
             } else {
                 quest::shout("You cannot escape my wrath!");
                 $npc->ModifyNPCStat("max_hp", 4000000);  # Temporary increase in hit points
-                quest::settimer("enrage", 30;  # Enrage timer for increased damage after 60 seconds
+                quest::settimer("enrage", 30);  # Enrage timer for increased damage after 60 seconds
             }
         }
 

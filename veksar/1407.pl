@@ -11,7 +11,7 @@ sub EVENT_ITEM {
         quest::spawn2(1408, 0, 0, $npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
 
         # Depop NPC 1407
-        quest::depop();
+        #quest::depop();
     } else {
         # If the items are not correct, return the items
         quest::say("I don't need these items.");

@@ -12,10 +12,9 @@ sub EVENT_SPAWN {
         my %exclusion_list = (
         164120 => 1,  # Event Controller
         164098 => 1,  # Event Manager
+        1950 => 1,  # spined rock burrowers
+        1951 => 1,  # Stone Carvers
         164089 => 1,  # Burrower Parasite (Boss)
-        164118 => 1,  # Rock Burrower
-        164104 => 1,  # Spined Rock Burrower
-        164100 => 1,  # Stone Carver
         1947   => 1,  # Excluded NPC
         1460   => 1,  # Excluded NPC
         1948   => 1,  # Excluded NPC
@@ -227,7 +226,7 @@ sub EVENT_DEATH_COMPLETE {
     return unless $npc;
 
     my %exclusion_list = (
-        156055 => 1,
+        1460 => 1,
         1922   => 1,
     );
 

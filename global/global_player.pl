@@ -3,6 +3,7 @@ sub EVENT_SAY {
 
     # Handle auto-loot and lootfilter related commands
     return if plugin::handle_autoloot_commands($client, $text);
+    plugin::handle_admin_commands($client, $text, $status, $entity_list);
 
     # Handle #enter to rejoin expedition
     if ($text =~ /^#enter$/i) {
@@ -29,46 +30,9 @@ sub EVENT_SAY {
         return;
     }
 
-    # Handle teleportation for Paludal Caverns
-    elsif ($zoneid == 156) {
-        my $char_id = $client->CharacterID();
-        my $flag = quest::get_data("paludal_boss_unlock_" . $char_id);
-
-        if ($text =~ /checkpoint/i) {
-            $client->MovePC(156, 258.07, -1381.41, -223.51, 500.75);
-        }
-        elsif ($text =~ /boss/i) {
-            if (defined($flag) && $flag == 1) {
-                $client->MovePC(156, 874.69, 2190.09, 11.29, 323.75);
-            } else {
-                $client->Message(13, "You must defeat the guardian before you can face the boss.");
-            }
-        }
-    }
-
-    # Handle teleportation for Echo Caverns
-    elsif ($zoneid == 153) {
-        my $char_id = $client->CharacterID();
-        my $checkpoint_flag = quest::get_data("echo_checkpoint_unlock_" . $char_id);
-        my $boss_flag = quest::get_data("echo_boss_unlock_" . $char_id);
-
-        if ($text =~ /checkpoint/i) {
-            if (defined($checkpoint_flag) && $checkpoint_flag == 1) {
-                $client->MovePC(153, -37.16, -1003.50, 3.37, 128);
-            } else {
-                $client->Message(13, "The path to the checkpoint is currently blocked.");
-            }
-        }
-        elsif ($text =~ /boss/i) {
-            if (defined($boss_flag) && $boss_flag == 1) {
-                $client->MovePC(153, 1431.23, -1284.29, 113.18, 284.25);
-            } else {
-                $client->Message(13, "You must defeat the guardian before you can face the boss.");
-            }
-        }
-    }
+    # Handle checkpoint and boss teleports
+    return if plugin::handle_checkpoint_and_boss($client, $text, $zoneid);
 }
-
 
 
 
