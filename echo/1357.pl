@@ -1,6 +1,4 @@
 sub EVENT_SAY {
-    my $instance_link = quest::saylink("instance", 1);  # Clickable 'instance'
-
     if ($text =~ /hail/i) {
         quest::popup("The Envoy of Sel'Rheza",
         "Echo Caverns... the name does it no justice. This place is <c \"#B070C0\">alive</c> with resonance, with memory. Footsteps do not fade here—they repeat, like fractured truths caught in stone.<br><br>" .
@@ -10,23 +8,46 @@ sub EVENT_SAY {
         "You are not here by mistake. The <c \"#8080C0\">Coven of the Shadowed Eclipse</c> watches, and their patience is long... but not infinite. Proceed with care, and perhaps Sel’Rheza herself will grant you a glimpse of what sleeps beneath.<br><br>" .
         "<c \"#8080C0\">The Chorus waits… and watches.</c>"
         );
-        quest::whisper("If you would like your own private version of Echo Caverns, just say $instance_link.");
+        plugin::Whisper("If your path is unclear, speak and I shall open the way. Say [list zones] to hear the echoes that await... or name the one that calls to you.");
     }
 
-    if ($text =~ /instance/i) {
-        my $group = $client->GetGroup();
-        my $zone_id = "echo";
-        my $npc_x = $npc->GetX();
-        my $npc_y = $npc->GetY();
-        my $npc_z = $npc->GetZ();
-        my $npc_h = $npc->GetHeading();
+    elsif ($text =~ /list zones/i) {
+        plugin::Whisper("The echoes stir in these realms:");
+        plugin::Whisper("  - " . quest::saylink("Echo Caverns", 1, "Echo Caverns (echo)"));
+        plugin::Whisper("  - " . quest::saylink("The Deep", 1, "The Deep (thedeep)"));
+    }
 
-        plugin::Whisper("Let the echoes guide you. May Sel’Rheza illuminate the false paths and cloak you from what follows.");
+    elsif ($text =~ /^(Echo Caverns|echo)$/i) {
+        CreateCustomDZ("echo", "Echo Caverns");
+    }
 
-        if ($group) {
-            $client->SendToInstance("group", $zone_id, 0, $npc_x, $npc_y, $npc_z, $npc_h, "echo", 14400);
+    elsif ($text =~ /^(The Deep|thedeep)$/i) {
+        CreateCustomDZ("thedeep", "The Deep");
+    }
+
+    elsif ($text =~ /ready/i) {
+        my $dz = $client->GetExpedition();
+        if ($dz) {
+            my $zone_short = $dz->GetZoneName();
+            plugin::Whisper("The veil thins. You are being drawn to: $zone_short.");
+            $client->MovePCDynamicZone($zone_short);
         } else {
-            $client->SendToInstance("solo", $zone_id, 0, $npc_x, $npc_y, $npc_z, $npc_h, "echo", 14400);
+            plugin::Whisper("You are not yet tethered to an echo. Speak again when you are.");
         }
+    }
+}
+
+# DZ creation helper
+sub CreateCustomDZ {
+    my ($shortname, $fullname) = @_;
+    my $dz_duration = 14400; # 4 hours
+    my $min_players = 1;
+    my $max_players = 6;
+    my $expedition_name = "DZ - $fullname";
+    my $dz = $client->CreateExpedition($shortname, 0, $dz_duration, $expedition_name, $min_players, $max_players);
+    if ($dz) {
+        plugin::Whisper("An echo of '$fullname' has been awakened. Say [" . quest::saylink("ready", 1, "ready") . "] when your spirit is prepared.");
+    } else {
+        plugin::Whisper("This echo remains sealed. Try again or consult the Chorus.");
     }
 }

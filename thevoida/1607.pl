@@ -1,5 +1,8 @@
 sub EVENT_SAY {
     if ($text=~/hail/i) {
+        my $char_id = $client->CharacterID();
+        my $flag_key = "${char_id}_shadeweaver_flag";
+
         quest::popup(
             "Echoes Beyond the Void",
             "You stand at the <c \"#9900CC\">end of all things</c>. This place—<c \"#CC00CC\">The Void</c>—is not just forgotten by time... it exists outside of it.<br><br>" .
@@ -10,5 +13,14 @@ sub EVENT_SAY {
             "<c \"#660066\">The Mistress of Shadows</c> watches. <c \"#CC00CC\">She knows</c> of your intrusion. She <c \"#FF3399\">does not yet approve</c>... but she is curious. Tread carefully, adventurer. The eyes of a goddess are upon you.",
             1
         );
+
+        if (!quest::get_data($flag_key)) {
+            quest::set_zone_flag(165); # Zone ID for Shadeweaver's Thicket
+            quest::set_data($flag_key, 1);
+            quest::we(15, "$name has earned access to The Shadeweaver's Thicket.");
+            quest::whisper("You have been granted access to the Shadeweaver`s Thicket beyond the breach. May your steps be silent, and your mind sharp.");
+        } else {
+            quest::whisper("You have already been granted access to the the Shadeweaver`s Thicket. There is nothing more for you here.");
+        }
     }
 }

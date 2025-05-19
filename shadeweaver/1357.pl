@@ -1,6 +1,4 @@
 sub EVENT_SAY {
-    my $instance_link = quest::saylink("instance", 1);  # Clickable 'instance'
-
     if ($text =~ /hail/i) {
         quest::summonitem(33202);  # Shadeweaver's Kit
         quest::popup("The Envoy of Sel'Rheza",
@@ -18,23 +16,31 @@ sub EVENT_SAY {
         "You may also come across the <c \"#B070C0\">Loda Kai</c> in your travels. They are... restless. Their clan is known to challenge one another for dominance—hunting conquests, they call them. If you engage them, you may uncover more about their strange rites and the trials they impose upon each other. Curiosity, after all, is rarely without reward.<br><br>" .
         "<c \"#8080C0\">The Chorus waits… and watches.</c>"
         );
-        quest::whisper("If you would like your own private version of Shadeweaver's Thicket, just say $instance_link.");
+        plugin::Whisper("If your curiosity lingers... I can offer you a path into a place untouched. Say [list zones]... or the name of the one that calls to you.");
     }
 
-    if ($text =~ /instance/i) {
-        my $group = $client->GetGroup();
-        my $zone_id = "shadeweaver";
-        my $npc_x = $npc->GetX();
-        my $npc_y = $npc->GetY();
-        my $npc_z = $npc->GetZ();
-        my $npc_h = $npc->GetHeading();
+    elsif ($text =~ /list zones/i) {
+        plugin::Whisper("The Chorus offers passage to these echoes of reality:");
+        plugin::Whisper("  - " . quest::saylink("Shadeweaver's Thicket", 1, "Shadeweaver's Thicket (shadeweaver)"));
+        plugin::Whisper("  - " . quest::saylink("Paludal Caverns", 1, "Paludal Caverns (paludal)"));
+    }
 
-        plugin::Whisper("Good luck adventurer!");
+    elsif ($text =~ /^(Shadeweaver|Shadeweaver's Thicket|shadeweaver)$/i) {
+        CreateCustomDZ("shadeweaver", "Shadeweaver's Thicket");
+    }
 
-        if ($group) {
-            $client->SendToInstance("group", $zone_id, 0, $npc_x, $npc_y, $npc_z, $npc_h, "shadeweaver", 14400);
+    elsif ($text =~ /^(Paludal|Paludal Caverns|paludal)$/i) {
+        CreateCustomDZ("paludal", "Paludal Caverns");
+    }
+
+    elsif ($text =~ /ready/i) {
+        my $dz = $client->GetExpedition();
+        if ($dz) {
+            my $zone_short = $dz->GetZoneName();
+            plugin::Whisper("The veil thins. You are being drawn to: $zone_short.");
+            $client->MovePCDynamicZone($zone_short);
         } else {
-            $client->SendToInstance("solo", $zone_id, 0, $npc_x, $npc_y, $npc_z, $npc_h, "shadeweaver", 14400);
+            plugin::Whisper("You are not yet tethered to an echo. Speak again when you are.");
         }
     }
 }
@@ -45,5 +51,20 @@ sub EVENT_ITEM {
         quest::summonitem(33201);  # Enhanced Symbol
         quest::whisper("Take this to the entranced Firefall Seer to the north. Only then will it become clear what to do next.");
         quest::summonitem(33200);  # Return the original symbol
+    }
+}
+
+# DZ creation helper
+sub CreateCustomDZ {
+    my ($shortname, $fullname) = @_;
+    my $dz_duration = 14400; # 4 hours
+    my $min_players = 1;
+    my $max_players = 6;
+    my $expedition_name = "DZ - $fullname";
+    my $dz = $client->CreateExpedition($shortname, 0, $dz_duration, $expedition_name, $min_players, $max_players);
+    if ($dz) {
+        plugin::Whisper("An echo of '$fullname' has been awakened. Say [" . quest::saylink("ready", 1, "ready") . "] when your spirit is prepared.");
+    } else {
+        plugin::Whisper("This echo remains sealed. Try again or consult the Chorus.");
     }
 }

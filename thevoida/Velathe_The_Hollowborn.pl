@@ -1,20 +1,57 @@
 sub EVENT_SAY {
+    my %class_names = (
+        1 => "Warrior",
+        2 => "Cleric",
+        3 => "Paladin",
+        4 => "Ranger",
+        5 => "Shadow Knight",
+        6 => "Druid",
+        7 => "Monk",
+        8 => "Bard",
+        9 => "Rogue",
+        10 => "Shaman",
+        11 => "Necromancer",
+        12 => "Wizard",
+        13 => "Magician",
+        14 => "Enchanter",
+        15 => "Beastlord",
+        16 => "Berserker"
+    );
+
+    my $name = $client->GetCleanName();
+    if (lc($name) ne "croaknight") {
+        quest::say("The void stirs, but I am not yet ready to guide you. I will make an announcement when I am ready.");
+        return;
+    }
+
     if ($text=~/hail/i) {
-        quest::say("If you are ready to be reborn and have at least 400 AA points, I can offer you great power. Say [rebirth] to begin again or [view rebirth info] to see your current progress.");
+        quest::say("The cycle of souls turns ever onward. If your spirit is strong and you possess the wisdom of many lifetimes (1000 AA per rebirth level), I can guide you through rebirth. Speak the word [rebirth] to begin anew, or ask to [view rebirth info] to reflect on your journey thus far.");
     }
     elsif ($text=~/view rebirth info/i) {
         my $char_id = $client->CharacterID();
         my $class_id = $client->GetClass();
+        my $class_name = $class_names{$class_id} || "Unknown";
         my $rebirths_total = quest::get_data("$char_id-rebirth_total") || 0;
         my $rebirths_class = quest::get_data("$char_id-rebirth_class_$class_id") || 0;
         my $rebirth_value = quest::get_data("$char_id-rebirth_value") || 0;
-        quest::say("Total Rebirths: $rebirths_total | Class ($class_id) Rebirths: $rebirths_class | Rebirth Value: $rebirth_value");
+        quest::say("Total Rebirths: $rebirths_total | Class ($class_name) Rebirths: $rebirths_class | Rebirth Value: $rebirth_value");
     }
     elsif ($text=~/rebirth/i) {
-        my $rebirth_cost = 400;
         my $char_id = $client->CharacterID();
         my $class_id = $client->GetClass();
         my $name = $client->GetCleanName();
+
+        my $rebirths_total = quest::get_data("$char_id-rebirth_total") || 0;
+        my $rebirths_class = quest::get_data("$char_id-rebirth_class_$class_id") || 0;
+
+        # Check if player has reached the rebirth cap for their class
+        if ($rebirths_class >= 10) {
+            $client->Message(13, "You have reached the current limit of your power for the $class_names{$class_id} class. To progress anew, you must walk a different path and choose another class.");
+            return;
+        }
+
+        my $next_rebirth_level = $rebirths_total + 1;
+        my $rebirth_cost = 1000 * $next_rebirth_level;
 
         if ($client->GetLevel() < 60) {
             $client->Message(13, "You must be at least level 60 to rebirth.");
@@ -22,14 +59,12 @@ sub EVENT_SAY {
         }
 
         if ($client->GetAAPoints() < $rebirth_cost) {
-            $client->Message(13, "You need at least $rebirth_cost AA points to rebirth.");
+            $client->Message(13, "You need at least $rebirth_cost AA points to rebirth (1000 AA per rebirth level).");
             return;
         }
 
         $client->SetAAPoints($client->GetAAPoints() - $rebirth_cost);
 
-        my $rebirths_total = quest::get_data("$char_id-rebirth_total") || 0;
-        my $rebirths_class = quest::get_data("$char_id-rebirth_class_$class_id") || 0;
         my $rebirth_value = quest::get_data("$char_id-rebirth_value") || 0;
 
         $rebirths_total++;

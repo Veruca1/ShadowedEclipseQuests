@@ -1,3 +1,4 @@
+# Remember to manually set faction, hp regen rate, spell resists, atk delay, aggro radius, ATK
 my $wrath_triggered = 0;
 my $is_boss = 0;
 
@@ -8,9 +9,10 @@ sub EVENT_SPAWN {
     my $npc_id = $npc->GetNPCTypeID();
 
     # Exclusion list
-    my %exclusion_list = (
-        156055 => 1,
-    );
+my %exclusion_list = (
+    156055 => 1,
+    map { $_ => 1 } (2000000..2000017)
+);
     return if exists $exclusion_list{$npc_id};
     return if $npc->IsPet();
 
@@ -18,13 +20,13 @@ sub EVENT_SPAWN {
 
     my %base_stats = (
         ac                   => 15000, 
-        max_hp               => 4000000,     
-        min_hit              => 7000,   
+        max_hp               => 5000000,     
+        min_hit              => 8000,   
         max_hit              => 9500,
         accuracy             => 1800,
         avoidance            => 80,    
         slow_mitigation      => 80,
-        attack               => 1200, 
+        ATK                  => 1200, 
         str                  => 1000,
         sta                  => 1000,
         dex                  => 1000,
@@ -39,8 +41,8 @@ sub EVENT_SPAWN {
     );
 
     my %boss_stats = (
-        ac                   => 17000, 
-        max_hp               => 5000000,     
+        ac                   => 20000, 
+        max_hp               => 10500000,     
         min_hit              => 7000,   
         max_hit              => 10500,
         accuracy             => 2000,

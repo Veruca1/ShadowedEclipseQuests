@@ -8,8 +8,9 @@ sub EVENT_SPAWN {
     my $raw_name = $npc->GetName() || '';
     my $npc_id = $npc->GetNPCTypeID();
 
-        # Exclusion list
-        my %exclusion_list = (
+       # Exclusion list
+    my %exclusion_list = (
+        map { $_ => 1 } (2000000..2000017)
     );
 
     return if exists $exclusion_list{$npc_id};
@@ -230,6 +231,6 @@ sub EVENT_DEATH_COMPLETE {
         my $y = $npc->GetY();
         my $z = $npc->GetZ();
         my $h = $npc->GetHeading();
-        quest::spawn2(1922, 0, 0, $x, $y, $z, $h);
+        #quest::spawn2(1922, 0, 0, $x, $y, $z, $h);
     }
 }

@@ -10,7 +10,7 @@ sub EVENT_SPAWN {
 
     # Exclusion list
 my %exclusion_list = (
-    156055 => 1,
+    1459 => 1,
     map { $_ => 1 } (2000000..2000017)
 );
     return if exists $exclusion_list{$npc_id};
