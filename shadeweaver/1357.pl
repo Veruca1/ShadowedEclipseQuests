@@ -1,6 +1,5 @@
 sub EVENT_SAY {
     if ($text =~ /hail/i) {
-        quest::summonitem(33202);  # Shadeweaver's Kit
         quest::popup("The Envoy of Sel'Rheza",
         "Ah, another child of curiosity... You hear them, don’t you? The whispers in the weave, the lullaby of the Umbral Chorus...<br><br>" .
         "We do not ask for loyalty. We awaken it. We sing to the pieces of you you’ve long buried.<br><br>" .
@@ -12,7 +11,9 @@ sub EVENT_SAY {
         "<c \"#9090B0\">- The risen dead</c><br>" .
         "<c \"#C05050\">- The band of thieves</c><br><br>" .
         "Each will leave behind something—tokens of their nature. Seek them. Claim them.<br><br>" .
-        "When you have gathered *twenty of each*, place them into this kit. It will form a <c \"#E0E070\">Symbol of the Shadeweaver</c>.<br><br>" .
+        "When you have gathered *ten of a single type*, place them into your <c \"#E0E070\">tier vessel</c> and combine them. It will yield a <c \"#E0E070\">Large Echo</c>—a stronger remnant of that kind.<br><br>" .
+        "Do this *twice for each of the five types*—you will need *two Large Echoes per type*.<br><br>" .
+        "When you hold *two Large Echoes of each of the five echoes*, place them all into your <c \"#E0E070\">tier vessel</c> and combine them. It will form a <c \"#E0E070\">Symbol of the Shadeweaver</c>.<br><br>" .
         "You may also come across the <c \"#B070C0\">Loda Kai</c> in your travels. They are... restless. Their clan is known to challenge one another for dominance—hunting conquests, they call them. If you engage them, you may uncover more about their strange rites and the trials they impose upon each other. Curiosity, after all, is rarely without reward.<br><br>" .
         "<c \"#8080C0\">The Chorus waits… and watches.</c>"
         );

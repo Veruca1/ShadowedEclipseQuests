@@ -38,7 +38,7 @@ sub EVENT_HP {
 
 sub spawn_minions {
     quest::shout("Threads tear open—witness the lesser weave!");
-    my @minions = (1460, 1460, 1460);  # Replace with actual NPC IDs
+    my @minions = (1461, 1461, 1461);  # Replace with actual NPC IDs
     for (1..2) {
         my $minion_id = $minions[int(rand(@minions))];
         quest::spawn2($minion_id, 0, 0, $x + int(rand(40)) - 20, $y + int(rand(40)) - 20, $z, $h);

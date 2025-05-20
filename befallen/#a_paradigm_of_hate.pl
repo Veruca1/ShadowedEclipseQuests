@@ -53,7 +53,7 @@ sub EVENT_SAY {
         if (quest::get_data($right_hand) == 1) {
             if (!$right_hand_lock) {
             # Lockout in seconds (1 hour)
-            $client->SetBucket("-right_lockout", 1, 900);
+            $client->SetBucket("-right_lockout", 1, 300);
             quest::spawn2($partial_anger_id, 0, 0, $partial_anger_x, $partial_anger_y, $partial_anger_z, $partial_anger_h);
             } else {
                 quest::message(315, "You must wait [" . quest::secondstotime($client->GetBucketRemaining("-right_lockout")) . "] to use again.");
@@ -65,7 +65,7 @@ sub EVENT_SAY {
         if (quest::get_data($left_hand) == 1) {
             if (!$left_hand_lock) {
             # Lockout in seconds (1 hour)
-            $client->SetBucket("-left_lockout", 1, 900);
+            $client->SetBucket("-left_lockout", 1, 300);
             quest::spawn2($partial_anger_id, 0, 0, $partial_anger_x, $partial_anger_y, $partial_anger_z, $partial_anger_h);
             } else {
                 quest::message(315, "You must wait [" . quest::secondstotime($client->GetBucketRemaining("-left_lockout")) . "] to use again.");
@@ -79,7 +79,7 @@ sub EVENT_SAY {
     } elsif (!$check_for_heat) {
         if (quest::get_data($both_hands) == 1) {
             # Lockout in seconds (1 hour)
-            $client->SetBucket("-heat_lockout", 1, 900);
+            $client->SetBucket("-heat_lockout", 1, 300);
             quest::spawn2($hates_heat_id, 0, 0, $hates_heat_x, $hates_heat_y, $hates_heat_z, $hates_heat_h);
             quest::spawn2(502004, 0, 0, -130.71, -806.90, -65.90, 0);
             quest::settimer("shake", 0.1);

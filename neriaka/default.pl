@@ -10,6 +10,10 @@ sub EVENT_SPAWN {
 
        # Exclusion list
     my %exclusion_list = (
+        857 => 1,
+        681 => 1,
+        679 => 1,
+        776 => 1,
         map { $_ => 1 } (2000000..2000017)
     );
 
@@ -37,7 +41,7 @@ sub EVENT_SPAWN {
         physical_resist      => 1000,
         hp_regen_rate        => 800,
         hp_regen_per_second  => 400,
-        heroic_strikethrough => 200,
+        #heroic_strikethrough => 200,
         special_attacks      => "3,1^5,1^6,1^14,1^17,1^21,1",
     );
 
@@ -218,9 +222,14 @@ sub EVENT_DAMAGE_TAKEN {
 sub EVENT_DEATH_COMPLETE {
     return unless $npc;
 
-    my %exclusion_list = (
+   my %exclusion_list = (
         156055 => 1,
         1922   => 1,
+        1954   => 1,
+        857 => 1,
+        681 => 1,
+        679 => 1,
+        776 => 1,
     );
 
     my $npc_id = $npc->GetNPCTypeID();
@@ -231,6 +240,6 @@ sub EVENT_DEATH_COMPLETE {
         my $y = $npc->GetY();
         my $z = $npc->GetZ();
         my $h = $npc->GetHeading();
-        #quest::spawn2(1922, 0, 0, $x, $y, $z, $h);
+        quest::spawn2(1954, 0, 0, $x, $y, $z, $h);
     }
 }
