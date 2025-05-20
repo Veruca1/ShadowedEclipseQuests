@@ -26,7 +26,7 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();  # Get the character's unique ID
     my $flag = "$char_id-dragon_arena_flag";  # The flag for the event
     my $cooldown_key = "$char_id-dragon_arena_cooldown";  # Unique cooldown key
-    my $cooldown_time = 600;  # 20-minute cooldown in seconds
+    my $cooldown_time = 90;  # 1 minute 30 seconds cooldown
 
     # Check if the player hails the NPC and has completed the hand-in
     if ($text =~ /hail/i) {
@@ -55,8 +55,8 @@ sub EVENT_SAY {
                 # Set the cooldown timer for the next event
                 plugin::Whisper("The Dragon has been summoned. Fight well!");
 
-                # Set a 20-minute timer for the event
-                quest::settimer("dragon_arena_event", 1200);
+                
+                quest::settimer("dragon_arena_event", 90);
             } else {
                 # Cooldown is still active, notify the player
                 my $remaining_time = $cooldown_time - ($current_time - $last_hail_time);
@@ -74,7 +74,7 @@ sub EVENT_TIMER {
         quest::stoptimer("dragon_arena_event");
 
         # Shout a message to all players in the zone
-        quest::shout("The Dragon Arena event has ended. You can participate again in 20 minutes.");
+        quest::shout("The Dragon Arena event has ended. You can participate again in 1 minute and 30 seconds.");
 
         # Reset the flag or any other logic for the cooldown
         my $char_id = $npc->GetID();  # Fallback if no client is found
