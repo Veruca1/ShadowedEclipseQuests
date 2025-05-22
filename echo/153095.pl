@@ -38,7 +38,7 @@ sub EVENT_COMBAT {
     return unless $npc;
 
     if ($combat_state == 1) {
-        $npc->SetNextHPEvent(50);
+        quest::setnexthpevent(50);
     }
 }
 

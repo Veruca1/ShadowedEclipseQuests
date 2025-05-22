@@ -68,7 +68,7 @@ sub EVENT_SPAWN {
 
         $npc->ModifyNPCStat("level", 63);
         $npc->ModifyNPCStat("runspeed", 2);
-        $npc->ModifyNPCStat("aggro", 60);
+        $npc->ModifyNPCStat("aggro", 40);
         $npc->ModifyNPCStat("assist", 1);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
@@ -125,7 +125,7 @@ sub EVENT_SPAWN {
 
         $npc->ModifyNPCStat("level", 61);
         $npc->ModifyNPCStat("runspeed", 2);
-        $npc->ModifyNPCStat("aggro", 55);
+        $npc->ModifyNPCStat("aggro", 30);
         $npc->ModifyNPCStat("assist", 1);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);

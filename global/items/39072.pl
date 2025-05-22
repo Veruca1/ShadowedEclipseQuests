@@ -8,37 +8,30 @@ sub EVENT_ITEM_CLICK {
 
     my $flag_key = "echo_checkpoint_unlock_" . $char_id;
 
+    # Always try to remove the item (A Checkpoint Stone - 39072)
+    if (quest::countitem(39072) >= 1) {
+        # Remove the item (A Checkpoint Stone) from the player's inventory
+        if (!quest::removeitem(39072, 1)) {
+            $client->Message(15, "The echo checkpoint is already unlocked. The stone crumbles in your hands — you no longer need it.");
+        return;
+        }
+    } else {
+        $client->Message(15, "You do not have the required item (Checkpoint Stone).");
+        return;
+    }
+
     # Retrieve the existing checkpoint unlock flag
     my $existing = quest::get_data($flag_key);
     
-    # Ensure the flag exists and is either undefined or 0 (i.e., not unlocked yet)
+    # If already unlocked
     if (defined($existing) && $existing == 1) {
-        # If already unlocked, notify the player
-        $client->Message(15, "The echo checkpoint is already unlocked.");
+        $client->Message(15, "The echo checkpoint is already unlocked. The stone crumbles in your hands — you no longer need it.");
         return;
     }
 
     # Set the checkpoint unlock flag
-    if (!quest::set_data($flag_key, 1)) {
-        # If the flag couldn't be set, notify the player
-        $client->Message(15, "An error occurred while unlocking the checkpoint. Please try again.");
-        return;
-    }
+    quest::set_data($flag_key, 1);
 
     # Notify the player that the checkpoint has been unlocked
     $client->Message(15, "You feel a shift in the air... a checkpoint has been unlocked in Echo Caverns.");
-
-    # Check if the player has the item (A Checkpoint Stone - 39072) in their inventory
-    if (quest::countitem(39072) >= 1) {
-        # Remove the item (A Checkpoint Stone) from the player's inventory
-        if (!quest::removeitem(39072, 1)) {
-            # If item couldn't be removed, notify the player
-            $client->Message(15, "An error occurred while removing the Checkpoint Stone. Please try again.");
-            return;
-        }
-    } else {
-        # If the player doesn't have the item, notify them
-        $client->Message(15, "You do not have the required item (Checkpoint Stone).");
-        return;
-    }
 }

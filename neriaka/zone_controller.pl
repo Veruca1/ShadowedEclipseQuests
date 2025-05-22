@@ -6,34 +6,26 @@ my @spawn_points = (
     [-513.94, -445.16, 16.78, 135.00]
 );
 
-sub EVENT_ENTERZONE {
-    if (!quest::isnpcspawned($npc_id)) {
-        quest::settimer("spawn_npc", 1200);
-    }
-}
-
 sub EVENT_SIGNAL {
+    #quest::shout("Received signal $signal");
     if ($signal == 1) {
+        #quest::shout("Setting 20 minute respawn timer.");
         quest::settimer("spawn_npc", 1200);
     }
 }
 
 sub EVENT_TIMER {
+    #quest::shout("Timer $timer triggered.");
     if ($timer eq "spawn_npc") {
         quest::stoptimer("spawn_npc");
 
         if (!quest::isnpcspawned($npc_id)) {
             my $index = int(rand(@spawn_points));
             my ($x, $y, $z, $h) = @{$spawn_points[$index]};
+            #quest::shout("Spawning NPC $npc_id at index $index ($x, $y, $z, $h)");
             quest::spawn2($npc_id, 0, 0, $x, $y, $z, $h);
+        } else {
+            quest::shout("Spawn timer fired, but NPC $npc_id is already up.");
         }
     }
-}
-
-sub EVENT_WARP {
-    if ($client->GetGM()) {
-        return;
-    }
-
-    $client->Kill();
 }

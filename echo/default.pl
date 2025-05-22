@@ -1,81 +1,144 @@
-# Remember to manually set faction, hp regen rate, spell resists, atk delay, aggro radius, ATK
-my $wrath_triggered = 0;
-my $is_boss = 0;
-
 sub EVENT_SPAWN {
     return unless $npc;
 
     my $raw_name = $npc->GetName() || '';
-    my $npc_id = $npc->GetNPCTypeID();
+    my $npc_id   = $npc->GetNPCTypeID();
 
-    # Exclusion list
-my %exclusion_list = (
-    156055 => 1,
-    map { $_ => 1 } (2000000..2000017)
-);
+    # Exclusion list: skip certain NPC IDs and pets
+    my %exclusion_list = (
+        153095 => 1,
+        857 => 1,
+        681 => 1,
+        679 => 1,
+        776 => 1,
+        map { $_ => 1 } (2000000..2000017)
+    );
     return if exists $exclusion_list{$npc_id};
     return if $npc->IsPet();
 
-    $is_boss = ($raw_name =~ /^#/ || $npc_id == 1919) ? 1 : 0;
+    # Determine if it's a boss: name starts with '#' or specific NPC ID
+    my $is_boss = ($raw_name =~ /^#/ || $npc_id == 1919) ? 1 : 0;
 
-    my %base_stats = (
-        ac                   => 15000, 
-        max_hp               => 5000000,     
-        min_hit              => 8000,   
-        max_hit              => 9500,
-        accuracy             => 1800,
-        avoidance            => 80,    
-        slow_mitigation      => 80,
-        ATK                  => 1200, 
-        str                  => 1000,
-        sta                  => 1000,
-        dex                  => 1000,
-        agi                  => 1000,
-        int                  => 1000,
-        wis                  => 1000,
-        cha                  => 800,
-        physical_resist      => 800,
-        hp_regen_rate        => 800,
-        hp_regen_per_second  => 400,
-        special_attacks      => "3,1^5,1^6,1^14,1^17,1^21,1",
-    );
+    # Set to non-KOS faction
+    $npc->SetNPCFactionID(623); # Ensure faction 1 is set to non-KOS in DB
 
-    my %boss_stats = (
-        ac                   => 20000, 
-        max_hp               => 10500000,     
-        min_hit              => 7000,   
-        max_hit              => 10500,
-        accuracy             => 2000,
-        avoidance            => 90,    
-        slow_mitigation      => 90,
-        attack               => 1400, 
-        str                  => 1200,
-        sta                  => 1200,
-        dex                  => 1200,
-        agi                  => 1200,
-        int                  => 1200,
-        wis                  => 1200,
-        cha                  => 1000,
-        physical_resist      => 1000,
-        hp_regen_rate        => 1000,
-        hp_regen_per_second  => 500,
-        special_attacks      => "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1",
-    );
+    my $wrath_triggered = 0; # Local variable to track HP event usage
 
-    my %stats_to_apply = $is_boss ? (%boss_stats) : (%base_stats);
+    if ($is_boss) {
+        # Boss stats
+        $npc->ModifyNPCStat("str", 1200);
+        $npc->ModifyNPCStat("sta", 1200);
+        $npc->ModifyNPCStat("agi", 1200);
+        $npc->ModifyNPCStat("dex", 1200);
+        $npc->ModifyNPCStat("wis", 1200);
+        $npc->ModifyNPCStat("int", 1200);
+        $npc->ModifyNPCStat("cha", 1000);
 
-    foreach my $key (keys %stats_to_apply) {
-        $npc->ModifyNPCStat($key, $stats_to_apply{$key});
+        $npc->ModifyNPCStat("ac", 20000);
+        $npc->ModifyNPCStat("mr", 500);
+        $npc->ModifyNPCStat("fr", 500);
+        $npc->ModifyNPCStat("cr", 500);
+        $npc->ModifyNPCStat("pr", 500);
+        $npc->ModifyNPCStat("dr", 500);
+        $npc->ModifyNPCStat("corruption_resist", 500);
+        $npc->ModifyNPCStat("physical_resist", 1000);
+
+        $npc->ModifyNPCStat("max_hp", 10500000);
+        #$npc->ModifyNPCStat("max_mana", 10000);
+        $npc->ModifyNPCStat("hp_regen", 1000);
+        $npc->ModifyNPCStat("mana_regen", 10000);
+
+        $npc->ModifyNPCStat("min_hit", 8500);
+        $npc->ModifyNPCStat("max_hit", 13000);
+        $npc->ModifyNPCStat("atk", 1400);
+        $npc->ModifyNPCStat("accuracy", 2000);
+        $npc->ModifyNPCStat("avoidance", 90);
+        $npc->ModifyNPCStat("attack_delay", 4);
+        $npc->ModifyNPCStat("attack_speed", 100);
+        $npc->ModifyNPCStat("slow_mitigation", 90);
+        $npc->ModifyNPCStat("attack_count", 100);
+        $npc->ModifyNPCStat("heroic_strikethrough", 30);
+
+        # Optional spell configs
+        #$npc->ModifyNPCStat("npc_spells_id", 1);
+        #$npc->ModifyNPCStat("npc_spells_effects_id", 1);
+        #$npc->ModifyNPCStat("spellscale", 1);
+        #$npc->ModifyNPCStat("healscale", 1);
+
+        $npc->ModifyNPCStat("level", 63);
+        $npc->ModifyNPCStat("runspeed", 2);
+        $npc->ModifyNPCStat("aggro", 60);
+        $npc->ModifyNPCStat("assist", 1);
+        $npc->ModifyNPCStat("trackable", 1);
+        $npc->ModifyNPCStat("see_invis", 1);
+        $npc->ModifyNPCStat("see_invis_undead", 1);
+        $npc->ModifyNPCStat("see_hide", 1);
+        $npc->ModifyNPCStat("see_improved_hide", 1);
+
+        # Special attacks: flurry, rampage, etc.
+        $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1");
+
+        # HP event for boss
+        quest::setnexthpevent(50);
+    }
+    else {
+        # Trash mob stats
+        $npc->ModifyNPCStat("str", 1000);
+        $npc->ModifyNPCStat("sta", 1000);
+        $npc->ModifyNPCStat("agi", 1000);
+        $npc->ModifyNPCStat("dex", 1000);
+        $npc->ModifyNPCStat("wis", 1000);
+        $npc->ModifyNPCStat("int", 1000);
+        $npc->ModifyNPCStat("cha", 800);
+
+        $npc->ModifyNPCStat("ac", 15000);
+        $npc->ModifyNPCStat("mr", 300);
+        $npc->ModifyNPCStat("fr", 300);
+        $npc->ModifyNPCStat("cr", 300);
+        $npc->ModifyNPCStat("pr", 300);
+        $npc->ModifyNPCStat("dr", 300);
+        $npc->ModifyNPCStat("corruption_resist", 300);
+        $npc->ModifyNPCStat("physical_resist", 800);
+
+        $npc->ModifyNPCStat("max_hp", 4000000);
+        #$npc->ModifyNPCStat("max_mana", 10000);
+        $npc->ModifyNPCStat("hp_regen", 800);
+        $npc->ModifyNPCStat("mana_regen", 10000);
+
+        $npc->ModifyNPCStat("min_hit", 9200);
+        $npc->ModifyNPCStat("max_hit", 11000);
+        $npc->ModifyNPCStat("atk", 1200);
+        $npc->ModifyNPCStat("accuracy", 1800);
+        $npc->ModifyNPCStat("avoidance", 80);
+        $npc->ModifyNPCStat("attack_delay", 4);
+        $npc->ModifyNPCStat("attack_speed", 100);
+        $npc->ModifyNPCStat("slow_mitigation", 80);
+        $npc->ModifyNPCStat("attack_count", 100);
+        $npc->ModifyNPCStat("heroic_strikethrough", 20);
+
+        # Optional spell configs
+        #$npc->ModifyNPCStat("npc_spells_id", 1);
+        #$npc->ModifyNPCStat("npc_spells_effects_id", 1);
+        #$npc->ModifyNPCStat("spellscale", 1);
+        #$npc->ModifyNPCStat("healscale", 1);
+
+        $npc->ModifyNPCStat("level", 61);
+        $npc->ModifyNPCStat("runspeed", 2);
+        $npc->ModifyNPCStat("aggro", 55);
+        $npc->ModifyNPCStat("assist", 1);
+        $npc->ModifyNPCStat("trackable", 1);
+        $npc->ModifyNPCStat("see_invis", 1);
+        $npc->ModifyNPCStat("see_invis_undead", 1);
+        $npc->ModifyNPCStat("see_hide", 1);
+        $npc->ModifyNPCStat("see_improved_hide", 1);
+
+        # Standard trash mob special attacks
+        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1");
     }
 
-    # Set level and reset HP
-    $npc->SetLevel(61);
+    # Reset HP to max
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
-
-    quest::setnexthpevent(50) if $is_boss;  # Set HP event for bosses only
-
-    $wrath_triggered = 0;
 }
 
 sub EVENT_HP {
@@ -218,8 +281,13 @@ sub EVENT_DEATH_COMPLETE {
     return unless $npc;
 
     my %exclusion_list = (
-        156055 => 1,
+        153095 => 1,
         1922   => 1,
+        1954   => 1,
+        857 => 1,
+        681 => 1,
+        679 => 1,
+        776 => 1,
     );
 
     my $npc_id = $npc->GetNPCTypeID();

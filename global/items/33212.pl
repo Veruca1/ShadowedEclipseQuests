@@ -24,9 +24,20 @@ sub EVENT_ITEM_CLICK {
 
     # Echo Caverns has a unique message regardless of flag state
     if ($current_zone == 153) {
+    my $checkpoint_flag = quest::get_data("echo_checkpoint_unlock_" . $char_id);
+    my $boss_flag = quest::get_data("echo_boss_unlock_" . $char_id);
+
+    if (defined($checkpoint_flag) && $checkpoint_flag == 1) {
+        if (defined($boss_flag) && $boss_flag == 1) {
+            quest::say("Where would you like to go? $saylink_checkpoint or $saylink_boss?");
+        } else {
+            quest::say("The path to the boss is blocked... perhaps defeating a powerful guardian could unlock it. You may still say $saylink_checkpoint to proceed.");
+        }
+    } else {
         quest::say("Both paths are currently blocked. Perhaps something within these caverns holds the key to progress.");
-        return;
     }
+    return;
+}
 
     # Other zones like Paludal respond based on flag
     if (defined($flag) && $flag == 1) {

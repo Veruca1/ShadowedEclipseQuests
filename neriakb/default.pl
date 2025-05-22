@@ -1,14 +1,10 @@
-# Remember to manually set faction, hp regen rate, spell resists, atk delay, aggro radius, ATK
-my $wrath_triggered = 0;
-my $is_boss = 0;
-
 sub EVENT_SPAWN {
     return unless $npc;
 
     my $raw_name = $npc->GetName() || '';
-    my $npc_id = $npc->GetNPCTypeID();
+    my $npc_id   = $npc->GetNPCTypeID();
 
-        # Exclusion list
+    # Exclusion list: skip certain NPC IDs and pets
     my %exclusion_list = (
         857 => 1,
         681 => 1,
@@ -16,71 +12,106 @@ sub EVENT_SPAWN {
         776 => 1,
         map { $_ => 1 } (2000000..2000017)
     );
-
     return if exists $exclusion_list{$npc_id};
     return if $npc->IsPet();
 
-    $is_boss = ($raw_name =~ /^#/ || $npc_id == 1919) ? 1 : 0;
+    my $is_boss = ($raw_name =~ /^#/ || $npc_id == 1919) ? 1 : 0;
 
-    my %base_stats = (
-        ac                   => 18000, 
-        max_hp               => 3000000,     
-        min_hit              => 8000,   
-        max_hit              => 10700,
-        accuracy             => 1800,
-        avoidance            => 110,    
-        slow_mitigation      => 80,
-        ATK                  => 1300, 
-        str                  => 1200,
-        sta                  => 1200,
-        dex                  => 1200,
-        agi                  => 1200,
-        int                  => 1200,
-        wis                  => 1200,
-        cha                  => 1200,
-        physical_resist      => 1000,
-        hp_regen_rate        => 800,
-        hp_regen_per_second  => 400,
-        #heroic_strikethrough => 200,
-        special_attacks      => "3,1^5,1^6,1^14,1^17,1^21,1",
-    );
+    $npc->SetNPCFactionID(623);
 
-    my %boss_stats = (
-        ac                   => 20000, 
-        max_hp               => 10000000,     
-        min_hit              => 9000,   
-        max_hit              => 11500,
-        accuracy             => 2000,
-        avoidance            => 110,    
-        slow_mitigation      => 90,
-        attack               => 1400, 
-        str                  => 1200,
-        sta                  => 1200,
-        dex                  => 1200,
-        agi                  => 1200,
-        int                  => 1200,
-        wis                  => 1200,
-        cha                  => 1000,
-        physical_resist      => 1000,
-        hp_regen_rate        => 1000,
-        hp_regen_per_second  => 500,
-        special_attacks      => "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1",
-    );
+    my $wrath_triggered = 0;
 
-    my %stats_to_apply = $is_boss ? (%boss_stats) : (%base_stats);
+    if ($is_boss) {
+        $npc->ModifyNPCStat("level", 63);
+        $npc->ModifyNPCStat("ac", 20000);
+        $npc->ModifyNPCStat("max_hp", 7500000);
+        $npc->ModifyNPCStat("hp_regen", 1000);
+        $npc->ModifyNPCStat("mana_regen", 10000);
+        $npc->ModifyNPCStat("min_hit", 8000);
+        $npc->ModifyNPCStat("max_hit", 11500);
+        $npc->ModifyNPCStat("atk", 1400);
+        $npc->ModifyNPCStat("accuracy", 2000);
+        $npc->ModifyNPCStat("avoidance", 90);
+        $npc->ModifyNPCStat("attack_delay", 4);
+        $npc->ModifyNPCStat("attack_speed", 100);
+        $npc->ModifyNPCStat("slow_mitigation", 90);
+        $npc->ModifyNPCStat("attack_count", 100);
 
-    foreach my $key (keys %stats_to_apply) {
-        $npc->ModifyNPCStat($key, $stats_to_apply{$key});
+        $npc->ModifyNPCStat("str", 1200);
+        $npc->ModifyNPCStat("sta", 1200);
+        $npc->ModifyNPCStat("agi", 1200);
+        $npc->ModifyNPCStat("dex", 1200);
+        $npc->ModifyNPCStat("wis", 1200);
+        $npc->ModifyNPCStat("int", 1200);
+        $npc->ModifyNPCStat("cha", 1000);
+    
+        $npc->ModifyNPCStat("mr", 500);
+        $npc->ModifyNPCStat("fr", 500);
+        $npc->ModifyNPCStat("cr", 500);
+        $npc->ModifyNPCStat("pr", 500);
+        $npc->ModifyNPCStat("dr", 500);
+        $npc->ModifyNPCStat("corruption_resist", 500);
+        $npc->ModifyNPCStat("physical_resist", 1000);
+       
+        $npc->ModifyNPCStat("runspeed", 2);
+        $npc->ModifyNPCStat("aggro", 40);
+        $npc->ModifyNPCStat("assist", 1);
+        $npc->ModifyNPCStat("trackable", 1);
+        $npc->ModifyNPCStat("see_invis", 1);
+        $npc->ModifyNPCStat("see_invis_undead", 1);
+        $npc->ModifyNPCStat("see_hide", 1);
+        $npc->ModifyNPCStat("see_improved_hide", 1);
+
+        $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1");
+
+        quest::setnexthpevent(50);
+    }
+        else {
+        $npc->ModifyNPCStat("level", 61);
+        $npc->ModifyNPCStat("ac", 18000);
+        $npc->ModifyNPCStat("max_hp", 2250000);
+        $npc->ModifyNPCStat("hp_regen", 800);
+        $npc->ModifyNPCStat("mana_regen", 10000);
+        $npc->ModifyNPCStat("min_hit", 6000);
+        $npc->ModifyNPCStat("max_hit", 9000);
+        $npc->ModifyNPCStat("atk", 1200);
+        $npc->ModifyNPCStat("accuracy", 1800);
+        $npc->ModifyNPCStat("avoidance", 80);
+        $npc->ModifyNPCStat("attack_delay", 4);
+        $npc->ModifyNPCStat("attack_speed", 100);
+        $npc->ModifyNPCStat("slow_mitigation", 80);
+        $npc->ModifyNPCStat("attack_count", 100);
+
+        $npc->ModifyNPCStat("str", 1000);
+        $npc->ModifyNPCStat("sta", 1000);
+        $npc->ModifyNPCStat("agi", 1000);
+        $npc->ModifyNPCStat("dex", 1000);
+        $npc->ModifyNPCStat("wis", 1000);
+        $npc->ModifyNPCStat("int", 1000);
+        $npc->ModifyNPCStat("cha", 800);
+
+        $npc->ModifyNPCStat("mr", 300);
+        $npc->ModifyNPCStat("fr", 300);
+        $npc->ModifyNPCStat("cr", 300);
+        $npc->ModifyNPCStat("pr", 300);
+        $npc->ModifyNPCStat("dr", 300);
+        $npc->ModifyNPCStat("corruption_resist", 300);
+        $npc->ModifyNPCStat("physical_resist", 800);
+
+        $npc->ModifyNPCStat("runspeed", 2);
+        $npc->ModifyNPCStat("aggro", 25);
+        $npc->ModifyNPCStat("assist", 1);
+        $npc->ModifyNPCStat("trackable", 1);
+        $npc->ModifyNPCStat("see_invis", 1);
+        $npc->ModifyNPCStat("see_invis_undead", 1);
+        $npc->ModifyNPCStat("see_hide", 1);
+        $npc->ModifyNPCStat("see_improved_hide", 1);
+
+        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1");
     }
 
-    # Set level and reset HP
-    $npc->SetLevel(65);
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
-
-    quest::setnexthpevent(50) if $is_boss;  # Set HP event for bosses only
-
-    $wrath_triggered = 0;
 }
 
 sub EVENT_HP {
@@ -101,7 +132,7 @@ sub EVENT_HP {
             next if $mob->GetID() == $npc->GetID();
 
             my $distance = $npc->CalculateDistance($mob);
-            if (defined $distance && $distance <= 70) {
+            if (defined $distance && $distance <= 300) {
                 $mob->AddToHateList($top_hate_target, 1);
             }
         }
@@ -112,13 +143,9 @@ sub EVENT_COMBAT {
     return unless $npc;
 
     if ($combat_state == 1) {
-        quest::settimer("silence_sk", 30);
         quest::settimer("life_drain", 5) if $is_boss;
     } else {
-        quest::stoptimer("silence_sk");
         quest::stoptimer("life_drain") if $is_boss;
-
-        # Only bosses re-arm HP event
         quest::settimer("reset_hp_event", 50) if $is_boss;
     }
 }
@@ -126,27 +153,12 @@ sub EVENT_COMBAT {
 sub EVENT_TIMER {
     return unless $npc;
 
-    if ($timer eq "silence_sk") {
-        my @hate_list = $npc->GetHateList();
-        foreach my $hate_entry (@hate_list) {
-            next unless $hate_entry;
-            my $ent = $hate_entry->GetEnt();
-            next unless $ent && $ent->IsClient();
-
-            my $pc = $ent->CastToClient();
-            if ($pc && $pc->GetClass() == 5) {
-                $npc->CastSpell(12431, $pc->GetID());
-                $npc->Shout("Your dark magic falters, Shadowknight!");
-            }
-        }
-    }
-
     if ($timer eq "life_drain" && $is_boss) {
         my $x = $npc->GetX();
         my $y = $npc->GetY();
         my $z = $npc->GetZ();
         my $radius = 50;
-        my $drain_damage = 7500;
+        my $drain_damage = 6000;
 
         foreach my $client ($entity_list->GetClientList()) {
             next unless $client;
@@ -159,87 +171,5 @@ sub EVENT_TIMER {
             my $dist = $bot->CalculateDistance($x, $y, $z);
             $bot->Damage($npc, $drain_damage, 0, 1, false) if $dist <= $radius;
         }
-    }
-
-    if ($timer eq "reset_hp_event" && $is_boss) {
-        quest::setnexthpevent(50);
-        quest::stoptimer("reset_hp_event");
-    }
-}
-
-my $wrath_triggered = 0;
-
-sub EVENT_DAMAGE_TAKEN {
-    my $attacker = $entity_list->GetMobByID($clientid);
-    if ($attacker && $attacker->IsClient()) {
-        my $pc = $attacker->CastToClient();
-        if ($pc->GetClass() == 5) {  # Shadowknight
-            $damage = int($damage * 0.6);  # Reduce damage taken by 60%
-        }
-    }
-
-    if (!$wrath_triggered && $npc->GetHP() <= ($npc->GetMaxHP() * 0.10)) {
-        $wrath_triggered = 1;
-
-        if (quest::ChooseRandom(1..100) <= 20) {
-            $npc->Shout("The Wrath of Luclin is unleashed!");
-
-            my $npc_x = $npc->GetX();
-            my $npc_y = $npc->GetY();
-            my $npc_z = $npc->GetZ();
-            my $radius = 50;
-            my $wrath_dmg = 35000;
-
-            # Clients and their pets
-            foreach my $entity ($entity_list->GetClientList()) {
-                if ($entity->CalculateDistance($npc_x, $npc_y, $npc_z) <= $radius) {
-                    $entity->Damage($npc, $wrath_dmg, 0, 1, false);
-                }
-
-                my $pet = $entity->GetPet();
-                if ($pet && $pet->CalculateDistance($npc_x, $npc_y, $npc_z) <= $radius) {
-                    $pet->Damage($npc, $wrath_dmg, 0, 1, false);
-                }
-            }
-
-            # Bots and their pets
-            foreach my $bot ($entity_list->GetBotList()) {
-                if ($bot->CalculateDistance($npc_x, $npc_y, $npc_z) <= $radius) {
-                    $bot->Damage($npc, $wrath_dmg, 0, 1, false);
-                }
-
-                my $pet = $bot->GetPet();
-                if ($pet && $pet->CalculateDistance($npc_x, $npc_y, $npc_z) <= $radius) {
-                    $pet->Damage($npc, $wrath_dmg, 0, 1, false);
-                }
-            }
-        }
-    }
-
-    return $damage;
-}
-
-sub EVENT_DEATH_COMPLETE {
-    return unless $npc;
-
-    my %exclusion_list = (
-        156055 => 1,
-        1922   => 1,
-        1954   => 1,
-        857 => 1,
-        681 => 1,
-        679 => 1,
-        776 => 1,
-    );
-
-    my $npc_id = $npc->GetNPCTypeID();
-    return if exists $exclusion_list{$npc_id};
-
-    if (quest::ChooseRandom(1..100) <= 10) {
-        my $x = $npc->GetX();
-        my $y = $npc->GetY();
-        my $z = $npc->GetZ();
-        my $h = $npc->GetHeading();
-        quest::spawn2(1954, 0, 0, $x, $y, $z, $h);
     }
 }

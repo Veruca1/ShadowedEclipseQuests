@@ -32,4 +32,17 @@ sub EVENT_SIGNAL {
         quest::depopall(1594);
         quest::depopall(1595);
     }
+    elsif ($signal == 50) {
+        quest::settimer("spawn_124155", 300); # 5 minutes in seconds
+    }
+}
+
+sub EVENT_TIMER {
+    if ($timer eq "spawn_124155") {
+        quest::stoptimer("spawn_124155");
+
+        if (!quest::isnpcspawned(124155)) {
+            quest::spawn2(124155, 0, 0, -739.4, 517.2, 121, 510);
+        }
+    }
 }
