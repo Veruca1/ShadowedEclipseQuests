@@ -1,6 +1,8 @@
 my $wrath_triggered = 0;
 
 sub EVENT_COMBAT {
+    return unless defined $npc;   # Safety check
+
     if ($combat_state == 1) {
         quest::shout("You step into the woven shadows... now unravel them if you dare!");
 
@@ -15,7 +17,8 @@ sub EVENT_COMBAT {
         quest::stoptimer("shade_shout");
         quest::stoptimer("silence_sk");
 
-        if (!$npc->IsEngaged()) {
+        # Check $npc is defined and engaged method exists
+        if (defined $npc && !$npc->IsEngaged()) {
             $npc->SetHP($npc->GetMaxHP());
             $wrath_triggered = 0;  # Reset wrath trigger for next fight
             quest::setnexthpevent(80);
@@ -24,21 +27,34 @@ sub EVENT_COMBAT {
 }
 
 sub EVENT_HP {
+    return unless defined $npc;   # Safety check
+
     if ($hpevent == 80) {
         spawn_minions();
         quest::setnexthpevent(40);
-    } elsif ($hpevent == 40) {
+    } 
+    elsif ($hpevent == 40) {
         spawn_minions();
         quest::setnexthpevent(10);
-    } elsif ($hpevent == 10) {
+    } 
+    elsif ($hpevent == 10) {
         spawn_minions();
         # No further HP events
     }
 }
 
 sub spawn_minions {
+    return unless defined $npc;
+
     quest::shout("Threads tear open—witness the lesser weave!");
     my @minions = (1461, 1461, 1461);  # Replace with actual NPC IDs
+
+    # Defensive coords: fallback to 0 if undefined
+    my $x = defined $npc ? $npc->GetX() : 0;
+    my $y = defined $npc ? $npc->GetY() : 0;
+    my $z = defined $npc ? $npc->GetZ() : 0;
+    my $h = defined $npc ? $npc->GetHeading() : 0;
+
     for (1..2) {
         my $minion_id = $minions[int(rand(@minions))];
         quest::spawn2($minion_id, 0, 0, $x + int(rand(40)) - 20, $y + int(rand(40)) - 20, $z, $h);
@@ -46,10 +62,13 @@ sub spawn_minions {
 }
 
 sub EVENT_TIMER {
+    return unless defined $npc;
+
     if ($timer eq "weaver_wiggle") {
         $npc->CastSpell(40721, $npc->GetID());
 
         foreach my $client ($entity_list->GetClientList()) {
+            next unless defined $client;
             $client->Message(14, $npc->GetCleanName() . " is surrounded by a vortex of unraveling energy!");
         }
 
@@ -73,10 +92,11 @@ sub EVENT_TIMER {
     if ($timer eq "silence_sk") {
         my @hate_list = $npc->GetHateList();
         foreach my $hate_entry (@hate_list) {
+            next unless defined $hate_entry;
             my $ent = $hate_entry->GetEnt();
             if ($ent && $ent->IsClient()) {
                 my $pc = $ent->CastToClient();
-                if ($pc->GetClass() == 5) {  # Shadowknight
+                if ($pc && $pc->GetClass() == 5) {  # Shadowknight
                     $npc->CastSpell(12431, $pc->GetID()); # Silence
                     $npc->Shout("Your dark magic falters, Shadowknight!");
                 }
@@ -86,10 +106,13 @@ sub EVENT_TIMER {
 }
 
 sub EVENT_DAMAGE_TAKEN {
+    return unless defined $npc;
+    my $damage = $_[1]; # ensure $damage is properly scoped or passed in, if available
+
     my $attacker = $entity_list->GetMobByID($clientid);
     if ($attacker && $attacker->IsClient()) {
         my $pc = $attacker->CastToClient();
-        if ($pc->GetClass() == 5) {  # Shadowknight
+        if ($pc && $pc->GetClass() == 5) {  # Shadowknight
             $damage = int($damage * 0.5);
         }
     }
@@ -106,24 +129,26 @@ sub EVENT_DAMAGE_TAKEN {
             my $wrath_dmg = 35000;
 
             foreach my $entity ($entity_list->GetClientList()) {
+                next unless defined $entity;
                 if ($entity->CalculateDistance($npc_x, $npc_y, $npc_z) <= $radius) {
-                    $entity->Damage($npc, $wrath_dmg, 0, 1, false);
+                    $entity->Damage($npc, $wrath_dmg, 0, 1, 0);
                 }
 
                 my $pet = $entity->GetPet();
                 if ($pet && $pet->CalculateDistance($npc_x, $npc_y, $npc_z) <= $radius) {
-                    $pet->Damage($npc, $wrath_dmg, 0, 1, false);
+                    $pet->Damage($npc, $wrath_dmg, 0, 1, 0);
                 }
             }
 
             foreach my $bot ($entity_list->GetBotList()) {
+                next unless defined $bot;
                 if ($bot->CalculateDistance($npc_x, $npc_y, $npc_z) <= $radius) {
-                    $bot->Damage($npc, $wrath_dmg, 0, 1, false);
+                    $bot->Damage($npc, $wrath_dmg, 0, 1, 0);
                 }
 
                 my $pet = $bot->GetPet();
                 if ($pet && $pet->CalculateDistance($npc_x, $npc_y, $npc_z) <= $radius) {
-                    $pet->Damage($npc, $wrath_dmg, 0, 1, false);
+                    $pet->Damage($npc, $wrath_dmg, 0, 1, 0);
                 }
             }
         }

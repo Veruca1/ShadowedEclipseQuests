@@ -224,7 +224,7 @@ sub EVENT_DEATH {
 }
 
 sub EVENT_DEATH_COMPLETE {
-    plugin::double_loot($killer_id, 12345, $npc->GetID(), $entity_list);
+    plugin::double_loot($killer_id, 40664, $npc->GetID(), $entity_list);
     plugin::auto_loot($killer_id, $killed_corpse_id, $entity_list);
 if ($killer_id && $entity_list) {
     my $killer = $entity_list->GetMobByID($killer_id);

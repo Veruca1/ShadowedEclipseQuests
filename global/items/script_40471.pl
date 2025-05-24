@@ -1,5 +1,5 @@
 sub EVENT_ITEM_CLICK {
-    my $itemid = 150002;  # Define the item ID to check
+    my $itemid = 40471;  # Define the item ID to check
     my @restricted_zones = (344, 202, 219, 223, 451, 183, 151);  # List of restricted zone IDs
     my @excluded_npc_ids = (724075, 10);  # List of NPC IDs to exclude from aggro
     my $large_hate_value = 10000;  # Large hate value to be added to the target
@@ -11,7 +11,7 @@ sub EVENT_ITEM_CLICK {
     my $zoneid = $client->GetZoneID();
 
     # Check if the clicked item matches the specified item ID
-    if ($itemid == 150002) {
+    if ($itemid == 40471) {
         # Check if the player is in a restricted zone
         if (is_zone_restricted($zoneid, \@restricted_zones)) {
             $client->Message(15, "===========You can't use this in this zone. Duh=============");

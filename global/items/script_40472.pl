@@ -1,11 +1,11 @@
-my $last_click_time_150005 = 0;
+my $last_click_time_40472 = 0;
 
 sub EVENT_ITEM_CLICK {
     #Clicky Buff Item - Replace ID's as needed.
     return unless $client && $client->IsClient();
 
-    if ($itemid == 150005) {
-        my $clicked_check = $client->GetBucket("-buff_150005");
+    if ($itemid == 40472) {
+        my $clicked_check = $client->GetBucket("-buff_40472");
         my $cooldown = 60;  # 1 minute cooldown
 
         if (!$clicked_check) {
@@ -31,9 +31,9 @@ sub EVENT_ITEM_CLICK {
             plugin::ApplySpellGroup($client, 9976, 42);  # Panther
 
             $client->Message(15, "Buffs have been applied.");
-            $client->SetBucket("-buff_150005", 1, $cooldown);
+            $client->SetBucket("-buff_40472", 1, $cooldown);
         } else {
-            my $remaining_time = quest::secondstotime($client->GetBucketRemaining("-buff_150005"));
+            my $remaining_time = quest::secondstotime($client->GetBucketRemaining("-buff_40472"));
             $client->Message(315, "You must wait [$remaining_time] before using this item again.");
         }
     }

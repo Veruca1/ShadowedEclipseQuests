@@ -8,7 +8,7 @@
         # Array of forbidden zone IDs
         my @forbidden_zones = (202, 451, 183, 151); # Add more zone IDs to this array as needed
 
-        if ($itemid == 150079) {
+        if ($itemid == 40477) {
             my $is_forbidden = 0;
             foreach my $forbidden_zone (@forbidden_zones) {
                 if ($zone_id == $forbidden_zone) {

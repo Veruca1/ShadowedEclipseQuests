@@ -1,28 +1,38 @@
 sub EVENT_SAY {
+    return unless defined $client && $client->IsClient();
+    return unless defined $text;
+
     my $char_id = $client->CharacterID();
+    return unless defined $char_id;
+
     my $spawn_flag = "${char_id}-firefall_spawn_flag";
     my $cooldown_flag = "${char_id}-firefall_cooldown";
+    my $cd_duration = 300; # 5 minutes cooldown
 
-   if ($text=~/hail/i) {
-    if (quest::get_data($spawn_flag)) {
-        if (quest::get_data($cooldown_flag)) {
-            plugin::Whisper("The fire burns hot, but the flames must rest. Please wait a little longer before you summon the Wildfire.");
-            plugin::Whisper("Time remaining: " . get_cooldown_remaining($char_id));
+    if ($text =~ /hail/i) {
+        if (quest::get_data($spawn_flag)) {
+            if (quest::get_data($cooldown_flag)) {
+                plugin::Whisper("The fire burns hot, but the flames must rest. Please wait a little longer before you summon the Wildfire.");
+                plugin::Whisper("Time remaining: " . get_cooldown_remaining($char_id));
+            } else {
+                plugin::Whisper("The flame burns with vigor. You may proceed!");
+                quest::spawn2(165295, 0, 0, 358.02, 3687.48, -318.09, 383.25);
+                quest::set_data($cooldown_flag, 1);
+                quest::set_data("${char_id}-firefall_cd_start", time);
+                quest::settimer("firefall_cd_$char_id", $cd_duration);
+            }
         } else {
-            plugin::Whisper("The flame burns with vigor. You may proceed!");
-            quest::spawn2(165295, 0, 0, 358.02, 3687.48, -318.09, 383.25);  # Spawn on hail
-            quest::set_data($cooldown_flag, 1);
-            quest::set_data("${char_id}-firefall_cd_start", time);
-            quest::settimer("firefall_cd_$char_id", 300);
+            plugin::Whisper("Greetings, traveler. Only those with a singular flame may awaken the elemental force slumbering here.");
         }
-    } else {
-        plugin::Whisper("Greetings, traveler. Only those with a singular flame may awaken the elemental force slumbering here.");
     }
-}
 }
 
 sub EVENT_ITEM {
+    return unless defined $client && $client->IsClient();
+
     my $char_id = $client->CharacterID();
+    return unless defined $char_id;
+
     my $spawn_flag = "${char_id}-firefall_spawn_flag";
     my $cooldown_flag = "${char_id}-firefall_cooldown";
     my $cooldown_time_flag = "${char_id}-firefall_cd_start";
@@ -32,15 +42,18 @@ sub EVENT_ITEM {
 
         quest::spawn2(165295, 0, 0, 358.02, 3687.48, -318.09, 383.25);
 
-        # Wait one tick and verify spawn exists
-        my $npc = $entity_list->GetMobByNpcTypeID(165295);
-        if ($npc) {
-            quest::set_data($spawn_flag, 1);
-            quest::set_data($cooldown_flag, 1);
-            quest::set_data($cooldown_time_flag, time);
-            quest::settimer("firefall_cd_$char_id", 300);  # 5 minute timer
+        if ($entity_list) {
+            my $npc = $entity_list->GetMobByNpcTypeID(165295);
+            if ($npc) {
+                quest::set_data($spawn_flag, 1);
+                quest::set_data($cooldown_flag, 1);
+                quest::set_data($cooldown_time_flag, time);
+                quest::settimer("firefall_cd_$char_id", 300);
+            } else {
+                plugin::Whisper("Something has gone wrong — the fire could not be summoned. Try again later or contact a GM.");
+            }
         } else {
-            plugin::Whisper("Something has gone wrong — the fire could not be summoned. Try again later or contact a GM.");
+            plugin::Whisper("Entity list unavailable — cannot verify spawn. Contact a GM.");
         }
     } else {
         plugin::return_items(\%itemcount);
@@ -48,6 +61,7 @@ sub EVENT_ITEM {
 }
 
 sub EVENT_TIMER {
+    return unless defined $timer;
     if ($timer =~ /^firefall_cd_(\d+)$/) {
         my $char_id = $1;
         my $cooldown_flag = "${char_id}-firefall_cooldown";
@@ -61,6 +75,8 @@ sub EVENT_TIMER {
 
 sub get_cooldown_remaining {
     my $char_id = shift;
+    return "Unknown" unless defined $char_id;
+
     my $cooldown_time_flag = "${char_id}-firefall_cd_start";
     my $start_time = quest::get_data($cooldown_time_flag);
 

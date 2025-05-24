@@ -16,8 +16,8 @@ sub EVENT_SPAWN {
         164099 => 1,
         1950 => 1,
         1951 => 1,
+        1959 => 1,
         1947 => 1,
-        1960 => 1,
         1948 => 1,
         500 => 1,
         857 => 1,
@@ -189,6 +189,16 @@ sub EVENT_TIMER {
 sub EVENT_DAMAGE_TAKEN {
     return unless $npc;
 
+    # Define excluded pet NPC type IDs
+    my %excluded_pet_npc_ids = (
+        500 => 1,
+        857 => 1,
+        681 => 1,
+        679 => 1,
+        776 => 1,
+        map { $_ => 1 } (2000000..2000017),
+    );
+
     if (!$wrath_triggered && $npc->GetHP() <= ($npc->GetMaxHP() * 0.10)) {
         $wrath_triggered = 1;
 
@@ -203,15 +213,23 @@ sub EVENT_DAMAGE_TAKEN {
             foreach my $e ($entity_list->GetClientList()) {
                 next unless $e;
                 $e->Damage($npc, $dmg, 0, 1, false) if $e->CalculateDistance($x, $y, $z) <= $radius;
+
                 my $pet = $e->GetPet();
-                $pet->Damage($npc, $dmg, 0, 1, false) if $pet && $pet->CalculateDistance($x, $y, $z) <= $radius;
+                if ($pet && $pet->CalculateDistance($x, $y, $z) <= $radius) {
+                    next if $excluded_pet_npc_ids{$pet->GetNPCTypeID()};
+                    $pet->Damage($npc, $dmg, 0, 1, false);
+                }
             }
 
             foreach my $b ($entity_list->GetBotList()) {
                 next unless $b;
                 $b->Damage($npc, $dmg, 0, 1, false) if $b->CalculateDistance($x, $y, $z) <= $radius;
+
                 my $pet = $b->GetPet();
-                $pet->Damage($npc, $dmg, 0, 1, false) if $pet && $pet->CalculateDistance($x, $y, $z) <= $radius;
+                if ($pet && $pet->CalculateDistance($x, $y, $z) <= $radius) {
+                    next if $excluded_pet_npc_ids{$pet->GetNPCTypeID()};
+                    $pet->Damage($npc, $dmg, 0, 1, false);
+                }
             }
         }
     }
