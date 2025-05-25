@@ -1,8 +1,0 @@
-sub EVENT_SPAWN {
-    if (!$npc->IsBot() && !$npc->IsPet()) {
-        $named_items = int(rand(2)) + 1;
-        plugin::HandleLoot();    
-        plugin::HandleNamed();
-        plugin::AddRandomCash(1, 25000);
-    }
-}

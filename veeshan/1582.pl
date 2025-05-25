@@ -1,34 +1,64 @@
 sub EVENT_ITEM {
-    # Define the item ID and the NPC to spawn
-    my $trigger_item = 433;
-    my $spawn_npc = 1585;
+    my $char_id = $client->CharacterID();  # Get the character's unique ID
+    my $flag = "${char_id}_veeshan_secret_boss_flag";  # Unique flag for this player
 
-    # Check if the player hands in the trigger item
-    if (plugin::check_handin(\%itemcount, $trigger_item => 1)) {
-        # Send a message to the player
+    if (plugin::check_handin(\%itemcount, 433 => 1)) {
+        # Set the flag indicating the player is flagged
+        quest::set_data($flag, 1);
+        
         $client->Message(15, "YOU BETTER GET BACK!!!...");
 
-        # Start a 10-second timer
+        # Start a 10-second timer for NPC spawn
         quest::settimer("spawn_npc", 10);
-    }
-    else {
-        # Return items if the handin is not correct
+    } else {
         plugin::return_items(\%itemcount);
     }
 }
 
 sub EVENT_TIMER {
     if ($timer eq "spawn_npc") {
-        # Stop the timer to prevent repetition
         quest::stoptimer("spawn_npc");
 
-        # Get the NPC's current location
         my $x = $npc->GetX();
         my $y = $npc->GetY();
         my $z = $npc->GetZ();
         my $h = $npc->GetHeading();
 
-        # Spawn the NPC at the same location
         quest::spawn2(1585, 0, 0, $x, $y, $z, $h);
+    }
+}
+
+sub EVENT_SAY {
+    my $char_id = $client->CharacterID();
+    my $flag = "${char_id}_veeshan_secret_boss_flag";
+    my $cooldown_key = "${char_id}_veeshan_hail_cd";
+    my $cooldown_time = 420;  # 7 minutes
+    my $current_time = time();
+
+    if ($text =~ /hail/i) {
+        if (quest::get_data($flag)) {
+            my $last_hail_time = quest::get_data($cooldown_key);
+
+            if (!$last_hail_time || ($current_time - $last_hail_time) > $cooldown_time) {
+                quest::set_data($cooldown_key, $current_time);
+
+                # Message and spawn the boss
+                $client->Message(15, "YOU BETTER GET BACK!!!...");
+
+                my $x = $npc->GetX();
+                my $y = $npc->GetY();
+                my $z = $npc->GetZ();
+                my $h = $npc->GetHeading();
+
+                quest::spawn2(1585, 0, 0, $x, $y, $z, $h);  # Replace 1585 with your boss NPC ID if different
+            } else {
+                my $remaining = $cooldown_time - ($current_time - $last_hail_time);
+                my $min = int($remaining / 60);
+                my $sec = $remaining % 60;
+                plugin::Whisper("You must wait $min minutes and $sec seconds before hailing again.");
+            }
+        } else {
+            plugin::Whisper("You need to hand in the required item before proceeding.");
+        }
     }
 }

@@ -1,5 +1,5 @@
 # Configuration options
-my $enable_easter_island = 0;  # Set to 0 to disable Easter Island zones
+my $enable_easter_island = 1;  # Set to 0 to disable Easter Island zones
 my $expedition_name_prefix = "DZ - ";
 my $min_players = 1;
 my $max_players = 12;
@@ -13,6 +13,17 @@ my %zone_versions = (
         2 => "Easter Island Level 60 ToV Era",
     }
 );
+
+sub EVENT_SPAWN {
+    quest::settimer("depop", 20);  # 20 seconds until depop
+}
+
+sub EVENT_TIMER {
+    if ($timer eq "depop") {
+        quest::stoptimer("depop");
+        $npc->Depop();
+    }
+}
 
 sub EVENT_SAY {
     if ($text =~ /ready/i) {
@@ -36,7 +47,7 @@ sub EVENT_SAY {
             my @ordered_versions = (
                 "Easter Island Beginners Lvl 30",
                 "Easter Island Level 60 Sebilis Era",
-                "Easter Island Level 60 (ToV Era)",
+                "Easter Island Level 60 ToV Era",
             );
 
             foreach my $version_name (@ordered_versions) {

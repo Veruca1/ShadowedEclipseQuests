@@ -10,25 +10,25 @@ sub EVENT_ITEM {
         my $credits = quest::ChooseRandom(5..10);
         $client->Message(15, "You receive $credits Hunter Credits.");
         quest::summonitem(33208, $credits);
-        quest::removeitem(33209, 1);
+        # REMOVE quest::removeitem(33209, 1);
     }
     elsif (plugin::check_handin(\%itemcount, 39594 => 1)) {
         my $credits = quest::ChooseRandom(11..25);
         $client->Message(15, "You receive $credits Hunter Credits.");
         quest::summonitem(33208, $credits);
-        quest::removeitem(39594, 1);
+        # REMOVE quest::removeitem(39594, 1);
     }
     elsif (plugin::check_handin(\%itemcount, 39596 => 1)) {
         my $credits = quest::ChooseRandom(26..35);
         $client->Message(15, "You receive $credits Hunter Credits.");
         quest::summonitem(33208, $credits);
-        quest::removeitem(39596, 1);
+        # REMOVE quest::removeitem(39596, 1);
     }
     elsif (plugin::check_handin(\%itemcount, 39616 => 1)) {
         my $credits = quest::ChooseRandom(36..45);
         $client->Message(15, "You receive $credits Hunter Credits.");
         quest::summonitem(33208, $credits);
-        quest::removeitem(39616, 1);
+        # REMOVE quest::removeitem(39616, 1);
     }
     else {
         plugin::return_items(\%itemcount);

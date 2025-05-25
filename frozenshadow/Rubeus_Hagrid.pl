@@ -160,19 +160,24 @@ Also, there is one more matter to discuss—your student credit. As you prove yo
 }
 
 sub EVENT_ITEM {
-    # Array of valid item IDs
-    my @valid_items = (524, 525, 526, 527, 566, 567, 568, 569, 609, 610, 611, 612, 645, 646, 647, 648, 703, 704, 705, 706, 758, 759, 760, 761, 775, 777, 778, 87362, 87364, 87365, 87366, 87368, 87373, 87374, 87380, 87381, 87382, 87388, 87390, 87392, 87399, 87401, 87402, 87406, 87407, 87427, 87428, 87433, 87434, 133126);
+    my @valid_items = (524, 525, 526, 527, 566, 567, 568, 569, 609, 610, 611, 612, 645, 646, 647);
 
-    # Iterate through each valid item ID to check if it was handed in
+    my $total_credits = 0;
+
     foreach my $item_id (@valid_items) {
-        if (plugin::check_handin(\%itemcount, $item_id => 1)) {
-            quest::summonitem(513, 2);  # Give 2 quantity of item 513 (Student Credit)
-            quest::whisper("Thank you for your trade! Here are 2 Student Credits for your efforts.");
-            return;
+        if ($itemcount{$item_id}) {
+            my $count = $itemcount{$item_id};
+
+            # check_handin consumes the exact quantity
+            if (plugin::check_handin(\%itemcount, $item_id => $count)) {
+                $total_credits += $count * 2;
+            }
         }
     }
 
-    # If no valid items were handed in, return the items and notify the player
-    quest::whisper("I have no use for these items. Please hand me a mirrored item or type mold.");
-    plugin::return_items(\%itemcount);
+    if ($total_credits > 0) {
+        quest::summonitem(513, $total_credits);
+    } else {
+        plugin::return_items(\%itemcount);
+    }
 }

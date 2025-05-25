@@ -43,7 +43,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("attack_count", 100);
         $npc->ModifyNPCStat("heroic_strikethrough", 30);
         $npc->ModifyNPCStat("aggro", 60);
-        $npc->ModifyNPCStat("assist", 1);
+        $npc->ModifyNPCStat("assist", 50);
 
         $npc->ModifyNPCStat("str", 1200);
         $npc->ModifyNPCStat("sta", 1200);
