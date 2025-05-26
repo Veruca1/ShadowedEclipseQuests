@@ -163,6 +163,26 @@ sub EVENT_TIMER {
     }
 }
 
+sub EVENT_COMBAT {
+    if ($combat_state == 0) {
+        # Start a 3-minute timer to depop if combat doesn't resume
+        quest::settimer("depop_check", 180);
+    } else {
+        # Cancel timer if combat resumes
+        quest::stoptimer("depop_check");
+    }
+}
+
+sub EVENT_TIMER {
+    if ($timer eq "depop_check") {
+        quest::stoptimer("depop_check");
+        if (!$npc->IsEngaged()) {
+            quest::shout("The Overfiend vanishes into the void, unchallenged.");
+            quest::depop();
+        }
+    }
+}
+
 sub EVENT_AGGRO {
     $combat_engaged = 1;
 }

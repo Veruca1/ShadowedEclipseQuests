@@ -26,6 +26,15 @@ sub EVENT_TIMER {
 }
 
 sub EVENT_SAY {
+    my $char_id = $client->CharacterID();
+    my $bucket_key = "easter_donator_dizzy_$char_id";
+    my $has_access = quest::get_data($bucket_key);
+
+    if (!$has_access) {
+        plugin::Whisper("You're not authorized to use this NPC.");
+        return;
+    }
+
     if ($text =~ /ready/i) {
         my $dz = $client->GetExpedition();
         if ($dz) {
@@ -40,7 +49,9 @@ sub EVENT_SAY {
 
     if ($text =~ /hail/i) {
         plugin::Whisper("Greetings, adventurer. Would you like to create a dynamic zone? Say [list zones] to see all available zones or tell me the zone name you'd like to explore.");
-    } elsif ($text =~ /list zones/i) {
+    }
+
+    elsif ($text =~ /list zones/i) {
         if ($enable_easter_island) {
             plugin::Whisper("Available Dynamic Zones:");
             plugin::Whisper("Easter Island:");

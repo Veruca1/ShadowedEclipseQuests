@@ -1,4 +1,7 @@
 sub EVENT_ITEM_CLICK {
+  # Only allow usage in zone 124 (Temple of Veeshan)
+  return unless ($client->GetZoneID() == 124);
+
   # Check if the correct item (33193) is clicked
   if ($itemid == 33193) {
     # Define the destination coordinates for Temple of Veeshan

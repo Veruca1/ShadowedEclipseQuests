@@ -10,7 +10,7 @@ sub EVENT_HP {
         my $chance = int(rand(100));
         if ($chance < 30) {
             quest::spawn2(1945, 0, 0, $x, $y, $z, $h); # Spawn first 1945
-            quest::spawn2(1945, 0, 0, $x+5, $y, $z, $h); # Spawn second 1945, slightly offset
+            quest::spawn2(1946, 0, 0, $x+5, $y, $z, $h); # Spawn second 1945, slightly offset
             quest::depop(); # Depop self
             quest::signalwith(10, 1000); # 1000 for 1941
         }

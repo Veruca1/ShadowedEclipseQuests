@@ -13,14 +13,28 @@ my $engaged = 0;
 my $current_npc_eid = 0;
 
 sub EVENT_SPAWN {
-    quest::spawn2(164120, 0, 0, 1627.08, 276.63, -57.33, 316.75); # Spawn controller
+    my $npc_id = 1937;
+    my $zone = $zoneid;
+    my $instance_ver = $instanceversion;
 
+    # Spawn unique NPC in version 1 instance
+    if ($zone == 164 && $instance_ver == 1) {
+        if (!quest::isnpcspawned($npc_id)) {
+            quest::spawn2($npc_id, 0, 0, 719.59, -56.16, 41.41, 73);
+        }
+    }
+
+    # Spawn controller only in version 0
+    if ($instance_ver == 0) {
+        quest::spawn2(164120, 0, 0, 1627.08, 276.63, -57.33, 316.75);
+    }
+
+    # Initialize zigzag logic
     @active_npcs = @npc_ids;
     $engaged = 0;
     $current_npc_eid = 0;
 
     quest::settimer("zigzag", 8);
-    # Removed quest::settimer("wipe_monitor", 10);
 }
 
 sub EVENT_TIMER {

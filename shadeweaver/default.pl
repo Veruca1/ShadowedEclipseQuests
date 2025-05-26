@@ -72,6 +72,8 @@ sub EVENT_SPAWN {
 
         quest::setnexthpevent(50);
     } else {
+        my $pacifyable = int(rand(2));  # 0 or 1
+
         $npc->ModifyNPCStat("level", 61);
         $npc->ModifyNPCStat("ac", 15000);
         $npc->ModifyNPCStat("max_hp", 4000000);
@@ -87,8 +89,8 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("slow_mitigation", 80);
         $npc->ModifyNPCStat("attack_count", 100);
         $npc->ModifyNPCStat("heroic_strikethrough", 20);
-        $npc->ModifyNPCStat("aggro", 25);
-        $npc->ModifyNPCStat("assist", 20);
+        $npc->ModifyNPCStat("aggro", 55);
+        $npc->ModifyNPCStat("assist", 1);
 
         $npc->ModifyNPCStat("str", 1000);
         $npc->ModifyNPCStat("sta", 1000);
@@ -106,14 +108,14 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("corruption_resist", 300);
         $npc->ModifyNPCStat("physical_resist", 800);
 
-        $npc->ModifyNPCStat("runspeed", 1);       
+        $npc->ModifyNPCStat("runspeed", 2);       
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
         $npc->ModifyNPCStat("see_invis_undead", 1);
         $npc->ModifyNPCStat("see_hide", 1);
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
-        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1");
+        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1^31,$pacifyable");
     }
 
     my $max_hp = $npc->GetMaxHP();

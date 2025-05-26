@@ -54,9 +54,8 @@ sub EVENT_HP {
         my $npc_list = $entity_list->GetNPCList();
         return unless $npc_list;
 
-        my $npc_iterator = $npc_list->Iterator();
-
-        while (my $mob = $npc_iterator->()) {
+        my $mob;
+        while (defined($mob = $npc_list->GetNext())) {
             next unless $mob;
             next if $mob->GetID() == $npc->GetID();
             next unless $mob->GetNPCTypeID() == 1923;
