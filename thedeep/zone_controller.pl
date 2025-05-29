@@ -17,19 +17,25 @@ sub EVENT_SPAWN {
     my $zone = $zoneid;
     my $instance_ver = $instanceversion;
 
-    # Spawn unique NPC in version 1 instance
+    # Only spawn NPC 1937 in version 1 (not open world)
     if ($zone == 164 && $instance_ver == 1) {
-        if (!quest::isnpcspawned($npc_id)) {
+        my $is_spawned = quest::isnpcspawned($npc_id);
+
+        plugin::Debug("isnpcspawned($npc_id) returned $is_spawned");
+
+        if (!$is_spawned) {
+            plugin::Debug("Spawning NPC 1937...");
             quest::spawn2($npc_id, 0, 0, 719.59, -56.16, 41.41, 73);
+        } else {
+            plugin::Debug("Duplicate prevented: 1937 already exists");
         }
     }
 
-    # Spawn controller only in version 0
+    # Spawn the sub-controller in open world only
     if ($instance_ver == 0) {
         quest::spawn2(164120, 0, 0, 1627.08, 276.63, -57.33, 316.75);
     }
 
-    # Initialize zigzag logic
     @active_npcs = @npc_ids;
     $engaged = 0;
     $current_npc_eid = 0;

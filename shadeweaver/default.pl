@@ -68,11 +68,11 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_hide", 1);
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
-        $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1");
+        $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1");
 
         quest::setnexthpevent(50);
     } else {
-        my $pacifyable = int(rand(2));  # 0 or 1
+        #my $pacifyable = int(rand(2));  # 0 or 1
 
         $npc->ModifyNPCStat("level", 61);
         $npc->ModifyNPCStat("ac", 15000);
@@ -115,7 +115,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_hide", 1);
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
-        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1^31,$pacifyable");
+        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1");
     }
 
     my $max_hp = $npc->GetMaxHP();

@@ -160,7 +160,9 @@ Also, there is one more matter to discuss—your student credit. As you prove yo
 }
 
 sub EVENT_ITEM {
-    my @valid_items = (524, 525, 526, 527, 566, 567, 568, 569, 609, 610, 611, 612, 645, 646, 647);
+    my @valid_items = (
+        524, 525, 526, 527, 566, 567, 568, 569, 609, 610, 611, 612, 645, 646, 647, 648, 703, 704, 705, 706, 758, 759, 760, 761, 775, 776, 777, 778
+    );
 
     my $total_credits = 0;
 

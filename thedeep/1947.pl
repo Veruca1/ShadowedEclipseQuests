@@ -109,25 +109,25 @@ sub EVENT_TIMER {
         }
     }
     elsif ($timer eq "countdown_timer") {
-        return if $combat_engaged;
-        quest::shout("$spawned_engage_timer...");
-        $spawned_engage_timer--;
+    # Removed: return if $combat_engaged;
+    quest::shout("$spawned_engage_timer...");
+    $spawned_engage_timer--;
 
-        if ($spawned_engage_timer <= 0) {
-            quest::stoptimer("countdown_timer");
-
-            my $npc_obj = $entity_list->GetMobByID($spawned_npc_id);
-            if ($npc_obj) {
-                $npc_obj->Depop();
-                $spawned_npc_id = 0;
-            }
+    if ($spawned_engage_timer <= 0) {
+        my $npc_obj = $entity_list->GetMobByID($spawned_npc_id);
+        if ($npc_obj && !$npc_obj->IsEngaged()) {
+            $npc_obj->Depop();
+            $spawned_npc_id = 0;
 
             my @clients = $entity_list->GetClientList();
             foreach my $c (@clients) {
                 $c->Kill(); # Optional room wipe
             }
         }
+        quest::stoptimer("countdown_timer");
     }
+}
+
     elsif ($timer eq "spawn_adds") {
         for (1..$spawn_add_timer) {
             quest::spawn2(1948, 0, 0, $x + int(rand(15)) - 7, $y + int(rand(15)) - 7, $z, 0);
