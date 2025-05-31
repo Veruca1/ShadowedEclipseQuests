@@ -1,5 +1,6 @@
 sub EVENT_SPAWN {
     return unless defined $npc;
+    $npc->AddNimbusEffect(466);
 
     # NPC Stat Modifications (unchanged)
     $npc->ModifyNPCStat("level", 63);
@@ -55,13 +56,20 @@ sub EVENT_SPAWN {
         10031,  # Talisman of the Stoic One
         10013,  # Talisman of Foresight
         10664,  # Voice of Intuition
-        9414,
-        300,    
+        9414,   # Holy Battle Hymn V
+        300,    # Boon of the Avenging Angel IV
         15031,  # Strength of Gladwalker
-        2530    # Khura's Focusing
+        2530,   # Khura's Focusing
+        20147   # Nimbus of Discordant Spines
     );
 
     foreach my $spell_id (@buffs) {
         $npc->ApplySpellBuff($spell_id);
+    }
+}
+
+sub EVENT_DEATH_COMPLETE {
+    if (int(rand(100)) < 20) {
+        quest::spawn2(1976, 0, 0, $x, $y, $z, $h);
     }
 }

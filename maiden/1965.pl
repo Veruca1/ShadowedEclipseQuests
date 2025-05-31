@@ -42,19 +42,14 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("corruption_resist", 500);
         $npc->ModifyNPCStat("physical_resist", 1000);
 
-        $npc->ModifyNPCStat("runspeed", 0);  # Updated from 2 to 0
+        $npc->ModifyNPCStat("runspeed", 0);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
         $npc->ModifyNPCStat("see_invis_undead", 1);
         $npc->ModifyNPCStat("see_hide", 1);
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
-        $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5^7,1^8,1^13,1^14,1^17,1^21,1^31,1^33,1");  # Added 33,1
-
-        # Start timer if NPC is already in combat when it spawns
-        if ($npc->IsEngaged()) {
-            quest::settimer("spirit_spawn", 60);
-        }
+        $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5^7,1^8,1^13,1^14,1^17,1^21,1^31,1^33,1");
     }
 }
 
@@ -62,36 +57,40 @@ sub EVENT_COMBAT {
     if (defined $combat_state) {
         if ($combat_state == 1) {
             quest::shout("Knowledge is infection. Let me share what I’ve learned.");
-            quest::settimer("spirit_spawn", 60);  # changed to 60 seconds
+            $spirit_ready = 1;
+            quest::setnexthpevent(80);
         } elsif ($combat_state == 0) {
-            quest::stoptimer("spirit_spawn");
+            $spirit_ready = 0;
         }
     }
 }
 
-sub EVENT_TIMER {
-    return unless defined $timer;
+sub EVENT_HP {
+    return unless $spirit_ready;
 
-    if ($timer eq "spirit_spawn") {
-        quest::shout("Spirit spawn timer triggered.");  # Debug shout
+    if ($hpevent == 80) {
+        spawn_spirits();
+        quest::setnexthpevent(50);
+    } elsif ($hpevent == 50) {
+        spawn_spirits();
+        quest::setnexthpevent(25);
+    } elsif ($hpevent == 25) {
+        spawn_spirits();
+    }
+}
 
-        return unless scalar(@spawn_locs) > 0;
+sub spawn_spirits {
+    quest::shout("Trapped spirits of the Lyceum, rise and obey! Do NOT use your wands of light on them!");
 
-        my @shuffled = shuffle_array(@spawn_locs);
-        my $num_spirits = int(rand(4)) + 1;
-        $num_spirits = scalar(@shuffled) if $num_spirits > scalar(@shuffled);
+    my @shuffled = shuffle_array(@spawn_locs);
+    my $num_spirits = int(rand(4)) + 1;
+    $num_spirits = scalar(@shuffled) if $num_spirits > scalar(@shuffled);
 
-        for (my $i = 0; $i < $num_spirits; $i++) {
-            my $loc = $shuffled[$i];
-            next unless defined $loc && ref($loc) eq 'ARRAY' && scalar(@$loc) == 4;
-
-            my ($x, $y, $z, $h) = @$loc;
-            if (defined $x && defined $y && defined $z && defined $h) {
-                quest::spawn2(1966, 0, 0, $x, $y, $z, $h);
-            }
-        }
-
-        quest::shout("Trapped spirits of the Lyceum, rise and obey! Do NOT use your wands of light on them!");
+    for (my $i = 0; $i < $num_spirits; $i++) {
+        my $loc = $shuffled[$i];
+        next unless defined $loc && ref($loc) eq 'ARRAY' && scalar(@$loc) == 4;
+        my ($x, $y, $z, $h) = @$loc;
+        quest::spawn2(1966, 0, 0, $x, $y, $z, $h);
     }
 }
 
@@ -105,4 +104,10 @@ sub shuffle_array {
         @array[$i, $j] = @array[$j, $i];
     }
     return @array;
+}
+
+sub EVENT_DEATH_COMPLETE {
+    if (int(rand(100)) < 20) {
+        quest::spawn2(1976, 0, 0, $x, $y, $z, $h);
+    }
 }

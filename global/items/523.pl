@@ -7,8 +7,8 @@ sub EVENT_ITEM_CLICK {
         # Remove the Coin of Fate from the player's inventory
         quest::removeitem(523, 1);
 
-        # Randomly determine which effect to trigger (1 to 9)
-        my $random_effect = plugin::RandomRange(1, 9);
+        # Randomly determine which effect to trigger (1 to 10)
+        my $random_effect = plugin::RandomRange(1, 10);
 
         # Apply the random effect
         if ($random_effect == 1) {
@@ -48,6 +48,10 @@ sub EVENT_ITEM_CLICK {
         elsif ($random_effect == 9) {
             # Teleport to Beholder Zone (Zone ID 16) at specified location
             $client->MovePC(16, -387.41, 432.66, -96.22, 281.25);
+        }
+        elsif ($random_effect == 10) {
+            # Summon an AA 3 Point Scroll (Item ID 490)
+            $client->SummonItem(490);
         }
 
         # Exit after performing the effect

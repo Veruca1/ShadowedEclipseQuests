@@ -3,6 +3,15 @@
 my $signal_count = 0;
 my $invul_stack = 0;
 
+sub EVENT_SPAWN {
+    # NPC ID, x, y, z, heading
+    quest::spawn2(1962, 0, 0, 246.22, -1680.14, -156.97, 74.25);
+    quest::spawn2(1963, 0, 0, 133.27, -1848.22, -156.89, 62.25);
+    quest::spawn2(1961, 0, 0, 399.97, -1765.68, -156.93, 489.00);
+    quest::spawn2(1960, 0, 0, 432.35, -1877.35, -156.93, 489.00);
+    quest::spawn2(1959, 0, 0, 255.86, -1862.38, -144.28, 489.25);
+}
+
 sub EVENT_SIGNAL {
     if ($signal == 1) {
         $signal_count++;
@@ -71,5 +80,22 @@ sub EVENT_SIGNAL {
                 }
             }
         }
+
+    } elsif ($signal == 4) {
+        # Start 7-minute timer (420 seconds)
+        quest::settimer("spawn_watchers", 420);
+    }
+}
+
+sub EVENT_TIMER {
+    if ($timer eq "spawn_watchers") {
+        quest::stoptimer("spawn_watchers");
+
+        # Spawn the five NPCs after delay
+        quest::spawn2(1962, 0, 0, 246.22, -1680.14, -156.97, 74.25);
+        quest::spawn2(1963, 0, 0, 133.27, -1848.22, -156.89, 62.25);
+        quest::spawn2(1961, 0, 0, 399.97, -1765.68, -156.93, 489.00);
+        quest::spawn2(1960, 0, 0, 432.35, -1877.35, -156.93, 489.00);
+        quest::spawn2(1959, 0, 0, 255.86, -1862.38, -144.28, 489.25);
     }
 }

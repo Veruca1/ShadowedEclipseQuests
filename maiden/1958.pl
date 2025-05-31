@@ -105,13 +105,17 @@ sub EVENT_TIMER {
 
 sub EVENT_DEATH_COMPLETE {
     quest::shout("The spirits scatter... but their echoes remain...");
+    quest::signalwith(1352, 4); # Signal controller to respawn Sanctum of Dust 7 mins later
 
     # Clean up
     quest::depop(1960);
     quest::depop(1961);
     quest::depop(1962);
     quest::depop(1963);
-
     quest::stoptimer("check_invul");
     quest::stoptimer("combat_shout");
+
+    if (int(rand(100)) < 20) {
+        quest::spawn2(1976, 0, 0, $x, $y, $z, $h);
+    }
 }
