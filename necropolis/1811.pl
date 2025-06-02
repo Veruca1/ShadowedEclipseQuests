@@ -2,7 +2,7 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();
     my $flag = "$char_id-rat_event_flag";
     my $cooldown_key = "$char_id-rat_event_cooldown";
-    my $cooldown_time = 1200;  # 20 minutes in seconds
+    my $cooldown_time = 300;  # 5 minutes in seconds
 
     if ($text =~ /hail/i) {
         if (quest::get_data($flag)) {

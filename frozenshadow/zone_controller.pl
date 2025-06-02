@@ -79,7 +79,7 @@ sub EVENT_SIGNAL {
     if ($signal == 1) {
         # Signal 1 logic - 8% chance to spawn NPC 1665
         my $random_roll = int(rand(100)) + 1; # Generate a random number between 1 and 100
-        if ($random_roll <= 8) { # 8% chance
+        if ($random_roll <= 10) { # 10% chance
             if (!quest::isnpcspawned(1665)) { # Check if NPC 1665 is already spawned
                 quest::spawn2(1665, 0, 0, 801.00, 624.00, 12.85, 141.00); # Spawn NPC 1665 at specified location
             }
