@@ -16,6 +16,10 @@ sub EVENT_SAY {
         plugin::model_change($text);
     }
 
+    if ($text =~ /^#hotzones\b/i) {
+        plugin::hotzones_popup($client);
+    }
+
     # Handle #logtargets on/off and status
     if ($text =~ /#logtargets\s+(on|off)/i) {
         plugin::logtargets_toggle($client, $1);
