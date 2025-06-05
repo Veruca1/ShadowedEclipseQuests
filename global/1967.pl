@@ -36,16 +36,27 @@ sub EVENT_SAY {
     }
 
     if ($text =~ /ready/i) {
-        my $dz = $client->GetExpedition();
-        if ($dz) {
-            my $zone_short_name = $dz->GetZoneName();
-            plugin::Whisper("Teleporting you to your dynamic zone: $zone_short_name.");
-            $client->MovePCDynamicZone($zone_short_name);
+    my $dz = $client->GetExpedition();
+    if ($dz) {
+        my $zone_short_name = $dz->GetZoneName();
+        plugin::Whisper("Teleporting your group to the dynamic zone: $zone_short_name.");
+
+        my $group = $client->GetGroup();
+        if ($group) {
+            for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                my $member = $group->GetMember($i);
+                next unless $member && $member->IsClient();
+                $member->CastToClient()->MovePCDynamicZone($zone_short_name);
+            }
         } else {
-            plugin::Whisper("You don't have an active dynamic zone. Please create one first.");
+            # Not in a group, move just the client
+            $client->MovePCDynamicZone($zone_short_name);
         }
-        return;
+    } else {
+        plugin::Whisper("You don't have an active dynamic zone. Please create one first.");
     }
+    return;
+}
 
     if ($text =~ /hail/i) {
         plugin::Whisper("Greetings, adventurer. Would you like to create a dynamic zone? Say [list zones] to see all available zones or tell me the zone name you'd like to explore.");

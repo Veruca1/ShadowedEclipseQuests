@@ -4,12 +4,12 @@ sub EVENT_ENTERZONE {
     }
 }
 
-sub EVENT_WARP {
-    # Exclude GM players
-    if ($client->GetGM()) {
-        return;
-    }
+# sub EVENT_WARP {
+#     # Exclude GM players
+#     if ($client->GetGM()) {
+#         return;
+#     }
 
-    # Kill the player as punishment for warping
-    $client->Kill();
-}
+#     # Kill the player as punishment for warping
+#     $client->Kill();
+# }

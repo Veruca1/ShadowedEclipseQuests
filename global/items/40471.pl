@@ -1,6 +1,7 @@
 sub EVENT_ITEM_CLICK {
+    quest::debug("item clicked");
     my $itemid = 40471;  # Define the item ID to check
-    my @restricted_zones = (344, 202, 219, 223, 451, 183, 151);  # List of restricted zone IDs
+    my @restricted_zones = (54);  # List of restricted zone IDs
     my @excluded_npc_ids = (724075, 10);  # List of NPC IDs to exclude from aggro
     my $large_hate_value = 10000;  # Large hate value to be added to the target
 

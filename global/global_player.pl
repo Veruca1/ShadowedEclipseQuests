@@ -11,6 +11,10 @@ sub EVENT_SAY {
         return;
     }
 
+    if ($text =~ /^#itemgive$/i) {
+    plugin::itemgive();
+    }
+
     # Handle #model command
     if ($text =~ /#model/i) {
         plugin::model_change($text);
@@ -128,15 +132,19 @@ sub EVENT_DAMAGE_TAKEN {
     my $client = $entity_list->GetClientByID($userid);
     return unless $client;
 
-    # Apply fixed reductions from active buffs
-    my $damage = plugin::reduce_npc_damage($userid, $damage, 40665, 50);  # Easter Egg damage reduction buff
+    # Fixed reductions from buffs
+    my $damage = plugin::reduce_npc_damage($userid, $damage, 40665, 50);
     $damage = plugin::reduce_npc_damage($userid, $damage, 40712, 25);
 
-    # Apply AA-based mitigation (Draconic Resilience)
+    # AA-based mitigation
     $damage = plugin::rebirth_reduction($client, $damage);
+
+    # Augment-based reduction using supported method
+    $damage = plugin::augment_40820_reduction($client, $damage);
 
     return int($damage);
 }
+
 
 
 sub EVENT_TARGET_CHANGE {
@@ -192,6 +200,62 @@ sub EVENT_SPELL_EFFECT {
         $client->Message(13, "Perfect Execution strikes for $damage damage!");
     }
 }
+
+sub EVENT_CONNECT {
+    my $client = $entity_list->GetClientByID($userid);
+    return unless $client;
+
+    my $item_id = 40502;  # The item to give
+
+     #Check if the player has the item and give it if they don't
+    if (!plugin::check_hasitem($client, $item_id)) {
+        $client->SummonItem($item_id);
+       $client->Message(15, "You have received a special gift!");
+    }
+}
+
+
+sub EVENT_WARP {
+    my $zone_blocklist = {
+        frozenshadow   => 1,
+        neriakb        => 1,
+        neriakc        => 1,
+        neriaka        => 1,
+        paludal        => 1,
+        shadeweaver    => 1,
+        templeveeshan  => 1,
+        thedeep        => 1,
+        veeshan        => 1,
+    };
+
+    return if $client->GetGM();
+
+    my $char_id = $client->CharacterID();
+    my $donator_flag = quest::get_data("warp_donator_flag$char_id");
+    return if defined $donator_flag && $donator_flag == 1;
+
+    my $zone_name = $zone->GetShortName();
+    return unless exists $zone_blocklist->{$zone_name};
+
+    # Prevent warp loop by using a short cooldown bucket
+    my $cooldown_key = "warp_cooldown_$char_id";
+    return if quest::get_data($cooldown_key);
+    quest::set_data($cooldown_key, 1, 2);  # 2-second cooldown
+
+    my $safe_x = $zone->GetSafeX();
+    my $safe_y = $zone->GetSafeY();
+    my $safe_z = $zone->GetSafeZ();
+    my $safe_h = $zone->GetSafeHeading();
+
+    $client->MovePCInstance($zone_name, $client->GetInstanceID(), $safe_x, $safe_y, $safe_z, $safe_h);
+    $client->Message(15, "Warping is disabled in this zone. You have been returned to safety. Check Captain Caved Man if you want to bypass this.");
+}
+
+
+
+
+
+
 
 
 

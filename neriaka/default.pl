@@ -115,26 +115,27 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_HP {
-    return unless $is_boss;
     return unless $npc;
+    return unless $is_boss;
 
     if ($hpevent == 50) {
-        quest::shout("Surrounding minions of the cavern, arise and assist me!");
+        # Check if NPC has debuff spell 40745 active
+        if ($npc->FindBuff(40745)) {
+            plugin::Debug("Boss has debuff 40745 mark of silence, skipping help call.");
+            return;
+        }
 
-        my $top_hate_target = $npc->GetHateTop();
-        return unless $top_hate_target;
+        quest::shout("Surrounding minions of the cavern, arise and assist me!");
+        my $top = $npc->GetHateTop();
+        return unless $top;
 
         my @npcs = $entity_list->GetNPCList();
         return unless @npcs;
 
         foreach my $mob (@npcs) {
-            next unless $mob;
-            next if $mob->GetID() == $npc->GetID();
-
-            my $distance = $npc->CalculateDistance($mob);
-            if (defined $distance && $distance <= 300) {
-                $mob->AddToHateList($top_hate_target, 1);
-            }
+            next unless $mob && $mob->GetID() != $npc->GetID();
+            my $dist = $npc->CalculateDistance($mob);
+            $mob->AddToHateList($top, 1) if defined $dist && $dist <= 300;
         }
     }
 }

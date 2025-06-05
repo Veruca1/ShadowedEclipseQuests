@@ -2,6 +2,14 @@ my $signal_count = 0;
 my $target_signal_count = int(rand(16)) + 1;  # Generate a random number between 1 and 16
 
 sub EVENT_SPAWN {
+    # Prevent duplicate spawns on zone resume by depopping relevant NPCs
+    my @npc_ids = (
+        1735, 1684, 1689, 1687, 1691, 1690, 1693, 1686
+    );
+    foreach my $npcid (@npc_ids) {
+        quest::depopall($npcid);
+    }
+
     #Spawn NPC 1735 at loc below
     quest::spawn2(1735, 0, 0, 170.78, 970.22, 117.74, 4.00);
 
@@ -45,34 +53,19 @@ sub EVENT_SPAWN {
 
     # Randomly choose one of the 9 locations to spawn NPC 1686
     my $random_location = int(rand(9)); # Generate a random number between 0 and 8 (for 9 locations)
-
-    if ($random_location == 0) {
-        quest::spawn2(1686, 0, 0, 743.00, 749.00, 75.73, 511.00); # Location 1
-    }
-    elsif ($random_location == 1) {
-        quest::spawn2(1686, 0, 0, 761.49, 788.76, 74.94, 253.25); # Location 2
-    }
-    elsif ($random_location == 2) {
-        quest::spawn2(1686, 0, 0, 796.00, 747.00, 75.73, 511.00); # Location 3
-    }
-    elsif ($random_location == 3) {
-        quest::spawn2(1686, 0, 0, 820.00, 803.00, 75.73, 511.00); # Location 4
-    }
-    elsif ($random_location == 4) {
-        quest::spawn2(1686, 0, 0, 846.79, 752.54, 74.84, 2.25);   # Location 5
-    }
-    elsif ($random_location == 5) {
-        quest::spawn2(1686, 0, 0, 848.00, 863.00, 75.73, 511.00); # Location 6
-    }
-    elsif ($random_location == 6) {
-        quest::spawn2(1686, 0, 0, 789.77, 806.26, 75.65, 6.25);   # Location 7
-    }
-    elsif ($random_location == 7) {
-        quest::spawn2(1686, 0, 0, 768.00, 805.00, 75.73, 511.00); # Location 8
-    }
-    elsif ($random_location == 8) {
-        quest::spawn2(1686, 0, 0, 733.80, 859.18, 74.83, 256.25); # Location 9
-    }
+    my @locs = (
+        [743.00, 749.00, 75.73, 511.00],   # Location 1
+        [761.49, 788.76, 74.94, 253.25],   # Location 2
+        [796.00, 747.00, 75.73, 511.00],   # Location 3
+        [820.00, 803.00, 75.73, 511.00],   # Location 4
+        [846.79, 752.54, 74.84, 2.25],     # Location 5
+        [848.00, 863.00, 75.73, 511.00],   # Location 6
+        [789.77, 806.26, 75.65, 6.25],     # Location 7
+        [768.00, 805.00, 75.73, 511.00],   # Location 8
+        [733.80, 859.18, 74.83, 256.25],   # Location 9
+    );
+    my $loc = $locs[$random_location];
+    quest::spawn2(1686, 0, 0, @$loc);
 }
 
 sub EVENT_SIGNAL {

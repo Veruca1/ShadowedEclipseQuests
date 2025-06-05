@@ -30,10 +30,10 @@ sub EVENT_TIMER {
     }
 }
 
-sub EVENT_WARP {
-    if ($client->GetGM()) {
-        return;
-    }
+# sub EVENT_WARP {
+#     if ($client->GetGM()) {
+#         return;
+#     }
 
-    $client->Kill();
-}
+#     $client->Kill();
+# }

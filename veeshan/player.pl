@@ -1,25 +1,25 @@
-sub EVENT_WARP {
-    # Skip everything if the player is a GM
-    if ($client->GetGM()) {
-        return;
-    }
+# sub EVENT_WARP {
+#     # Skip everything if the player is a GM
+#     if ($client->GetGM()) {
+#         return;
+#     }
 
-    # Coordinates to send warped players
-    my $warp_x = 1783.00;       # X coordinate of the warp destination
-    my $warp_y = -5.00;         # Y coordinate of the warp destination
-    my $warp_z = 15.00;         # Z coordinate of the warp destination
-    my $warp_heading = 0.00;    # Heading for the destination
+#     # Coordinates to send warped players
+#     my $warp_x = 1783.00;       # X coordinate of the warp destination
+#     my $warp_y = -5.00;         # Y coordinate of the warp destination
+#     my $warp_z = 15.00;         # Z coordinate of the warp destination
+#     my $warp_heading = 0.00;    # Heading for the destination
 
-    # Get the instance ID the player is in
-    my $instance_id = $client->GetInstanceID();
+#     # Get the instance ID the player is in
+#     my $instance_id = $client->GetInstanceID();
 
-    # Move the player in their instance
-    $client->MovePCInstance($zone_id, $instance_id, $warp_x, $warp_y, $warp_z, $warp_heading);
+#     # Move the player in their instance
+#     $client->MovePCInstance($zone_id, $instance_id, $warp_x, $warp_y, $warp_z, $warp_heading);
 
-    # Freeze the player and set a timer to unfreeze
-    $client->Freeze();
-    quest::settimer("unfreeze", 5);
-}
+#     # Freeze the player and set a timer to unfreeze
+#     $client->Freeze();
+#     quest::settimer("unfreeze", 5);
+# }
 
 sub EVENT_TIMER {
     if ($timer eq "unfreeze") {

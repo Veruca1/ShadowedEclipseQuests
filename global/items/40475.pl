@@ -18,7 +18,20 @@ sub EVENT_ITEM_CLICK {
         my $z = $client->GetZ();
         my $h = $client->GetHeading();
 
-        quest::spawn2(1967, 0, 0, $x, $y, $z, $h);
+        # Spawn Dizzy and set a timer for despawn
+        my $npc_id = quest::spawn2(1967, 0, 0, $x, $y, $z, $h);
+        quest::settimer("despawn_dizzy_$npc_id", 60);
         $client->Message(15, "Dizzy appears and offers you teleport options.");
+    }
+}
+
+sub EVENT_TIMER {
+    if ($timer =~ /^despawn_dizzy_(\d+)$/) {
+        my $npc_id = $1;
+        my $npc = $entity_list->GetNPCByID($npc_id);
+        if ($npc) {
+            $npc->Depop();
+        }
+        quest::stoptimer($timer);
     }
 }

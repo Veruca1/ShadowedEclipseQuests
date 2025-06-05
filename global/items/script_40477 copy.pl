@@ -6,7 +6,7 @@
         my $zone_name = $zonesn;
 
         # Array of forbidden zone IDs
-        my @forbidden_zones = (138); # Add more zone IDs to this array as needed
+        my @forbidden_zones = (202, 451, 183, 151); # Add more zone IDs to this array as needed
 
         if ($itemid == 40477) {
             my $is_forbidden = 0;
@@ -22,7 +22,7 @@
             } else {
                 quest::clearspawntimers();
                 quest::repopzone();
-                $client->Message(21, "Mobs in this zone have been repopped. Timers have been cleared, resummon custom pets if you want them to cast things.");
+                $client->Message(21, "You meddle where you shouldn't. The creatures of this place sense the disturbance and return to investigate.");
 
             }
         }

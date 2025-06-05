@@ -136,6 +136,12 @@ sub EVENT_HP {
     return unless $is_boss;
 
     if ($hpevent == 50) {
+        # Check if NPC has debuff spell 40745 active
+        if ($npc->FindBuff(40745)) {
+            plugin::Debug("Boss has debuff 40745 mark of silence, skipping help call.");
+            return;
+        }
+
         quest::shout("Surrounding minions of the cavern, arise and assist me!");
         my $top = $npc->GetHateTop();
         return unless $top;
@@ -191,6 +197,17 @@ sub EVENT_TIMER {
 sub EVENT_DAMAGE_TAKEN {
     return unless $npc;
 
+    # Define excluded pet NPC type IDs
+    my %excluded_pet_npc_ids = (
+        500 => 1,
+        549 => 1,
+        857 => 1,
+        681 => 1,
+        679 => 1,
+        776 => 1,
+        map { $_ => 1 } (2000000..2000017),
+    );
+
     if (!$wrath_triggered && $npc->GetHP() <= ($npc->GetMaxHP() * 0.10)) {
         $wrath_triggered = 1;
 
@@ -228,6 +245,10 @@ sub EVENT_DEATH_COMPLETE {
         153095 => 1,
         1922   => 1,
         1954   => 1,
+        1974 => 1,
+        1936 => 1,
+        1709 => 1,
+        1831 => 1,
         857 => 1,
         681 => 1,
         679 => 1,

@@ -135,6 +135,12 @@ sub EVENT_HP {
     return unless $is_boss;
 
     if ($hpevent == 50) {
+        # Check if NPC has debuff spell 40745 active
+        if ($npc->FindBuff(40745)) {
+            plugin::Debug("Boss has debuff 40745 mark of silence, skipping help call.");
+            return;
+        }
+
         quest::shout("Surrounding minions of the cavern, arise and assist me!");
         my $top = $npc->GetHateTop();
         return unless $top;
@@ -246,6 +252,9 @@ sub EVENT_DEATH_COMPLETE {
         1922   => 1,
         1954   => 1,
         1974 => 1,
+        1936 => 1,
+        1709 => 1,
+        1831 => 1,
         857 => 1,
         681 => 1,
         679 => 1,

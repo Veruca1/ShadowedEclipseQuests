@@ -17,7 +17,7 @@ sub EVENT_ITEM_CLICK {
     # Check if one hour (3600 seconds) has passed since the last use
     if (($current_time - $last_used_time) >= 3600) {
         # Grant the Donator Credit
-        $client->AddAlternateCurrencyValue(11, 1);
+        $client->AddAlternateCurrencyValue(1, 1);
         $client->Message(15, "You shook the box, and a Donator Credit drops out!");
 
         # Update the last used time to the current time in the "Donator Sack" bucket for the account

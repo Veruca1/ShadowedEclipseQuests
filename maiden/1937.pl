@@ -1,6 +1,6 @@
 sub EVENT_SPAWN {
     quest::settimer("cryptic_shout", 120);     # Every 2 minutes
-    quest::settimer("moonrock_summon", 75);    # Every 1.25 minutes
+    quest::settimer("moonrock_summon", 120);    # Every 2 minutes
     quest::shout("We meet again so soon!");
     $npc->AddNimbusEffect(611);
 }

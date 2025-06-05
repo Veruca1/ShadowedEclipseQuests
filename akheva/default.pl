@@ -46,7 +46,7 @@ sub EVENT_SPAWN {
     return if exists $exclusion_list{$npc_id};
     return if $npc->IsPet();
 
-    $is_boss = ($raw_name =~ /^#/ || $npc_id == 1919) && $npc_id != 1974 ? 1 : 0;
+    $is_boss = ($raw_name =~ /^#/ || ($npc_id == 1919 && $npc_id != 1974)) ? 1 : 0;
 
     $npc->SetNPCFactionID(623);
 
@@ -151,6 +151,12 @@ sub EVENT_HP {
     return unless $is_boss;
 
     if ($hpevent == 50) {
+        # Check if NPC has debuff spell 40745 active
+        if ($npc->FindBuff(40745)) {
+            plugin::Debug("Boss has debuff 40745 mark of silence, skipping help call.");
+            return;
+        }
+
         quest::shout("Surrounding minions of the cavern, arise and assist me!");
         my $top = $npc->GetHateTop();
         return unless $top;
