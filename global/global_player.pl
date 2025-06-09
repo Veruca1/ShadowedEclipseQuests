@@ -122,7 +122,28 @@ sub EVENT_TIMER {
 
 sub EVENT_DEATH {
     quest::stoptimer("malfoy_insult");  # Stop insult timer on death
+
+    my $char_id = $client->CharacterID();
+    return unless $char_id;
+
+    my $dbh = plugin::LoadMysql();
+    return unless $dbh;
+
+    my $sql = qq{
+        INSERT INTO character_deaths (char_id, death_count, last_death)
+        VALUES (?, 1, NOW())
+        ON DUPLICATE KEY UPDATE
+            death_count = death_count + 1,
+            last_death = NOW()
+    };
+
+    my $sth = $dbh->prepare($sql);
+    $sth->execute($char_id);
+    $sth->finish();
+    $dbh->disconnect();
 }
+
+
 
 sub EVENT_ZONE {
     quest::stoptimer("malfoy_insult");  # Stop the timer while zoning
@@ -237,19 +258,31 @@ sub EVENT_WARP {
     my $zone_name = $zone->GetShortName();
     return unless exists $zone_blocklist->{$zone_name};
 
-    # Prevent warp loop by using a short cooldown bucket
-    my $cooldown_key = "warp_cooldown_$char_id";
-    return if quest::get_data($cooldown_key);
-    quest::set_data($cooldown_key, 1, 2);  # 2-second cooldown
+    my $suppress_key = "warp_suppress_$char_id";
+    if (quest::get_data($suppress_key)) {
+        quest::delete_data($suppress_key);  # clear suppress flag after skip
+        return;
+    }
 
     my $safe_x = $zone->GetSafeX();
     my $safe_y = $zone->GetSafeY();
     my $safe_z = $zone->GetSafeZ();
     my $safe_h = $zone->GetSafeHeading();
 
-    $client->MovePCInstance($zone_name, $client->GetInstanceID(), $safe_x, $safe_y, $safe_z, $safe_h);
-    $client->Message(15, "Warping is disabled in this zone. You have been returned to safety. Check Captain Caved Man if you want to bypass this.");
+    my $warn_key = "warp_warning_given_$char_id";
+    my $warned = quest::get_data($warn_key);
+
+    if (defined $warned && $warned == 1) {
+        $client->Message(15, "You were warned. Warping is not allowed here.");
+        $client->Kill();
+    } else {
+        quest::set_data($warn_key, 1);
+        quest::set_data($suppress_key, 1, 2);  # suppress warp event for next 2 seconds
+        $client->MovePCInstance($zone_name, $client->GetInstanceID(), $safe_x, $safe_y, $safe_z, $safe_h);
+        $client->Message(15, "Warping is disabled in this zone. Further attempts will result in death.");
+    }
 }
+
 
 
 

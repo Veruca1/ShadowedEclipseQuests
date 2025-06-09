@@ -9,6 +9,7 @@ sub EVENT_SPAWN {
 
     my %exclusion_list = (
         156055 => 1,
+        1921 => 1,
         500 => 1,
         857 => 1,
         681 => 1,
@@ -198,7 +199,17 @@ sub EVENT_DAMAGE_TAKEN {
         map { $_ => 1 } (2000000..2000017),
     );
 
+    # Only trigger Wrath if it's not already triggered and HP is below 10%
     if (!$wrath_triggered && $npc->GetHP() <= ($npc->GetMaxHP() * 0.10)) {
+        my $source = $entity_list->GetMobByID($attackers_id);  # ID of attacker
+        if ($source && $source->IsNPC()) {
+            my $npc_type_id = $source->GetNPCTypeID();
+            if ($excluded_pet_npc_ids{$npc_type_id}) {
+                plugin::Debug("Excluded NPC $npc_type_id triggered damage; skipping Wrath.");
+                return $damage;  # Skip wrath if attacker is excluded
+            }
+        }
+
         $wrath_triggered = 1;
 
         if (quest::ChooseRandom(1..100) <= 20) {
@@ -237,7 +248,9 @@ sub EVENT_DEATH_COMPLETE {
         1954   => 1,
         1974 => 1,
         1936 => 1,
+        1921 => 1,
         1709 => 1,
+        1568 => 1,
         1831 => 1,
         857 => 1,
         681 => 1,

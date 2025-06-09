@@ -6,13 +6,11 @@ sub EVENT_COMBAT {
 
         quest::settimer("spore_surge", 1);
         quest::settimer("mushroom_mutter", 20);
-        quest::settimer("silence_sk", 30);
 
         quest::setnexthpevent(80);
     } else {
         quest::stoptimer("spore_surge");
         quest::stoptimer("mushroom_mutter");
-        quest::stoptimer("silence_sk");
 
         if (!$npc->IsEngaged()) {
             $npc->SetHP($npc->GetMaxHP());
@@ -27,6 +25,12 @@ sub EVENT_HP {
         spawn_minions();
         quest::setnexthpevent(50);
     } elsif ($hpevent == 50) {
+        # Check if NPC has debuff spell 40745 active
+        if ($npc->FindBuff(40745)) {
+            plugin::Debug("Boss has debuff 40745 mark of silence, skipping help call.");
+            return;
+        }
+
         quest::shout("Surrounding minions of the cavern, arise and assist me!");
 
         my $top_hate_target = $npc->GetHateTop();
@@ -85,20 +89,6 @@ sub EVENT_TIMER {
         quest::shout($shouts[int(rand(@shouts))]);
         quest::settimer("mushroom_mutter", 45);
     }
-
-    if ($timer eq "silence_sk") {
-        my @hate_list = $npc->GetHateList();
-        foreach my $hate_entry (@hate_list) {
-            my $ent = $hate_entry->GetEnt();
-            if ($ent && $ent->IsClient()) {
-                my $pc = $ent->CastToClient();
-                if ($pc->GetClass() == 5) {
-                    $npc->CastSpell(12431, $pc->GetID());
-                    $npc->Shout("No dark chants in my caverns, Shadowknight!");
-                }
-            }
-        }
-    }
 }
 
 sub EVENT_DAMAGE_TAKEN {
@@ -149,8 +139,20 @@ sub EVENT_KILLED_MERIT {
   if (defined($npc) && $npc->IsNPC() && $npc->GetNPCTypeID() == 156055) {
     if (defined($killer_id)) {
       my $killer = $entity_list->GetMobByID($killer_id);
-      if (defined($killer) && $killer->IsClient()) {
-        my $killer_client = $killer->CastToClient();
+      if (defined($killer)) {
+        my $killer_client;
+        my $bot_killer_name;
+
+        if ($killer->IsClient()) {
+          $killer_client = $killer->CastToClient();
+        } elsif ($killer->IsBot()) {
+          $bot_killer_name = $killer->GetCleanName();
+          my $owner = $killer->GetOwner();
+          if (defined($owner) && $owner->IsClient()) {
+            $killer_client = $owner->CastToClient();
+          }
+        }
+
         if (defined($killer_client)) {
           my $char_id = $killer_client->CharacterID();
           my $key = "paludal_boss_unlock_" . $char_id;
@@ -159,15 +161,15 @@ sub EVENT_KILLED_MERIT {
           if (!defined($flag) || $flag != 1) {
             quest::set_data($key, 1);
             $killer_client->Message(15, "You have unlocked the ability to click to the End Boss!");
+            if (defined($bot_killer_name)) {
+              quest::shout("$bot_killer_name got the kill, so " . $killer_client->GetCleanName() . " has been awarded the flag!");
+            }
           }
         }
       }
     }
   }
 }
-
-
-
 
 
 sub EVENT_DEATH_COMPLETE {

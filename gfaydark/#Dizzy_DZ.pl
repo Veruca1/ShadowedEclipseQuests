@@ -41,7 +41,13 @@ my @kunark_zones = (
     { shortname => "kerraridge", name => "Kerraridge" },
     { shortname => "timorous", name => "Timorous Deep" },
     { shortname => "skyfire", name => "Skyfire Mountains" },
-    { shortname => "veeshan", name => "Veeshan's Peak" }
+    { shortname => "veeshan", name => "Veeshan's Peak" },
+    { shortname => "fieldofbone", name => "The Field of Bone" },
+    { shortname => "frontiermtns", name => "Frontier Mountains" },
+    { shortname => "warslikswood", name => "Warsliks Woods" },
+    { shortname => "overthere", name => "The Overthere" },
+    { shortname => "emeraldjungle", name => "The Emerald Jungle" },
+    { shortname => "fironiavie", name => "Firiona Vie" }
 );
 
 my @velious_zones = (
@@ -80,10 +86,6 @@ my %zone_versions = (
         0 => "Easter Island Beginners Lvl 30",
         1 => "Easter Island Level 60 Sebilis Era",
         2 => "Easter Island End Game",
-    },
-    "templeveeshan" => {
-        0 => "Temple of Veeshan",
-        1 => "Temple of Veeshan 1",
     },
     "citymist" => 1,
     "droga" => 1,
