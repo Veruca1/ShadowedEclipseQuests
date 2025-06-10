@@ -31,21 +31,29 @@ sub EVENT_HP {
         quest::setnexthpevent(45);
     }
     elsif ($hpevent == 45) {
-        $npc->SetHP($npc->GetMaxHP() * 0.45);
-        $npc->WipeHateList();
-        $npc->SetNPCFactionID(0);
-        $npc->SetSpecialAbility(24, 1);
-        $npc->SetSpecialAbility(25, 1);
-        $npc->SetSpecialAbility(35, 1);
-        $npc->SetInvul(1);
-        quest::modifynpcstat("hp_regen", 0);
-        apply_room_root_spell();
-        quest::shout("Feel the grip of the void!");
-        quest::shout("Ah, you mortals thought you could defeat me. I planned for a demogorgon to wield my power long ago!");
-        $spawned_npc_id = quest::spawn2(1949, 0, 0, 1783.50, 45.45, -72.98, 258.25);
-        $spawned_engage_timer = 20;
-        quest::settimer("countdown_timer", 1);
-    }
+    $npc->SetHP($npc->GetMaxHP() * 0.45);
+    $npc->WipeHateList();
+    $npc->SetNPCFactionID(0);
+    $npc->SetSpecialAbility(24, 1);
+    $npc->SetSpecialAbility(25, 1);
+    $npc->SetSpecialAbility(35, 1);
+    $npc->SetInvul(1);
+    $npc->BuffFadeAll();                         # Clear buffs including regen
+
+    $npc->SetOOCRegen(0);                        # Out-of-combat regen off
+    quest::modifynpcstat("hp_regen", 0);         # In-combat regen off
+    quest::modifynpcstat("regen", 0);            # Base regen stat off
+    quest::modifynpcstat("npc_spells_id", 0);    # Disable passive regen spells
+
+    apply_room_root_spell();
+
+    quest::shout("Feel the grip of the void!");
+    quest::shout("Ah, you mortals thought you could defeat me. I planned for a demogorgon to wield my power long ago!");
+
+    $spawned_npc_id = quest::spawn2(1949, 0, 0, 1783.50, 45.45, -72.98, 258.25);
+    $spawned_engage_timer = 20;
+    quest::settimer("countdown_timer", 1);
+}
     elsif ($hpevent == 20) {
         $npc->SetSpecialAbility(20, 0);
         quest::setnexthpevent(10);
@@ -93,41 +101,45 @@ sub EVENT_SIGNAL {
 
 sub EVENT_TIMER {
     if ($timer eq "balance_check" && $balancing) {
-        my $tho = $npc;
         my $host = $entity_list->GetNPCByNPCTypeID(1460);
         return unless $host;
 
-        my $tho_hp = $tho->GetHP() / $tho->GetMaxHP() * 100;
-        my $host_hp = $host->GetHP() / $host->GetMaxHP() * 100;
+        my $tho_hp = $npc->GetHP();
+        my $tho_max = $npc->GetMaxHP();
+        my $host_hp = $host->GetHP();
+        my $host_max = $host->GetMaxHP();
 
-        if (abs($tho_hp - $host_hp) > 5) {
+        return if $tho_max == 0 || $host_max == 0;
+
+        my $tho_pct = $tho_hp / $tho_max * 100;
+        my $host_pct = $host_hp / $host_max * 100;
+
+        if (abs($tho_pct - $host_pct) > 8) {
             quest::shout("The balance has failed. The entities retreat!");
-            quest::depopall(1947);
-            quest::depopall(1460);
-            quest::depopall(1948);
+            $host->Depop();                    # Depop clone
+            quest::depopall(1948);            # Depop adds
             quest::stoptimer("balance_check");
+            $npc->Depop();                    # Depop this NPC (THO)
         }
     }
     elsif ($timer eq "countdown_timer") {
-    # Removed: return if $combat_engaged;
-    quest::shout("$spawned_engage_timer...");
-    $spawned_engage_timer--;
+        quest::shout("$spawned_engage_timer...");
+        $spawned_engage_timer--;
 
-    if ($spawned_engage_timer <= 0) {
-        my $npc_obj = $entity_list->GetMobByID($spawned_npc_id);
-        if ($npc_obj && !$npc_obj->IsEngaged()) {
-            $npc_obj->Depop();
-            $spawned_npc_id = 0;
+        if ($spawned_engage_timer <= 0) {
+            my $npc_obj = $entity_list->GetMobByID($spawned_npc_id);
+            if ($npc_obj && !$npc_obj->IsEngaged()) {
+                $npc_obj->Depop();
+                $spawned_npc_id = 0;
 
-            my @clients = $entity_list->GetClientList();
-            foreach my $c (@clients) {
-                $c->Kill(); # Optional room wipe
+                my @clients = $entity_list->GetClientList();
+                foreach my $c (@clients) {
+                    $c->Kill(); # Optional room wipe
+                }
             }
+            quest::stoptimer("countdown_timer");
         }
-        quest::stoptimer("countdown_timer");
     }
-}
-
     elsif ($timer eq "spawn_adds") {
         for (1..$spawn_add_timer) {
             quest::spawn2(1948, 0, 0, $x + int(rand(15)) - 7, $y + int(rand(15)) - 7, $z, 0);
@@ -161,20 +173,7 @@ sub EVENT_TIMER {
             quest::stoptimer("final_burn_timer");
         }
     }
-}
-
-sub EVENT_COMBAT {
-    if ($combat_state == 0) {
-        # Start a 3-minute timer to depop if combat doesn't resume
-        quest::settimer("depop_check", 180);
-    } else {
-        # Cancel timer if combat resumes
-        quest::stoptimer("depop_check");
-    }
-}
-
-sub EVENT_TIMER {
-    if ($timer eq "depop_check") {
+    elsif ($timer eq "depop_check") {
         quest::stoptimer("depop_check");
         if (!$npc->IsEngaged()) {
             quest::shout("The Overfiend vanishes into the void, unchallenged.");
@@ -189,6 +188,14 @@ sub EVENT_AGGRO {
 
 sub EVENT_COMBAT {
     $combat_engaged = ($combat_state == 1) ? 1 : 0;
+
+    if ($combat_state == 0) {
+        # Start a 3-minute timer to depop if combat doesn't resume
+        quest::settimer("depop_check", 180);
+    } else {
+        # Cancel timer if combat resumes
+        quest::stoptimer("depop_check");
+    }
 
     if ($combat_state == 1 && $in_final_burn && $spawned_engage_timer > 0) {
         # UNLOCK THO only during final phase

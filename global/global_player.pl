@@ -4,7 +4,8 @@ sub EVENT_SAY {
     # Handle auto-loot and lootfilter related commands
     return if plugin::handle_autoloot_commands($client, $text);
     plugin::handle_admin_commands($client, $text, $status, $entity_list);
-
+    
+    
     # Handle #enter to rejoin expedition
     if ($text =~ /^#enter$/i) {
         plugin::handle_enter_command($client);
@@ -121,7 +122,7 @@ sub EVENT_TIMER {
 
 
 sub EVENT_DEATH {
-    quest::stoptimer("malfoy_insult");  # Stop insult timer on death
+    quest::stoptimer("malfoy_insult");
 
     my $char_id = $client->CharacterID();
     return unless $char_id;
@@ -130,11 +131,10 @@ sub EVENT_DEATH {
     return unless $dbh;
 
     my $sql = qq{
-        INSERT INTO character_deaths (char_id, death_count, last_death)
-        VALUES (?, 1, NOW())
+        INSERT INTO character_deaths (char_id, death_count)
+        VALUES (?, 1)
         ON DUPLICATE KEY UPDATE
-            death_count = death_count + 1,
-            last_death = NOW()
+            death_count = death_count + 1
     };
 
     my $sth = $dbh->prepare($sql);
@@ -252,15 +252,23 @@ sub EVENT_WARP {
     return if $client->GetGM();
 
     my $char_id = $client->CharacterID();
-    my $donator_flag = quest::get_data("warp_donator_flag$char_id");
-    return if defined $donator_flag && $donator_flag == 1;
+    my $donator_flag_key = "warp_donator_flag$char_id";
+    my $donator_flag = quest::get_data($donator_flag_key);
+
+   # quest::debug("Warp Event: Checking $donator_flag_key - Value: " . (defined $donator_flag ? $donator_flag : "undef"));
+
+    if (defined $donator_flag && $donator_flag == 1) {
+       # quest::debug("Warp Event: Donator flag is set, skipping enforcement.");
+        return;
+    }
 
     my $zone_name = $zone->GetShortName();
     return unless exists $zone_blocklist->{$zone_name};
 
     my $suppress_key = "warp_suppress_$char_id";
     if (quest::get_data($suppress_key)) {
-        quest::delete_data($suppress_key);  # clear suppress flag after skip
+      #  quest::debug("Warp Event: Suppress flag present, skipping warp check.");
+        quest::delete_data($suppress_key);
         return;
     }
 
@@ -273,15 +281,18 @@ sub EVENT_WARP {
     my $warned = quest::get_data($warn_key);
 
     if (defined $warned && $warned == 1) {
+       # quest::debug("Warp Event: Already warned, killing client.");
         $client->Message(15, "You were warned. Warping is not allowed here.");
         $client->Kill();
     } else {
+     #   quest::debug("Warp Event: Warning issued, moving client to safe spot.");
         quest::set_data($warn_key, 1);
-        quest::set_data($suppress_key, 1, 2);  # suppress warp event for next 2 seconds
+        quest::set_data($suppress_key, 1, 2);
         $client->MovePCInstance($zone_name, $client->GetInstanceID(), $safe_x, $safe_y, $safe_z, $safe_h);
         $client->Message(15, "Warping is disabled in this zone. Further attempts will result in death.");
     }
 }
+
 
 
 

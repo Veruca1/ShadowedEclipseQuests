@@ -14,16 +14,19 @@ sub EVENT_SPAWN {
 sub EVENT_SAY {
     if ($text =~ /Hail/i) {
         $client->Message(14, "Hello again adventurer. Thank you again for saving me in Karnors. I have since learned about the time manipulation this Chronomancer Zarrin has been up to. We have discovered, with the help of Al`Kabor here, that the Chronomancer has been hiding in an alternate version of Sebilis. Please investigate and report back with findings of anything unusual.");
-        
-        # Offering teleport and blessing options
+
         quest::say("Please select your destination by clicking the option below: " . quest::saylink("Sebilis", 1) . ".");
         quest::say("If you need assistance for your journey, click here for a " . quest::saylink("Blessing", 1) . ".");
     }
     elsif ($text =~ /Sebilis/i) {
-        # Teleport the player to Sebilis
-        quest::say("Very well! I will transport you to Sebilis.");
-        quest::movepc(89, 0.00, 250.00, 44.75, 258.50);  # Moves player to Sebilis (zone ID 89) with specified coordinates
+        if ($client->HasZoneFlag(102)) {
+            quest::say("Very well! I will transport you to Sebilis.");
+            quest::movepc(89, 0.00, 250.00, 44.75, 258.50);
+        } else {
+            quest::say("I'm afraid you are not yet attuned to access that version of Sebilis. Seek out the trials that will prove your readiness.");
+        }
     }
+    
     elsif ($text =~ /Blessing/i) {
         plugin::Whisper("Go forth and rid us of the scourge that is the Shadowed Eclipse!");
 

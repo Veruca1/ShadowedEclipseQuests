@@ -36,11 +36,13 @@ sub EVENT_SPAWN {
         quest::spawn2(164120, 0, 0, 1627.08, 276.63, -57.33, 316.75);
     }
 
-    @active_npcs = @npc_ids;
-    $engaged = 0;
-    $current_npc_eid = 0;
+    if ($instance_ver == 1) {
+        @active_npcs = @npc_ids;
+        $engaged = 0;
+        $current_npc_eid = 0;
 
-    quest::settimer("zigzag", 8);
+        quest::settimer("zigzag", 8);
+    }
 }
 
 sub EVENT_TIMER {
