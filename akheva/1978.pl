@@ -31,12 +31,12 @@ sub EVENT_SPAWN {
     $this_npc->ModifyNPCStat("wis", 1200);
     $this_npc->ModifyNPCStat("int", 1200);
     $this_npc->ModifyNPCStat("cha", 1000);
-    $this_npc->ModifyNPCStat("mr", 500);
-    $this_npc->ModifyNPCStat("fr", 500);
-    $this_npc->ModifyNPCStat("cr", 500);
-    $this_npc->ModifyNPCStat("pr", 500);
-    $this_npc->ModifyNPCStat("dr", 500);
-    $this_npc->ModifyNPCStat("corruption_resist", 500);
+    $this_npc->ModifyNPCStat("mr", 200);
+    $this_npc->ModifyNPCStat("fr", 200);
+    $this_npc->ModifyNPCStat("cr", 200);
+    $this_npc->ModifyNPCStat("pr", 200);
+    $this_npc->ModifyNPCStat("dr", 200);
+    $this_npc->ModifyNPCStat("corruption_resist", 200);
     $this_npc->ModifyNPCStat("physical_resist", 1000);
     $this_npc->ModifyNPCStat("runspeed", 0);
     $this_npc->ModifyNPCStat("trackable", 1);

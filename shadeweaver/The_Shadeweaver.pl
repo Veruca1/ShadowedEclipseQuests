@@ -47,7 +47,7 @@ sub spawn_minions {
     return unless defined $npc;
 
     quest::shout("Threads tear open—witness the lesser weave!");
-    my @minions = (1461, 1461, 1461);  # Replace with actual NPC IDs
+    my @minions = (1983, 1983, 1983);  # Replace with actual NPC IDs
 
     # Defensive coords: fallback to 0 if undefined
     my $x = defined $npc ? $npc->GetX() : 0;

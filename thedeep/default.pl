@@ -35,6 +35,12 @@ sub EVENT_SPAWN {
 
     $wrath_triggered = 0;
 
+    # Glove loot pool
+    my @glove_ids = qw(
+        40873 41134 41141 42369 42371 42372 42370 42373
+        42374 42375 42376 42379 42377 42378 42380 42381
+    );
+
     if ($is_boss) {
         $npc->ModifyNPCStat("level", 63);
         $npc->ModifyNPCStat("ac", 20000);
@@ -61,7 +67,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("wis", 1200);
         $npc->ModifyNPCStat("int", 1200);
         $npc->ModifyNPCStat("cha", 1000);
-        
+
         $npc->ModifyNPCStat("mr", 500);
         $npc->ModifyNPCStat("fr", 500);
         $npc->ModifyNPCStat("cr", 500);
@@ -69,7 +75,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("dr", 500);
         $npc->ModifyNPCStat("corruption_resist", 500);
         $npc->ModifyNPCStat("physical_resist", 1000);
- 
+
         $npc->ModifyNPCStat("runspeed", 2);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
@@ -79,8 +85,14 @@ sub EVENT_SPAWN {
 
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1");
 
+        # 30% chance to add a glove drop
+        if (int(rand(100)) < 30) {
+            my $item_id = $glove_ids[int(rand(@glove_ids))];
+            $npc->AddItem($item_id);
+        }
+
         quest::setnexthpevent(50);
-     } else {
+    } else {
         my $pacifyable = int(rand(2));  # 0 or 1
 
         $npc->ModifyNPCStat("level", 61);
@@ -125,6 +137,12 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
         $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1^31,$pacifyable");
+
+        # 7% chance to add a glove drop
+        if (int(rand(100)) < 7) {
+            my $item_id = $glove_ids[int(rand(@glove_ids))];
+            $npc->AddItem($item_id);
+        }
     }
 
     my $max_hp = $npc->GetMaxHP();

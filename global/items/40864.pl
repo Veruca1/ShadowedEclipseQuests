@@ -3,21 +3,14 @@ sub EVENT_ITEM_CLICK {
     my $cooldown_seconds = 30;
     my $cooldown_var = "hammer_maiden_cd";
 
-    # Check level requirement
+    # Level check
     if ($ulevel < 61) {
         $client->Message(15, "You are not powerful enough to wield the Hammer of the Maiden.");
         return;
     }
 
-    # Check zone
-    my $zone_ok = 0;
-    foreach my $zid (@valid_zones) {
-        if ($zoneid == $zid) {
-            $zone_ok = 1;
-            last;
-        }
-    }
-
+    # Zone check
+    my $zone_ok = grep { $_ == $zoneid } @valid_zones;
     if (!$zone_ok) {
         $client->Message(15, "The Hammer of the Maiden has no power in this land.");
         return;
@@ -35,20 +28,28 @@ sub EVENT_ITEM_CLICK {
     # Set cooldown
     $client->SetBucket($cooldown_var, $now);
 
-    # Damage all NPCs within 30 radius
+    # AoE damage to all nearby NPCs
     my @npcs = $entity_list->GetNPCList();
+    my $hit = 0;
+
     foreach my $npc (@npcs) {
-        if ($npc && !$npc->IsPet() && !$npc->IsCorpse() && $npc->IsAttackable() && $npc->GetHPRatio() > 0) {
-            my $dist = $npc->CalculateDistance($client->GetX(), $client->GetY(), $client->GetZ());
-            if ($dist <= 30) {
-                $npc->Damage($client, 140000, 0, true); # Instant damage
-            }
+        next unless $npc;
+        next if $npc->IsPet();
+        next if $npc->IsCorpse();
+        next if $npc->GetHPRatio() <= 0;
+
+        my $dist = $npc->CalculateDistance($client->GetX(), $client->GetY(), $client->GetZ());
+        if ($dist <= 30) {
+            $npc->Damage($client, 140000, 0, true);
+            $hit = 1;
         }
     }
 
-    # Camera shake effect
-    $client->CameraEffect(1000, 2.0);
-
-    # Flavor text
-    $client->Message(13, "You slam the Hammer of the Maiden into the ground, shaking the earth around you!");
+    # Camera shake if it actually hits something
+    if ($hit) {
+        $client->CameraEffect(1000, 2.0);
+        $client->Message(13, "You slam the Hammer of the Maiden into the ground, sending shockwaves through the earth!");
+    } else {
+        $client->Message(15, "Nothing is close enough to feel the hammer’s fury.");
+    }
 }

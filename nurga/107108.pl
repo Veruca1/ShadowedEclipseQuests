@@ -8,6 +8,9 @@ sub EVENT_SPAWN {
     my $h = $npc->GetHeading();
 
     # Spawn NPC 1352 at the same location
+    my $existing = $entity_list->GetNPCByNPCTypeID(1352);
+    $existing->Depop(1) if $existing;
+
     quest::spawn2(1352, 0, 0, $x, $y, $z, $h);
 }
 

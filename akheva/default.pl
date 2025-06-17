@@ -55,11 +55,11 @@ sub EVENT_SPAWN {
     if ($is_boss) {
         $npc->ModifyNPCStat("level", 63);
         $npc->ModifyNPCStat("ac", 20000);
-        $npc->ModifyNPCStat("max_hp", 15000000);
+        $npc->ModifyNPCStat("max_hp", 20000000);
         $npc->ModifyNPCStat("hp_regen", 1000);
         $npc->ModifyNPCStat("mana_regen", 10000);
         $npc->ModifyNPCStat("min_hit", 9000);
-        $npc->ModifyNPCStat("max_hit", 14000);
+        $npc->ModifyNPCStat("max_hit", 15000);
         $npc->ModifyNPCStat("atk", 1400);
         $npc->ModifyNPCStat("accuracy", 2000);
         $npc->ModifyNPCStat("avoidance", 90);
@@ -67,7 +67,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("attack_speed", 100);
         $npc->ModifyNPCStat("slow_mitigation", 90);
         $npc->ModifyNPCStat("attack_count", 100);
-        $npc->ModifyNPCStat("heroic_strikethrough", 30);
+        $npc->ModifyNPCStat("heroic_strikethrough", 31);
         $npc->ModifyNPCStat("aggro", 60);
         $npc->ModifyNPCStat("assist", 1);
 
@@ -100,11 +100,11 @@ sub EVENT_SPAWN {
     } else {
         $npc->ModifyNPCStat("level", 61);
         $npc->ModifyNPCStat("ac", 15000);
-        $npc->ModifyNPCStat("max_hp", 5000000);
+        $npc->ModifyNPCStat("max_hp", 6500000);
         $npc->ModifyNPCStat("hp_regen", 800);
         $npc->ModifyNPCStat("mana_regen", 10000);
         $npc->ModifyNPCStat("min_hit", 8000);
-        $npc->ModifyNPCStat("max_hit", 10000);
+        $npc->ModifyNPCStat("max_hit", 12000);
         $npc->ModifyNPCStat("atk", 1200);
         $npc->ModifyNPCStat("accuracy", 1800);
         $npc->ModifyNPCStat("avoidance", 80);
@@ -112,7 +112,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("attack_speed", 100);
         $npc->ModifyNPCStat("slow_mitigation", 80);
         $npc->ModifyNPCStat("attack_count", 100);
-        $npc->ModifyNPCStat("heroic_strikethrough", 20);
+        $npc->ModifyNPCStat("heroic_strikethrough", 21);
         $npc->ModifyNPCStat("aggro", 55);
         $npc->ModifyNPCStat("assist", 1);
 
@@ -263,11 +263,16 @@ sub EVENT_DAMAGE_TAKEN {
 sub EVENT_DEATH_COMPLETE {
     return unless $npc;
 
-    my %exclusion_list = (
+   my %exclusion_list = (
         153095 => 1,
         1922   => 1,
         1954   => 1,
         1974 => 1,
+        1936 => 1,
+        1921 => 1,
+        1709 => 1,
+        1568 => 1,
+        1831 => 1,
         857 => 1,
         681 => 1,
         679 => 1,

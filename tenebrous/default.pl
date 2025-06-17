@@ -8,38 +8,68 @@ sub EVENT_SPAWN {
     my $npc_id   = $npc->GetNPCTypeID() || 0;
 
     my %exclusion_list = (
-        156055 => 1,
-        1921 => 1,
-        500 => 1,
-        857 => 1,
-        681 => 1,
-        679 => 1,
-        776 => 1,
+    179154 => 1,
+    179170 => 1,
+    179185 => 1,
+    179162 => 1,
+    179183 => 1,
+    179140 => 1,
+    179163 => 1,
+    179156 => 1,
+    179143 => 1,
+    179149 => 1,
+    179172 => 1,
+    179168 => 1,
+    179025 => 1,
+    179150 => 1,
+    179146 => 1,
+    179132 => 1,
+    164120 => 1,
+    164116 => 1,
+    164098 => 1,
+    164089 => 1,
+    164117 => 1,
+    164099 => 1,
+    1972   => 1,
+    1950   => 1,
+    1951   => 1,
+    1959   => 1,
+    1947   => 1,
+    1948   => 1,
+    500    => 1,
+    857    => 1,
+    681    => 1,
+    679    => 1,
+    776    => 1,
+    172168 => 1,
+    172127 => 1,
+    172172 => 1,
+    172129 => 1,
+    172122 => 1,
+    172096 => 1,
+    172180 => 1,
+    172132 => 1,
+    172162 => 1,
+    172116 => 1,
         map { $_ => 1 } (2000000..2000017)
     );
     return if exists $exclusion_list{$npc_id};
     return if $npc->IsPet();
 
-    $is_boss = ($raw_name =~ /^#/ || $npc_id == 1919) ? 1 : 0;
+    $is_boss = ($raw_name =~ /^#/ || ($npc_id == 1919 && $npc_id != 1974)) ? 1 : 0;
 
     $npc->SetNPCFactionID(623);
 
     $wrath_triggered = 0;
 
-    # Wrist loot pool
-    my @wrist_ids = qw(
-        40868 41129 41136 41188 41189 41190 41191 41192
-        41193 41194 41195 41198 41196 41197 41199 41200
-    );
-
     if ($is_boss) {
         $npc->ModifyNPCStat("level", 63);
         $npc->ModifyNPCStat("ac", 20000);
-        $npc->ModifyNPCStat("max_hp", 10500000);
+        $npc->ModifyNPCStat("max_hp", 22500000);
         $npc->ModifyNPCStat("hp_regen", 1000);
         $npc->ModifyNPCStat("mana_regen", 10000);
-        $npc->ModifyNPCStat("min_hit", 8500);
-        $npc->ModifyNPCStat("max_hit", 13000);
+        $npc->ModifyNPCStat("min_hit", 9000);
+        $npc->ModifyNPCStat("max_hit", 15000);
         $npc->ModifyNPCStat("atk", 1400);
         $npc->ModifyNPCStat("accuracy", 2000);
         $npc->ModifyNPCStat("avoidance", 90);
@@ -47,9 +77,9 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("attack_speed", 100);
         $npc->ModifyNPCStat("slow_mitigation", 90);
         $npc->ModifyNPCStat("attack_count", 100);
-        $npc->ModifyNPCStat("heroic_strikethrough", 30);
+        $npc->ModifyNPCStat("heroic_strikethrough", 32);
         $npc->ModifyNPCStat("aggro", 60);
-        $npc->ModifyNPCStat("assist", 20);
+        $npc->ModifyNPCStat("assist", 1);
 
         $npc->ModifyNPCStat("str", 1200);
         $npc->ModifyNPCStat("sta", 1200);
@@ -58,7 +88,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("wis", 1200);
         $npc->ModifyNPCStat("int", 1200);
         $npc->ModifyNPCStat("cha", 1000);
-
+        
         $npc->ModifyNPCStat("mr", 500);
         $npc->ModifyNPCStat("fr", 500);
         $npc->ModifyNPCStat("cr", 500);
@@ -66,7 +96,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("dr", 500);
         $npc->ModifyNPCStat("corruption_resist", 500);
         $npc->ModifyNPCStat("physical_resist", 1000);
-
+ 
         $npc->ModifyNPCStat("runspeed", 2);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
@@ -76,23 +106,15 @@ sub EVENT_SPAWN {
 
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1");
 
-        # 25% chance to add a wrist drop
-        if (int(rand(100)) < 30) {
-            my $item_id = $wrist_ids[int(rand(@wrist_ids))];
-            $npc->AddItem($item_id);
-        }
-
         quest::setnexthpevent(50);
     } else {
-        my $pacifyable = int(rand(2));  # 0 or 1
-
         $npc->ModifyNPCStat("level", 61);
         $npc->ModifyNPCStat("ac", 15000);
-        $npc->ModifyNPCStat("max_hp", 4000000);
+        $npc->ModifyNPCStat("max_hp", 7000000);
         $npc->ModifyNPCStat("hp_regen", 800);
         $npc->ModifyNPCStat("mana_regen", 10000);
-        $npc->ModifyNPCStat("min_hit", 4000);
-        $npc->ModifyNPCStat("max_hit", 10000);
+        $npc->ModifyNPCStat("min_hit", 8000);
+        $npc->ModifyNPCStat("max_hit", 12000);
         $npc->ModifyNPCStat("atk", 1200);
         $npc->ModifyNPCStat("accuracy", 1800);
         $npc->ModifyNPCStat("avoidance", 80);
@@ -100,7 +122,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("attack_speed", 100);
         $npc->ModifyNPCStat("slow_mitigation", 80);
         $npc->ModifyNPCStat("attack_count", 100);
-        $npc->ModifyNPCStat("heroic_strikethrough", 20);
+        $npc->ModifyNPCStat("heroic_strikethrough", 22);
         $npc->ModifyNPCStat("aggro", 55);
         $npc->ModifyNPCStat("assist", 1);
 
@@ -127,13 +149,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_hide", 1);
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
-        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1^31,$pacifyable");
-
-        # 5% chance to add a wrist drop
-        if (int(rand(100)) < 7) {
-            my $item_id = $wrist_ids[int(rand(@wrist_ids))];
-            $npc->AddItem($item_id);
-        }
+        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1");
     }
 
     my $max_hp = $npc->GetMaxHP();
@@ -209,7 +225,6 @@ sub EVENT_DAMAGE_TAKEN {
     # Define excluded pet NPC type IDs
     my %excluded_pet_npc_ids = (
         500 => 1,
-        549 => 1,
         857 => 1,
         681 => 1,
         679 => 1,
@@ -217,17 +232,7 @@ sub EVENT_DAMAGE_TAKEN {
         map { $_ => 1 } (2000000..2000017),
     );
 
-    # Only trigger Wrath if it's not already triggered and HP is below 10%
     if (!$wrath_triggered && $npc->GetHP() <= ($npc->GetMaxHP() * 0.10)) {
-        my $source = $entity_list->GetMobByID($attackers_id);  # ID of attacker
-        if ($source && $source->IsNPC()) {
-            my $npc_type_id = $source->GetNPCTypeID();
-            if ($excluded_pet_npc_ids{$npc_type_id}) {
-                plugin::Debug("Excluded NPC $npc_type_id triggered damage; skipping Wrath.");
-                return $damage;  # Skip wrath if attacker is excluded
-            }
-        }
-
         $wrath_triggered = 1;
 
         if (quest::ChooseRandom(1..100) <= 20) {
@@ -236,20 +241,28 @@ sub EVENT_DAMAGE_TAKEN {
             my ($x, $y, $z) = ($npc->GetX(), $npc->GetY(), $npc->GetZ());
             return unless defined $x && defined $y && defined $z;
             my $radius = 50;
-            my $dmg = 35000;
+            my $dmg = 40000;
 
             foreach my $e ($entity_list->GetClientList()) {
                 next unless $e;
                 $e->Damage($npc, $dmg, 0, 1, false) if $e->CalculateDistance($x, $y, $z) <= $radius;
+
                 my $pet = $e->GetPet();
-                $pet->Damage($npc, $dmg, 0, 1, false) if $pet && $pet->CalculateDistance($x, $y, $z) <= $radius;
+                if ($pet && $pet->CalculateDistance($x, $y, $z) <= $radius) {
+                    next if $excluded_pet_npc_ids{$pet->GetNPCTypeID()};
+                    $pet->Damage($npc, $dmg, 0, 1, false);
+                }
             }
 
             foreach my $b ($entity_list->GetBotList()) {
                 next unless $b;
                 $b->Damage($npc, $dmg, 0, 1, false) if $b->CalculateDistance($x, $y, $z) <= $radius;
+
                 my $pet = $b->GetPet();
-                $pet->Damage($npc, $dmg, 0, 1, false) if $pet && $pet->CalculateDistance($x, $y, $z) <= $radius;
+                if ($pet && $pet->CalculateDistance($x, $y, $z) <= $radius) {
+                    next if $excluded_pet_npc_ids{$pet->GetNPCTypeID()};
+                    $pet->Damage($npc, $dmg, 0, 1, false);
+                }
             }
         }
     }
@@ -260,7 +273,7 @@ sub EVENT_DAMAGE_TAKEN {
 sub EVENT_DEATH_COMPLETE {
     return unless $npc;
 
-    my %exclusion_list = (
+   my %exclusion_list = (
         153095 => 1,
         1922   => 1,
         1954   => 1,
@@ -281,6 +294,6 @@ sub EVENT_DEATH_COMPLETE {
 
     if (quest::ChooseRandom(1..100) <= 10) {
         my ($x, $y, $z, $h) = ($npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
-        quest::spawn2(1922, 0, 0, $x, $y, $z, $h);
+        quest::spawn2(1984, 0, 0, $x, $y, $z, $h);
     }
 }

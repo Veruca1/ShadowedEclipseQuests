@@ -202,12 +202,8 @@ plugin::echoing_onslaught_melee($client, $entity_list, $skill_id, $entity_id, $d
 
 sub EVENT_CAST_BEGIN {
     plugin::echoing_onslaught_spell($client, $entity_list, $spell_id);
-}
-
-
-
-sub EVENT_SPELL_EFFECT {
-    if ($spell_id == 40726) {
+     if ($spell_id == 40726) {
+       
         my $target = $client->GetTarget();
         return unless $target;
 
@@ -221,6 +217,26 @@ sub EVENT_SPELL_EFFECT {
         $client->Message(13, "Perfect Execution strikes for $damage damage!");
     }
 }
+
+
+
+# sub EVENT_SPELL_EFFECT {
+#      quest::debug("[Perfect Execution] Spell effect triggered by $name (ID: $userid)");      
+#     if ($spell_id == 40726) {
+       
+#         my $target = $client->GetTarget();
+#         return unless $target;
+
+#         my $char_id = $client->CharacterID();
+#         my $rebirths = quest::get_data("$char_id-rebirth_total") || 1;
+
+#         my $base_damage = 1500;
+#         my $damage = $base_damage * $rebirths;
+
+#         $target->Damage($client, $damage, -1, 0, false);
+#         $client->Message(13, "Perfect Execution strikes for $damage damage!");
+#     }
+# }
 
 sub EVENT_CONNECT {
     my $client = $entity_list->GetClientByID($userid);
@@ -238,13 +254,17 @@ sub EVENT_CONNECT {
 
 sub EVENT_WARP {
     my $zone_blocklist = {
+        akheva         => 1,
         frozenshadow   => 1,
+        katta          => 1,
+        maiden         => 1,
         neriakb        => 1,
         neriakc        => 1,
         neriaka        => 1,
         paludal        => 1,
         shadeweaver    => 1,
         templeveeshan  => 1,
+        tenebrous      => 1,
         thedeep        => 1,
         veeshan        => 1,
     };

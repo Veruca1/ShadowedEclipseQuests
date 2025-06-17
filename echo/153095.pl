@@ -51,11 +51,8 @@ sub EVENT_HP {
         my $top_hate_target = $npc->GetHateTop();
         return unless $top_hate_target && $top_hate_target->IsClient();
 
-        my $npc_list = $entity_list->GetNPCList();
-        return unless $npc_list;
-
-        my $mob;
-        while (defined($mob = $npc_list->GetNext())) {
+        my @npc_list = $entity_list->GetNPCList();
+        foreach my $mob (@npc_list) {
             next unless $mob;
             next if $mob->GetID() == $npc->GetID();
             next unless $mob->GetNPCTypeID() == 1923;

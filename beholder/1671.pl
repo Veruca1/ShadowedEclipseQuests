@@ -79,6 +79,16 @@ sub EVENT_ITEM {
         }
     }
 
+    # Run To The Hills Record
+    elsif (plugin::check_handin(\%itemcount, 40861 => 1)) {
+        if (!quest::isnpcspawned(1979)) {
+            quest::whisper("Cranking 'Run To The Hills'! Brace yourself for the fury of The Iron Maiden!");
+            quest::spawn2(1979, 0, 0, -599.36, 494.95, -67.94, 55.25);
+        } else {
+            quest::whisper("The Iron Maiden is already thrashing! Take her down before trying again.");
+        }
+    }
+
     else {
         quest::whisper("Yo, I don't know what this is, but it ain't a record I can spin!");
         plugin::return_items(\%itemcount);

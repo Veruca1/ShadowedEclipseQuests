@@ -5,6 +5,7 @@ my $spawn_add_timer = 2;
 my $spawned_npc_id = 0;
 my $combat_engaged = 0;
 my $in_final_burn = 0;
+my $checked_players_once = 0;
 
 sub EVENT_SPAWN {
     quest::setnexthpevent(85);
@@ -180,6 +181,24 @@ sub EVENT_TIMER {
             quest::depop();
         }
     }
+    elsif ($timer eq "player_check") {
+        quest::stoptimer("player_check");
+
+        my @hate_list = $npc->GetHateList();
+        my $player_count = 0;
+
+        foreach my $entry (@hate_list) {
+            my $ent = $entry->GetEnt();
+            if ($ent && $ent->IsClient()) {
+                $player_count++;
+            }
+        }
+
+        if ($player_count < 2) {
+            quest::shout("You must have two players attacking me. Try again!");
+            quest::depop();
+        }
+    }
 }
 
 sub EVENT_AGGRO {
@@ -195,6 +214,12 @@ sub EVENT_COMBAT {
     } else {
         # Cancel timer if combat resumes
         quest::stoptimer("depop_check");
+
+        # Only run 2-player check once per fight
+        if (!$checked_players_once) {
+            $checked_players_once = 1;
+            quest::settimer("player_check", 10);
+        }
     }
 
     if ($combat_state == 1 && $in_final_burn && $spawned_engage_timer > 0) {

@@ -26,6 +26,12 @@ sub EVENT_SPAWN {
 
     $wrath_triggered = 0;
 
+    # Boot loot pool
+    my @boot_ids = qw(
+        40872 41133 41140 42356 42357 42358 42359 42360
+        42361 42362 42363 42366 42364 42365 42367 42368
+    );
+
     if ($is_boss) {
         $npc->ModifyNPCStat("level", 63);
         $npc->ModifyNPCStat("ac", 20000);
@@ -52,7 +58,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("wis", 1200);
         $npc->ModifyNPCStat("int", 1200);
         $npc->ModifyNPCStat("cha", 1000);
-        
+
         $npc->ModifyNPCStat("mr", 500);
         $npc->ModifyNPCStat("fr", 500);
         $npc->ModifyNPCStat("cr", 500);
@@ -60,7 +66,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("dr", 500);
         $npc->ModifyNPCStat("corruption_resist", 500);
         $npc->ModifyNPCStat("physical_resist", 1000);
- 
+
         $npc->ModifyNPCStat("runspeed", 2);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
@@ -69,6 +75,12 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1");
+
+        # 25% chance to add a boot drop
+        if (int(rand(100)) < 25) {
+            my $item_id = $boot_ids[int(rand(@boot_ids))];
+            $npc->AddItem($item_id);
+        }
 
         quest::setnexthpevent(50);
     } else {
@@ -116,6 +128,12 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
         $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1^31,$pacifyable");
+
+        # 5% chance to add a boot drop
+        if (int(rand(100)) < 5) {
+            my $item_id = $boot_ids[int(rand(@boot_ids))];
+            $npc->AddItem($item_id);
+        }
     }
 
     my $max_hp = $npc->GetMaxHP();
