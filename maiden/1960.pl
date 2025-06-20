@@ -34,23 +34,13 @@ sub EVENT_CAST_ON {
 
 sub EVENT_TIMER {
     return unless defined $npc;
-
+    
     my $npc_id = $npc->GetID();
-    return unless defined $npc_id;
-
-    if ($timer eq "reenable_invul") {
-        $npc->SetInvul(1);
-        quest::stoptimer("reenable_invul");
-    }
-    elsif ($timer eq "check_debuff") {
-        my $debuff_flag = quest::get_data("wmu_has_debuff_$npc_id") || 0;
-
-        # Defensive check if FindBuff exists and works
-        if (!$npc->FindBuff(40732)) {
-            if ($debuff_flag == 1) {
-                quest::set_data("wmu_has_debuff_$npc_id", 0);
-                quest::signalwith(1352, 2);  # Fade signal
-            }
-        }
+    
+    # Check if the debuff (ID 40732) is still on the NPC
+    if (!$npc->FindBuff(40732)) {  # If debuff is not found
+        # If the debuff is gone, set the flag to 0
+        quest::set_data("wmu_has_debuff_$npc_id", 0);
+        quest::signalwith(1352, 2);  # Signal to make the boss invulnerable
     }
 }

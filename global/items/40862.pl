@@ -18,8 +18,6 @@ sub EVENT_ITEM_CLICK {
         $client->Message(13, "The artifact pulses... then crumbles into useless dust.");
     }
 
-    # Remove the item in both cases
-    if (quest::countitem(870) >= 1) {
-        quest::removeitem(870, 1);
-    }
+    # Always remove one item
+    quest::removeitem(40862, 1);
 }

@@ -67,23 +67,31 @@ sub EVENT_COMBAT {
 
 sub EVENT_TIMER {
     if ($timer eq "check_invul") {
-        $check_invul_count++;
+        my $all_debuffed = 1;
+        
+        foreach my $npc_type (@watcher_ids) {
+            my $found = 0;
+            foreach my $mob ($entity_list->GetNPCList()) {
+                next unless $mob && $mob->IsNPC();
+                next unless $mob->GetNPCTypeID() == $npc_type;  # Check if the NPC is one of the watchers
 
-        if ($check_invul_count % 6 == 0) {
-            # Optional: do something every 30 seconds
+                $found = 1;
+                my $mob_id = $mob->GetID();
+                my $has_debuff = quest::get_data("wmu_has_debuff_$mob_id") || 0;
+
+                if (!$has_debuff) {
+                    $all_debuffed = 0;  # One watcher lost the debuff
+                    last;
+                }
+            }
+            $all_debuffed = 0 unless $found;
         }
 
-        # Simulate random invul/vuln toggle
-        if (rand() < 0.05) {
-            if ($is_invul == 0) {
-                $npc->SetInvul(1);
-                $is_invul = 1;
-                quest::shout("The power of dust grants me invulnerability!");
-            } else {
-                $npc->SetInvul(0);
-                $is_invul = 0;
-                quest::shout("My defenses fall — the dust's power fades!");
-            }
+        my $boss_active = $entity_list->GetNPCByNPCTypeID($boss_active_id);
+        if ($all_debuffed) {
+            $boss_active->SetInvul(0) if $boss_active;  # Boss becomes vulnerable
+        } else {
+            $boss_active->SetInvul(1) if $boss_active;  # Boss becomes invulnerable
         }
     }
 

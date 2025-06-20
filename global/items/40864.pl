@@ -40,7 +40,7 @@ sub EVENT_ITEM_CLICK {
 
         my $dist = $npc->CalculateDistance($client->GetX(), $client->GetY(), $client->GetZ());
         if ($dist <= 30) {
-            $npc->Damage($client, 140000, 0, true);
+            $npc->Damage($client, 500000, 0, true);
             $hit = 1;
         }
     }
@@ -48,7 +48,7 @@ sub EVENT_ITEM_CLICK {
     # Camera shake if it actually hits something
     if ($hit) {
         $client->CameraEffect(1000, 2.0);
-        $client->Message(13, "You slam the Hammer of the Maiden into the ground, sending shockwaves through the earth!");
+        $client->Message(13, "You slam the Hammer of the Maiden into the ground, sending shockwaves through the earth doing 500k damage to enemies within a 30 raius!");
     } else {
         $client->Message(15, "Nothing is close enough to feel the hammer’s fury.");
     }

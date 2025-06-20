@@ -1,45 +1,39 @@
 my $is_boss = 0;
 my $wrath_triggered = 0;
 
+my $is_boss = 0;
+my $wrath_triggered = 0;
+
 sub EVENT_SPAWN {
     return unless $npc;
 
     my $raw_name = $npc->GetName() || '';
     my $npc_id   = $npc->GetNPCTypeID() || 0;
+    my $zone_version = $zoneversion;
 
     my %exclusion_list = (
-        164120 => 1,
-        164116 => 1,
-        164098 => 1,
-        164089 => 1,
-        164117 => 1,
-        164099 => 1,
-        1950 => 1,
-        1951 => 1,
-        1947 => 1,
-        1960 => 1,
-        1948 => 1,
-        500 => 1,
-        857 => 1,
-        681 => 1,
-        679 => 1,
-        776 => 1,
+        164120 => 1, 164116 => 1, 164098 => 1, 164089 => 1,
+        164117 => 1, 164099 => 1, 1950 => 1, 1951 => 1,
+        1947 => 1, 1960 => 1, 1948 => 1, 500 => 1,
+        857 => 1, 681 => 1, 679 => 1, 776 => 1,
         map { $_ => 1 } (2000000..2000017)
     );
     return if exists $exclusion_list{$npc_id};
     return if $npc->IsPet();
 
     $is_boss = ($raw_name =~ /^#/ || $npc_id == 1919) ? 1 : 0;
-
     $npc->SetNPCFactionID(623);
-
     $wrath_triggered = 0;
 
-    # Glove loot pool
-    my @glove_ids = qw(
-        40873 41134 41141 42369 42371 42372 42370 42373
-        42374 42375 42376 42379 42377 42378 42380 42381
+    my @boot_ids = qw(
+        40872 41133 41140 42356 42357 42358 42359 42360
+        42361 42362 42363 42366 42364 42365 42367 42368
     );
+
+     # universal drop for all (before any boss/trash block)
+if ($zone_version == 1 && $npc_id != 1947) {
+    $npc->AddItem(42382);
+}
 
     if ($is_boss) {
         $npc->ModifyNPCStat("level", 63);
@@ -85,15 +79,14 @@ sub EVENT_SPAWN {
 
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1");
 
-        # 30% chance to add a glove drop
         if (int(rand(100)) < 30) {
-            my $item_id = $glove_ids[int(rand(@glove_ids))];
+            my $item_id = $boot_ids[int(rand(@boot_ids))];
             $npc->AddItem($item_id);
         }
 
         quest::setnexthpevent(50);
     } else {
-        my $pacifyable = int(rand(2));  # 0 or 1
+        my $pacifyable = int(rand(2));
 
         $npc->ModifyNPCStat("level", 61);
         $npc->ModifyNPCStat("ac", 15000);
@@ -129,7 +122,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("corruption_resist", 300);
         $npc->ModifyNPCStat("physical_resist", 800);
 
-        $npc->ModifyNPCStat("runspeed", 2);       
+        $npc->ModifyNPCStat("runspeed", 2);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
         $npc->ModifyNPCStat("see_invis_undead", 1);
@@ -138,9 +131,8 @@ sub EVENT_SPAWN {
 
         $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1^31,$pacifyable");
 
-        # 7% chance to add a glove drop
         if (int(rand(100)) < 7) {
-            my $item_id = $glove_ids[int(rand(@glove_ids))];
+            my $item_id = $boot_ids[int(rand(@boot_ids))];
             $npc->AddItem($item_id);
         }
     }
@@ -148,6 +140,7 @@ sub EVENT_SPAWN {
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
 }
+
 
 sub EVENT_HP {
     return unless $npc;
@@ -174,7 +167,6 @@ sub EVENT_HP {
         }
     }
 }
-
 sub EVENT_COMBAT {
     return unless $npc;
 

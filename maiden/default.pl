@@ -3,37 +3,22 @@ my $wrath_triggered = 0;
 
 sub EVENT_SPAWN {
     return unless $npc;
+    return if $zoneversion != 1;
 
     my $raw_name = $npc->GetName() || '';
     my $npc_id   = $npc->GetNPCTypeID() || 0;
 
     my %exclusion_list = (
-        164120 => 1,
-        164116 => 1,
-        164098 => 1,
-        164089 => 1,
-        164117 => 1,
-        164099 => 1,
-        1972 => 1,
-        1950 => 1,
-        1951 => 1,
-        1959 => 1,
-        1947 => 1,
-        1948 => 1,
-        500 => 1,
-        857 => 1,
-        681 => 1,
-        679 => 1,
-        776 => 1,
-        map { $_ => 1 } (2000000..2000017)
+        164120 => 1, 164116 => 1, 164098 => 1, 164089 => 1,
+        164117 => 1, 164099 => 1, 1972 => 1, 1950 => 1, 1951 => 1,
+        1959 => 1, 1947 => 1, 1948 => 1, 500 => 1, 857 => 1,
+        681 => 1, 679 => 1, 776 => 1, map { $_ => 1 } (2000000..2000017)
     );
     return if exists $exclusion_list{$npc_id};
     return if $npc->IsPet();
 
     $is_boss = ($raw_name =~ /^#/ || $npc_id == 1919) && $npc_id != 1974 ? 1 : 0;
-
     $npc->SetNPCFactionID(623);
-
     $wrath_triggered = 0;
 
     if ($is_boss) {
@@ -62,7 +47,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("wis", 1200);
         $npc->ModifyNPCStat("int", 1200);
         $npc->ModifyNPCStat("cha", 1000);
-        
+
         $npc->ModifyNPCStat("mr", 500);
         $npc->ModifyNPCStat("fr", 500);
         $npc->ModifyNPCStat("cr", 500);
@@ -70,7 +55,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("dr", 500);
         $npc->ModifyNPCStat("corruption_resist", 500);
         $npc->ModifyNPCStat("physical_resist", 1000);
- 
+
         $npc->ModifyNPCStat("runspeed", 2);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
@@ -135,7 +120,6 @@ sub EVENT_HP {
     return unless $is_boss;
 
     if ($hpevent == 50) {
-        # Check if NPC has debuff spell 40745 active
         if ($npc->FindBuff(40745)) {
             plugin::Debug("Boss has debuff 40745 mark of silence, skipping help call.");
             return;
@@ -196,13 +180,8 @@ sub EVENT_TIMER {
 sub EVENT_DAMAGE_TAKEN {
     return unless $npc;
 
-    # Define excluded pet NPC type IDs
     my %excluded_pet_npc_ids = (
-        500 => 1,
-        857 => 1,
-        681 => 1,
-        679 => 1,
-        776 => 1,
+        500 => 1, 857 => 1, 681 => 1, 679 => 1, 776 => 1,
         map { $_ => 1 } (2000000..2000017),
     );
 

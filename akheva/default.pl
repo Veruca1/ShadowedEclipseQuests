@@ -8,39 +8,14 @@ sub EVENT_SPAWN {
     my $npc_id   = $npc->GetNPCTypeID() || 0;
 
     my %exclusion_list = (
-        179154 => 1,
-        179170 => 1,
-        179185 => 1,
-        179162 => 1,
-        179183 => 1,
-        179140 => 1,
-        179163 => 1,
-        179156 => 1,
-        179143 => 1,
-        179149 => 1,
-        179172 => 1,
-        179168 => 1,
-        179025 => 1,
-        179150 => 1,
-        179146 => 1,
-        179132 => 1,
-        164120 => 1,
-        164116 => 1,
-        164098 => 1,
-        164089 => 1,
-        164117 => 1,
-        164099 => 1,
-        1972 => 1,
-        1950 => 1,
-        1951 => 1,
-        1959 => 1,
-        1947 => 1,
-        1948 => 1,
-        500 => 1,
-        857 => 1,
-        681 => 1,
-        679 => 1,
-        776 => 1,
+        179154 => 1, 179170 => 1, 179185 => 1, 179162 => 1,
+        179183 => 1, 179140 => 1, 179163 => 1, 179156 => 1,
+        179143 => 1, 179149 => 1, 179172 => 1, 179168 => 1,
+        179025 => 1, 179150 => 1, 179146 => 1, 179132 => 1,
+        164120 => 1, 164116 => 1, 164098 => 1, 164089 => 1,
+        164117 => 1, 164099 => 1, 1972 => 1, 1950 => 1,
+        1951 => 1, 1959 => 1, 1947 => 1, 1948 => 1,
+        500 => 1, 857 => 1, 681 => 1, 679 => 1, 776 => 1,
         map { $_ => 1 } (2000000..2000017)
     );
     return if exists $exclusion_list{$npc_id};
@@ -49,8 +24,13 @@ sub EVENT_SPAWN {
     $is_boss = ($raw_name =~ /^#/ || ($npc_id == 1919 && $npc_id != 1974)) ? 1 : 0;
 
     $npc->SetNPCFactionID(623);
-
     $wrath_triggered = 0;
+
+    # Glove loot pool
+    my @glove_ids = qw(
+        40873 41134 41141 42369 42371 42372 42370 42373
+        42374 42375 42376 42379 42377 42378 42380 42381
+    );
 
     if ($is_boss) {
         $npc->ModifyNPCStat("level", 63);
@@ -78,7 +58,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("wis", 1200);
         $npc->ModifyNPCStat("int", 1200);
         $npc->ModifyNPCStat("cha", 1000);
-        
+
         $npc->ModifyNPCStat("mr", 500);
         $npc->ModifyNPCStat("fr", 500);
         $npc->ModifyNPCStat("cr", 500);
@@ -86,7 +66,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("dr", 500);
         $npc->ModifyNPCStat("corruption_resist", 500);
         $npc->ModifyNPCStat("physical_resist", 1000);
- 
+
         $npc->ModifyNPCStat("runspeed", 2);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
@@ -95,6 +75,12 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1");
+
+        # 25% chance for glove drop
+        if (int(rand(100)) < 25) {
+            my $glove_id = $glove_ids[int(rand(@glove_ids))];
+            $npc->AddItem($glove_id);
+        }
 
         quest::setnexthpevent(50);
     } else {
@@ -132,7 +118,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("corruption_resist", 300);
         $npc->ModifyNPCStat("physical_resist", 800);
 
-        $npc->ModifyNPCStat("runspeed", 2);       
+        $npc->ModifyNPCStat("runspeed", 2);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
         $npc->ModifyNPCStat("see_invis_undead", 1);
@@ -140,6 +126,12 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
         $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1");
+
+        # 5% chance for glove drop
+        if (int(rand(100)) < 5) {
+            my $glove_id = $glove_ids[int(rand(@glove_ids))];
+            $npc->AddItem($glove_id);
+        }
     }
 
     my $max_hp = $npc->GetMaxHP();

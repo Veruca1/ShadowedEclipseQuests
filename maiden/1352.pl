@@ -9,9 +9,12 @@ my $boss_placeholder_id = 1959;
 my $boss_active_id = 1958;
 
 sub EVENT_SPAWN {
+    # Define NPC IDs to despawn
+    my @watcher_ids = (1959, 1960, 1961, 1962, 1963);
+    my $boss_placeholder_id = 2000; # Replace with actual placeholder NPC ID
     despawn_npcs_by_id(@watcher_ids, $boss_placeholder_id);
 
-    # Spawn unique watchers and placeholder
+    # Spawn unique watchers
     quest::unique_spawn(1962, 0, 0, 246.22, -1680.14, -156.97, 74.25);
     quest::unique_spawn(1963, 0, 0, 133.27, -1848.22, -156.89, 62.25);
     quest::unique_spawn(1961, 0, 0, 399.97, -1765.68, -156.93, 489.00);

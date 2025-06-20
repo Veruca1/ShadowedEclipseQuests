@@ -53,7 +53,7 @@ sub EVENT_DEATH_COMPLETE {
     # Clean up
     quest::depop(1974);
     quest::depop(1973);
-    quest::depop(1937);
+    quest::signal(1937, 1);  # Send signal 1 to NPC 1937
     if (int(rand(100)) < 20) {
         quest::spawn2(1976, 0, 0, $x, $y, $z, $h);
     }

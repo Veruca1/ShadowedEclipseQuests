@@ -56,3 +56,11 @@ sub EVENT_TIMER {
         }
     }
 }
+
+sub EVENT_SIGNAL {
+    if ($signal == 1) {
+        # Shout and then depop
+        $npc->Shout("Luclin herself grows annoyed with you, we shall meet again Nyseria's chosen!");
+        quest::depop();  # Depop the NPC after it shouts
+    }
+}

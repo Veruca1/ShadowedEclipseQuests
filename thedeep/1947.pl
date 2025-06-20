@@ -11,6 +11,14 @@ sub EVENT_SPAWN {
     quest::setnexthpevent(85);
     $npc->SetSpecialAbility(19, 1); # Melee immune
     quest::settimer("balance_check", 1);
+
+    # Guaranteed and bonus loot for THO (NPC ID 1947)
+    if ($npc->GetNPCTypeID() == 1947) {
+        $npc->AddItem(42382); # Guaranteed drop
+        if (int(rand(100)) < 25) {
+            $npc->AddItem(42382); # 25% bonus drop
+        }
+    }
 }
 
 sub EVENT_HP {
@@ -260,4 +268,12 @@ sub apply_room_root_spell {
 
 sub EVENT_DEATH_COMPLETE {
     quest::depopall(1948); # Adds
+
+    # Guaranteed drop of item 42382
+    $npc->AddItem(42382);
+
+    # 25% chance to drop a second one
+    if (int(rand(100)) < 25) {
+        $npc->AddItem(42382);
+    }
 }

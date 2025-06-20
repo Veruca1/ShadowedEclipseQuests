@@ -21,7 +21,7 @@ sub EVENT_TIMER {
         my $npc_y = $npc->GetY();
         my $npc_z = $npc->GetZ();
         my $radius = 500;
-        my $damage = 8000;
+        my $damage = 13000;
 
         # Damage clients
         foreach my $entity ($entity_list->GetClientList()) {

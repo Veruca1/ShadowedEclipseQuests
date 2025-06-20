@@ -24,6 +24,16 @@ sub EVENT_SAY {
         );
 
         quest::whisper("Speak if you wish to tread these paths — say $maiden_link for the Eye’s surface, or $akheva_link for its depths.");
+          # Depop all other NPCs in version 0, except self (1357)
+        my $version = $zone->GetInstanceVersion();
+        if ($version == 0) {
+            my @npcs = $entity_list->GetNPCList();
+            foreach my $mob (@npcs) {
+                next unless $mob;
+                next if $mob->GetNPCTypeID() == 1357;
+                $mob->Depop();
+            }
+        }
     }
 
     if ($text =~ /maiden/i) {
