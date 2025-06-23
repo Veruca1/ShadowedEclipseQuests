@@ -42,7 +42,7 @@ sub EVENT_SPAWN {
     $this_npc->ModifyNPCStat("see_invis_undead", 1);
     $this_npc->ModifyNPCStat("see_hide", 1);
     $this_npc->ModifyNPCStat("see_improved_hide", 1);
-    $this_npc->ModifyNPCStat("special_abilities", "1,1,3000,50^2,1,1,1000,2340^3,1,20,0,0,0,0,100,0^4,1,0,100,0,0,0,100,0^6,1^7,1^10,1^11,1,4,150,0,0,5^14,1^21,1^23,1^29,1,50^40,1,10,10,100");
+    $this_npc->ModifyNPCStat("special_abilities", "2,1,1,1000,2340^3,1,20,0,0,0,0,100,0^4,1,0,100,0,0,0,100,0^6,1^7,1^10,1^11,1,4,150,0,0,5^14,1^21,1^23,1^29,1,50^40,1,10,10,100");
 
     # Buffs
     my @buffs = (

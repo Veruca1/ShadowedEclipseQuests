@@ -135,43 +135,6 @@ sub EVENT_DAMAGE_TAKEN {
     return $damage;
 }
 
-sub EVENT_KILLED_MERIT {
-  if (defined($npc) && $npc->IsNPC() && $npc->GetNPCTypeID() == 156055) {
-    if (defined($killer_id)) {
-      my $killer = $entity_list->GetMobByID($killer_id);
-      if (defined($killer)) {
-        my $killer_client;
-        my $bot_killer_name;
-
-        if ($killer->IsClient()) {
-          $killer_client = $killer->CastToClient();
-        } elsif ($killer->IsBot()) {
-          $bot_killer_name = $killer->GetCleanName();
-          my $owner = $killer->GetOwner();
-          if (defined($owner) && $owner->IsClient()) {
-            $killer_client = $owner->CastToClient();
-          }
-        }
-
-        if (defined($killer_client)) {
-          my $char_id = $killer_client->CharacterID();
-          my $key = "paludal_boss_unlock_" . $char_id;
-          my $flag = quest::get_data($key);
-
-          if (!defined($flag) || $flag != 1) {
-            quest::set_data($key, 1);
-            $killer_client->Message(15, "You have unlocked the ability to click to the End Boss!");
-            if (defined($bot_killer_name)) {
-              quest::shout("$bot_killer_name got the kill, so " . $killer_client->GetCleanName() . " has been awarded the flag!");
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-
 sub EVENT_DEATH_COMPLETE {
     quest::shout("The spores drift... Reishicyben shall bloom again.");
 }

@@ -173,22 +173,6 @@ quest::set_data($heirloom_key, $heirloom_kill_count);
 
 my $killer_name = "Unknown";  # Global variable to store the killer's name
 
-sub EVENT_ITEM_CLICK {
-  return unless defined($client) && $client->IsClient() && $itemid == 33212 && $zoneid == 156;
-
-  my $char_id = $client->CharacterID();
-  my $flag = quest::get_data("paludal_boss_unlock_" . $char_id);
-
-  my $saylink_checkpoint = quest::saylink("checkpoint", 1);
-  my $saylink_boss = quest::saylink("boss", 1);
-
-  if (defined($flag) && $flag == 1) {
-    quest::say("Where would you like to go? $saylink_checkpoint or $saylink_boss?");
-  } else {
-    quest::say("The path to the boss is blocked... perhaps defeating a powerful guardian could unlock it. You may still say $saylink_checkpoint to proceed.");
-  }
-}
-
 sub EVENT_COMBAT {
     if ($zoneid == 123) {  # Only activate in zone 123
         if ($combat_state == 1) {  # Engaged in combat

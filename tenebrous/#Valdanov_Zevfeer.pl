@@ -1,6 +1,8 @@
 sub EVENT_SPAWN {
-	quest::settimer(1,3600);
-    return unless $npc;	
+    quest::settimer(1, 3600);                  # Depop timer
+    quest::settimer("init_effects", 1);        # Buff/init visuals
+
+    return unless $npc;
 
     # BOSS TIER STATS
     $npc->ModifyNPCStat("level", 64);
@@ -46,16 +48,53 @@ sub EVENT_SPAWN {
 
     $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1");
 
-    # Heal to full after stat change
+    # Heal to full
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
 
-    # Set first HP event at 75%
+    # Set HP event
     quest::setnexthpevent(75);
 }
 
 sub EVENT_TIMER {
-	quest::depop();
+    if ($timer eq "check_conditions") {
+        return unless $npc;
+
+        my $has_debuff = $npc->FindBuff(40752);
+        my $top = $npc->GetHateTop();
+        if ($top && $top->IsClient()) {
+            my $client = $top->CastToClient();
+            my $item = $client->GetItemIDAt(14);
+            if ($has_debuff && $item == 42447) {
+                $npc->SetSpecialAbility(35, 0); # Make vulnerable
+            } else {
+                $npc->SetSpecialAbility(35, 1); # Invulnerable
+            }
+        } else {
+            $npc->SetSpecialAbility(35, 1);
+        }
+    }
+    elsif ($timer eq "init_effects") {
+        quest::stoptimer("init_effects");
+
+        # Visuals
+        $npc->SetNPCTintIndex(53);
+
+        # Apply buff if not already present
+        $npc->CastSpell(12403, $npc->GetID()) unless $npc->FindBuff(12403);
+    }
+    elsif ($timer == 1) {
+        quest::depop();
+    }
+}
+
+sub EVENT_COMBAT {
+    if ($combat_state == 1) {
+        quest::settimer("check_conditions", 3);
+    } else {
+        quest::stoptimer("check_conditions");
+        $npc->SetSpecialAbility(35, 1);
+    }
 }
 
 sub EVENT_HP {
@@ -67,7 +106,7 @@ sub EVENT_HP {
             return;
         }
 
-        quest::shout("Surrounding minions of the area, arise and assist me!");
+        quest::shout("Surrounding minions of the Castle, arise and assist me!");
         my $top = $npc->GetHateTop();
         return unless $top;
 
@@ -80,7 +119,6 @@ sub EVENT_HP {
             $mob->AddToHateList($top, 1) if defined $dist && $dist <= 300;
         }
 
-        # Set the next HP event
         quest::setnexthpevent(25) if $hpevent == 75;
     }
 }

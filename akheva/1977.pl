@@ -17,6 +17,13 @@ sub EVENT_SAY {
     return unless defined $client && $client->IsClient();
     return unless defined $text;
 
+    # Distance check: 20 units max
+    my $distance = sqrt(($x - $client->GetX())**2 + ($y - $client->GetY())**2 + ($z - $client->GetZ())**2);
+    if ($distance > 20) {
+        plugin::Whisper("You must be closer to the mirror.");
+        return;
+    }
+
     my $char_id = $client->CharacterID();
     my $spawn_flag = "akheva_mirror_${char_id}";
     my $cd_time_flag = "${char_id}-akheva_mirror_cd_start";

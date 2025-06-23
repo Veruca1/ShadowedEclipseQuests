@@ -15,7 +15,7 @@ sub EVENT_ITEM_CLICK {
         my $h = $client->GetHeading();
 
         # Spawn the NPC that will handle the teleport options at the player's location
-        quest::spawn2(1788, 0, 0, $x, $y, $z, $h);  # Spawn at player's location
+        quest::spawn2(1988, 0, 0, $x, $y, $z, $h);  # Spawn at player's location
         quest::say("Dizzy appears and offers you teleport options.");
     }
 }

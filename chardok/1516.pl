@@ -30,5 +30,8 @@ sub EVENT_TIMER {
 
 sub EVENT_DEATH_COMPLETE {
     # Spawn NPC 1518 at the specified location upon death
+    my $existing = $entity_list->GetNPCByNPCTypeID(1518);
+    $existing->Depop(1) if $existing;
+
     quest::spawn2(1518, 0, 0, -45.87, -1.22, 2.86, 123.75);
 }

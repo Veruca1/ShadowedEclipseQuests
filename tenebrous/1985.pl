@@ -62,7 +62,7 @@ sub EVENT_HP {
             return;
         }
 
-        quest::shout("Surrounding minions of the area, arise and assist me!");
+        quest::shout("Surrounding minions of the mountains, arise and assist me!");
         my $top = $npc->GetHateTop();
         return unless $top;
 

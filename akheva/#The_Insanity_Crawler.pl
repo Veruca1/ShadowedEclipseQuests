@@ -95,14 +95,16 @@ sub EVENT_NPC_SLAY {
                 $owner_name = $owner->GetCleanName();
                 $owner_id = $owner->GetID();
             }
-        } elsif ($victim->IsBot()) {
-            $is_bot = 1;
-            my $owner = $entity_list->GetBotOwnerByBot($victim);
-            if ($owner) {
-                $owner_name = $owner->GetCleanName();
-                $owner_id = $owner->GetID();
-            }
-        }
+       } elsif ($victim->IsBot()) {
+    $is_bot = 1;
+    my $owner = eval { $victim->GetOwner() };
+    if ($@ || !defined $owner) {
+        $owner_name = "Bot";
+    } else {
+        $owner_name = $owner->GetCleanName();
+        $owner_id = $owner->GetID();
+    }
+}
     }
 
     # Spawn adds regardless of victim
