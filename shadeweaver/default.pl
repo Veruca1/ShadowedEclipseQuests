@@ -125,7 +125,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_hide", 1);
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
-        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1");
+        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1");
 
         # 5% chance to add a wrist drop
         if (int(rand(100)) < 5) {

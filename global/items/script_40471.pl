@@ -78,12 +78,16 @@ sub AGGRO_ZONE {
     foreach my $ent (@npc_list) {
         my $trashaggro = $ent->CastToNPC();
         my $trashnpctype = $trashaggro->GetNPCTypeID();
-        unless (is_npc_excluded($trashnpctype, $excluded_npc_ids)) {
-            # Add to hate list with a large amount of hate
-            $trashaggro->AddToHateList($target, $large_hate_value);
-        }
+        my $faction_id = $trashaggro->GetNPCFactionID();
+
+        next if $faction_id == 0;
+        next if is_npc_excluded($trashnpctype, $excluded_npc_ids);
+
+        # Add to hate list with a large amount of hate
+        $trashaggro->AddToHateList($target, $large_hate_value);
     }
 }
+
 
 # Function to check if the target is a bot
 sub is_bot {

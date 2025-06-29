@@ -153,18 +153,18 @@ sub EVENT_DAMAGE_TAKEN {
     my $client = $entity_list->GetClientByID($userid);
     return unless $client;
 
-    # Fixed reductions from buffs
-    my $damage = plugin::reduce_npc_damage($userid, $damage, 40665, 50);
+    $damage = plugin::reduce_npc_damage($userid, $damage, 40665, 50);
     $damage = plugin::reduce_npc_damage($userid, $damage, 40712, 25);
-
-    # AA-based mitigation
     $damage = plugin::rebirth_reduction($client, $damage);
-
-    # Augment-based reduction using supported method
     $damage = plugin::augment_40820_reduction($client, $damage);
 
     return int($damage);
 }
+
+
+
+
+
 
 
 

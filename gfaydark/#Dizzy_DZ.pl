@@ -8,6 +8,7 @@ my $dz_duration = 28800;
 # Define zone categories with their shortnames and full names
 my @antonica_zones = (
     { shortname => "tutorialb", name => "The Mines of Gloomingdeep" },
+    { shortname => "commons", name => "Commonlands" },
     { shortname => "befallen", name => "Befallen" },
     { shortname => "unrest", name => "The Estate of Unrest" },
     { shortname => "najena", name => "Najena" },

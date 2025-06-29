@@ -64,7 +64,7 @@ sub EVENT_SPAWN {
 
     if ($is_boss) {
         $npc->ModifyNPCStat("level", 63);
-        $npc->ModifyNPCStat("ac", 20000);
+        $npc->ModifyNPCStat("ac", 30000);
         $npc->ModifyNPCStat("max_hp", 22500000);
         $npc->ModifyNPCStat("hp_regen", 1000);
         $npc->ModifyNPCStat("mana_regen", 10000);
@@ -72,7 +72,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("max_hit", 15000);
         $npc->ModifyNPCStat("atk", 1400);
         $npc->ModifyNPCStat("accuracy", 2000);
-        $npc->ModifyNPCStat("avoidance", 90);
+        $npc->ModifyNPCStat("avoidance", 110);
         $npc->ModifyNPCStat("attack_delay", 4);
         $npc->ModifyNPCStat("attack_speed", 100);
         $npc->ModifyNPCStat("slow_mitigation", 90);
@@ -109,15 +109,15 @@ sub EVENT_SPAWN {
         quest::setnexthpevent(75);
     } else {
         $npc->ModifyNPCStat("level", 61);
-        $npc->ModifyNPCStat("ac", 15000);
-        $npc->ModifyNPCStat("max_hp", 7000000);
+        $npc->ModifyNPCStat("ac", 20000);
+        $npc->ModifyNPCStat("max_hp", 8000000);
         $npc->ModifyNPCStat("hp_regen", 800);
         $npc->ModifyNPCStat("mana_regen", 10000);
         $npc->ModifyNPCStat("min_hit", 8000);
         $npc->ModifyNPCStat("max_hit", 12000);
         $npc->ModifyNPCStat("atk", 1200);
         $npc->ModifyNPCStat("accuracy", 1800);
-        $npc->ModifyNPCStat("avoidance", 80);
+        $npc->ModifyNPCStat("avoidance", 100);
         $npc->ModifyNPCStat("attack_delay", 4);
         $npc->ModifyNPCStat("attack_speed", 100);
         $npc->ModifyNPCStat("slow_mitigation", 80);
@@ -149,7 +149,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_hide", 1);
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
-        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1^27,1");
+        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1");
     }
 
     my $max_hp = $npc->GetMaxHP();
@@ -167,7 +167,7 @@ sub EVENT_HP {
             return;
         }
 
-        quest::shout("Surrounding minions of the mountains, arise and assist me!");
+        quest::shout("Surrounding minions of the castle, arise and assist me!");
         my $top = $npc->GetHateTop();
         return unless $top;
 
@@ -282,6 +282,7 @@ sub EVENT_DEATH_COMPLETE {
         1922 => 1,
         1954 => 1,
         1974 => 1,
+        1992 => 1,
         1936 => 1,
         1921 => 1,
         1709 => 1,

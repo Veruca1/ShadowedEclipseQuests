@@ -12,6 +12,9 @@ sub EVENT_ITEM {
         600068 => 41148,
         600069 => 41149,
         600070 => 41150,
+
+        # Timebound Crusader's Flame conversion
+        600389 => 42473,
     );
 
     my %to_1hander = reverse %to_2hander;

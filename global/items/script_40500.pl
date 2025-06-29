@@ -69,14 +69,18 @@ sub SUMMON_MOBS_TO_TARGET {
         foreach my $npc (@npcs) {
             if ($npc) {
                 my $npc_id = $npc->GetNPCTypeID();
-                if (!is_npc_excluded($npc_id, $excluded_npc_ids)) {
-                    $npc->GMMove($target_x, $target_y, $target_z);
-                    $npc->AddToHateList($target, $large_hate_value);
-                }
+                my $faction_id = $npc->GetNPCFactionID();
+
+                next if $faction_id == 0;
+                next if is_npc_excluded($npc_id, $excluded_npc_ids);
+
+                $npc->GMMove($target_x, $target_y, $target_z);
+                $npc->AddToHateList($target, $large_hate_value);
             }
         }
     }
 }
+
 
 sub is_bot {
     my ($target) = @_;

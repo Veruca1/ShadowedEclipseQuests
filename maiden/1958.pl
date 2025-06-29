@@ -1,5 +1,5 @@
-my $is_invul = 0;  # Manual tracker since IsInvul() doesn't exist
-my $check_invul_count = 0;
+my @watcher_ids = (1960, 1961, 1962, 1963);
+my $debuff_id = 40732;
 
 sub EVENT_SPAWN {
     quest::shout("The secrets of Akheva grow restless once more.");
@@ -50,11 +50,11 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5^7,1^8,1^13,1^14,1^17,1^21,1^31,1^33,1");
 
         if ($npc->IsEngaged()) {
-            quest::settimer("spirit_spawn", 60);
+            quest::settimer("spirit_spawn", 60); # Placeholder
         }
     }
 
-    quest::settimer("check_invul", 5);
+    quest::settimer("check_invul", 1);  # Check every second for responsive invul state
 }
 
 sub EVENT_COMBAT {
@@ -68,34 +68,19 @@ sub EVENT_COMBAT {
 sub EVENT_TIMER {
     if ($timer eq "check_invul") {
         my $all_debuffed = 1;
-        
+
         foreach my $npc_type (@watcher_ids) {
-            my $found = 0;
-            foreach my $mob ($entity_list->GetNPCList()) {
-                next unless $mob && $mob->IsNPC();
-                next unless $mob->GetNPCTypeID() == $npc_type;  # Check if the NPC is one of the watchers
-
-                $found = 1;
-                my $mob_id = $mob->GetID();
-                my $has_debuff = quest::get_data("wmu_has_debuff_$mob_id") || 0;
-
-                if (!$has_debuff) {
-                    $all_debuffed = 0;  # One watcher lost the debuff
-                    last;
-                }
+            my $mob = $entity_list->GetNPCByNPCTypeID($npc_type);
+            if (!$mob || !$mob->FindBuff($debuff_id)) {
+                $all_debuffed = 0;
+                last;
             }
-            $all_debuffed = 0 unless $found;
         }
 
-        my $boss_active = $entity_list->GetNPCByNPCTypeID($boss_active_id);
-        if ($all_debuffed) {
-            $boss_active->SetInvul(0) if $boss_active;  # Boss becomes vulnerable
-        } else {
-            $boss_active->SetInvul(1) if $boss_active;  # Boss becomes invulnerable
-        }
+        $npc->SetInvul($all_debuffed ? 0 : 1);
     }
 
-    if ($timer eq "combat_shout") {
+    elsif ($timer eq "combat_shout") {
         my @shouts = (
             "You trespass on sacred ground! The Umbral Chorus will see your soul extinguished!",
             "Luclin's gaze pierces even the deepest shadow...",
@@ -113,13 +98,14 @@ sub EVENT_TIMER {
 
 sub EVENT_DEATH_COMPLETE {
     quest::shout("The spirits scatter... but their echoes remain...");
-    quest::signalwith(1352, 4); # Signal controller to respawn Sanctum of Dust 7 mins later
+    quest::signalwith(1352, 4); # Respawn watchers in 7 minutes
 
-    # Clean up
+    # Clean up skeletons
     quest::depop(1960);
     quest::depop(1961);
     quest::depop(1962);
     quest::depop(1963);
+
     quest::stoptimer("check_invul");
     quest::stoptimer("combat_shout");
 
