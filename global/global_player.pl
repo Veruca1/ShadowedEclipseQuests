@@ -3,6 +3,7 @@ sub EVENT_SAY {
 
     # Handle auto-loot and lootfilter related commands
     return if plugin::handle_autoloot_commands($client, $text);
+    return if plugin::handle_arena_commands($client, $text, $entity_list);
     plugin::handle_admin_commands($client, $text, $status, $entity_list);
     
     
@@ -38,6 +39,11 @@ sub EVENT_SAY {
         plugin::FindAndUseAugmentSealer($client);
         return;
     }
+
+    if ($text =~ /\broles\b/i) {
+    plugin::group_roles_check($client);
+    return;
+}
 
     # Handle checkpoint and boss teleports
     return if plugin::handle_checkpoint_and_boss($client, $text, $zoneid);
@@ -89,7 +95,6 @@ sub EVENT_EQUIP_ITEM_CLIENT {
     }
 }
 
-
 sub EVENT_TIMER {
     if ($timer eq "delayed_pet_scale") {
         quest::stoptimer("delayed_pet_scale");
@@ -119,6 +124,8 @@ sub EVENT_TIMER {
         }
     }
 }
+
+
 
 
 sub EVENT_DEATH {

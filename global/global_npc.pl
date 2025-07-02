@@ -174,29 +174,57 @@ quest::set_data($heirloom_key, $heirloom_kill_count);
 my $killer_name = "Unknown";  # Global variable to store the killer's name
 
 sub EVENT_COMBAT {
-    if ($zoneid == 123) {  # Only activate in zone 123
-        if ($combat_state == 1) {  # Engaged in combat
-            quest::settimer("check_swarm_pets", 5);  # Check every 5 seconds
-        } else {  # Out of combat
+    my $id = $npc->GetID();
+
+    if ($combat_state == 1) {
+        
+
+        # Aggro balance runs in all zones now
+        $npc->SetEntityVariable("aggro_balance_id", $id);
+        quest::settimer("aggro_balance_$id", 1);
+
+        # Swarm pet check only in zone 123
+        if ($zoneid == 123) {
+            quest::settimer("check_swarm_pets", 5);
+        }
+    } else {
+        quest::stoptimer("aggro_balance_$id");
+
+        if ($zoneid == 123) {
             quest::stoptimer("check_swarm_pets");
         }
     }
 }
 
 
+
+
+
+
 sub EVENT_TIMER {
-    if ($zoneid == 123 && $timer eq "check_swarm_pets") {
+    # Per-NPC aggro timer
+    if ($timer =~ /^aggro_balance_(\d+)$/) {
+        my $npc_id = $1;
+        my $mob = $entity_list->GetNPCByID($npc_id);
+        return unless $mob;
+
+        plugin::group_hate_shift_to_maintank($mob);
+    }
+
+    # Swarm pet check logic
+    elsif ($zoneid == 123 && $timer eq "check_swarm_pets") {
         my $swarm_npc = $entity_list->GetNPCByNPCTypeID(681);
         if ($swarm_npc) {
             $swarm_npc->Depop();
 
-            # Notify all players in the zone
             foreach my $entity ($entity_list->GetClientList()) {
                 $entity->Message(14, "Your swarm pets have been absolutely obliterated! Maybe try a bigger bug zapper?");
             }
         }
     }
 }
+
+
 
 sub EVENT_DEATH {
     if ($client) {  # Ensure we have a valid client
