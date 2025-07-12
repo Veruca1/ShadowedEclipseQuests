@@ -1,72 +1,248 @@
-###########################################
-## DEVELOPER: KOVOU
-##
-## *** NPC INFORMATION ***
-##
-## NAME: Vornal Transon 
-## ID: 170124
-## ZONE: twilight
-##
-############################################
-# items: 4488, 4495, 4496, 4497, 3684, 4489, 4498, 4499, 4506, 3685, 4490, 4507, 4508, 4509, 3686, 4491, 4510, 4511, 4512, 3687, 4492, 4513, 4514, 3688, 4493, 4584, 4585, 3689, 19441
+use List::Util qw(max);
 
-sub EVENT_SAY {
- if($text =~ /hail/i) {
-	quest::emote("pauses for a second staring off into the distance. 'Ah welcome friend. I am Vornol, a summoner of sorts, and master of this tower.'");
-	quest::say("Most excellent what I have is some armor, if you will do few errands for me it is yours. The pieces I have are the cap, robe, sleeves, pants, shawl, and bracer. My apprentice, the lady Galdara, has the rest. Just ask her about armor and she will tell you what you need to do.");
- }
- if($text =~ /cap/i) {
-	quest::say("For the cap you will have to bring back to me a sun jewel, a fire idol, a fire marked scroll and a runed ring of fire.");
- }
- if($text =~ /robe/i) {
-	quest::say("For the robe you will have to bring back to me a moon jewel, a vial of purified fire, a vial of purified water, and a vial of purified air.");
- }
- if($text =~ /sleeves/i) {
-	quest::say("For the sleeves you will have to bring back to me a star jewel, an air idol, an air marked scroll and a runed ring of air.");
- }
- if($text =~ /pants/i) {
-	quest::say("For the pants you will have to bring back to me a cloud jewel, an earth idol, an earth marked scroll, and a runed ring of earth.");
- }
- if($text =~ /shawl/i) {
-	quest::say("For the shawl you will have to bring back to me a sky jewel, a talisman of burning earth, and a vial of purified earth.");
- }
- if($text =~ /bracer/i) {
-	quest::say("For the bracer you will have to bring back to me a meteor jewel, talisman of moisture, and a vial of aqua waters.");
- }
+my $is_boss = 1;
+my $wrath_triggered = 0;
+my $pet_npc_id;   # Stores the spawn2 ID of the pet
+my $pet_npc_type = 2165;  # <-- Use your desired pet NPC type ID
+
+sub EVENT_SPAWN {
+    return unless $npc;
+
+    # ✅ Boss base stats
+    $npc->ModifyNPCStat("level", 65);
+    $npc->ModifyNPCStat("ac", 20000);
+    $npc->ModifyNPCStat("max_hp", 75500000);
+    $npc->ModifyNPCStat("hp_regen", 1000);
+    $npc->ModifyNPCStat("mana_regen", 10000);
+    $npc->ModifyNPCStat("min_hit", 20000);
+    $npc->ModifyNPCStat("max_hit", 40000);
+    $npc->ModifyNPCStat("atk", 1400);
+    $npc->ModifyNPCStat("accuracy", 2000);
+    $npc->ModifyNPCStat("avoidance", 90);
+    $npc->ModifyNPCStat("attack_delay", 6);
+    $npc->ModifyNPCStat("attack_speed", 100);
+    $npc->ModifyNPCStat("slow_mitigation", 90);
+    $npc->ModifyNPCStat("attack_count", 100);
+    $npc->ModifyNPCStat("heroic_strikethrough", 33);
+    $npc->ModifyNPCStat("aggro", 60);
+    $npc->ModifyNPCStat("assist", 1);
+
+    $npc->ModifyNPCStat("str", 1200);
+    $npc->ModifyNPCStat("sta", 1200);
+    $npc->ModifyNPCStat("agi", 1200);
+    $npc->ModifyNPCStat("dex", 1200);
+    $npc->ModifyNPCStat("wis", 1200);
+    $npc->ModifyNPCStat("int", 1200);
+    $npc->ModifyNPCStat("cha", 1000);
+
+    $npc->ModifyNPCStat("mr", 300);
+    $npc->ModifyNPCStat("fr", 300);
+    $npc->ModifyNPCStat("cr", 300);
+    $npc->ModifyNPCStat("pr", 300);
+    $npc->ModifyNPCStat("dr", 300);
+    $npc->ModifyNPCStat("corruption_resist", 500);
+    $npc->ModifyNPCStat("physical_resist", 1000);
+
+    $npc->ModifyNPCStat("runspeed", 2);
+    $npc->ModifyNPCStat("trackable", 1);
+    $npc->ModifyNPCStat("see_invis", 1);
+    $npc->ModifyNPCStat("see_invis_undead", 1);
+    $npc->ModifyNPCStat("see_hide", 1);
+    $npc->ModifyNPCStat("see_improved_hide", 1);
+
+    $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1");
+
+    my $max_hp = $npc->GetMaxHP();
+    $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
+
+    $wrath_triggered = 0;
+
+    # ✅ Ramp-up chain starts
+    quest::setnexthpevent(75);
+
+    # ✅ Spawn pet NPC at exact attached loc
+    my ($x, $y, $z, $h) = (483.78, -1099.03, 131.97, 132.25);
+    $pet_npc_id = quest::spawn2($pet_npc_type, 0, 0, $x, $y, $z, $h);
 }
 
+sub EVENT_HP {
+    return unless $npc;
 
+    if ($hpevent == 75) {
+        quest::shout("You feel my anger rise — your blows only sharpen my blade!");
+        $npc->ModifyNPCStat("min_hit", 25000);
+        $npc->ModifyNPCStat("max_hit", 45000);
+        $npc->ModifyNPCStat("atk", 1600);
+        $npc->ModifyNPCStat("accuracy", 2200);
+        $npc->ModifyNPCStat("avoidance", 95);
+        quest::setnexthpevent(50);
 
-sub EVENT_ITEM {
- if (plugin::check_handin(\%itemcount, 4488 => 1, 4495 => 1, 4496 => 1, 4497 => 1)) { #cap
-    quest::summonitem(3684); # Item: Cap of Matter
-    quest::exp(10000);
-     } 
- if (plugin::check_handin(\%itemcount, 4489 => 1, 4498 => 1, 4499 => 1, 4506 => 1)) { #robe
-    quest::summonitem(3685); # Item: Robe of Matter
-    quest::exp(10000);
-     } 
- if (plugin::check_handin(\%itemcount, 4490 => 1, 4507 => 1, 4508 => 1, 4509 => 1)) { #sleeves
-    quest::summonitem(3686); # Item: Sleeves of Matter
-    quest::exp(10000);
-     }
- if (plugin::check_handin(\%itemcount, 4491 => 1, 4510 => 1, 4511 => 1, 4512 => 1)) { #pants
-    quest::summonitem(3687); # Item: Pants of Matter
-    quest::exp(10000);
-     } 
- if (plugin::check_handin(\%itemcount, 4492 => 1, 4513 => 1, 4514 => 1)) { #shawl
-    quest::summonitem(3688); # Item: Shawl of Matter
-    quest::exp(10000);
-     } 
- if (plugin::check_handin(\%itemcount, 4493 => 1, 4584 => 1, 4585 => 1)) { #bracer
-    quest::summonitem(3689); # Item: Bracer of Matter
-    quest::exp(10000);
-     }
- if (plugin::check_handin(\%itemcount, 19441 => 1)) { #small pouch of riftseeker essence
-	quest::emote("furrows his brow for a little bit as he mixes the powder in a small flask. 'This is most intriguing. There is nothing here that represents elemental magic as we understand it. These beings seem to use different means to channel their power. Let's see. . . Chaos represents fire, Order corresponds to Water, Air is channeled by Spirit, and. . . hmmm. . . Yes! There it is! Earth ties with Body. There you are, Chaos, Order, Spirit, and Body, those are the primal elements, and I suspect they are the key to unlocking the full potential of your new staff there. Which is quite nice if I do say so myself. If you find essences of the Primal elements you may want to speak with Bantil again. He should have some insight on how to complete your journey. Iilivina has been in Discord long enough, she may have some insight as to where these essences can be located.");
-	quest::setglobal('mage_epic', 9, 5, 'F' );
- } 
-  plugin::return_items(\%itemcount);
+    } elsif ($hpevent == 50) {
+        quest::shout("My wrath deepens! You will break before I do!");
+        $npc->ModifyNPCStat("min_hit", 30000);
+        $npc->ModifyNPCStat("max_hit", 50000);
+        $npc->ModifyNPCStat("atk", 1800);
+        $npc->ModifyNPCStat("accuracy", 2400);
+        $npc->ModifyNPCStat("avoidance", 100);
+        quest::setnexthpevent(25);
+
+    } elsif ($hpevent == 25) {
+        quest::shout("This is my final stand — every strike lands true!");
+        $npc->ModifyNPCStat("min_hit", 35000);
+        $npc->ModifyNPCStat("max_hit", 60000);
+        $npc->ModifyNPCStat("atk", 2000);
+        $npc->ModifyNPCStat("accuracy", 2800);
+        $npc->ModifyNPCStat("avoidance", 110);
+    }
 }
 
-#END of FILE
+sub EVENT_COMBAT {
+    return unless $npc;
+
+    if ($combat_state == 1) {
+        # ✅ Pet aggro logic: match boss target
+        my $pet_npc = $entity_list->GetNPCByID($pet_npc_id);
+        if ($pet_npc) {
+            my $target = $npc->GetHateTop();
+            if ($target) {
+                $pet_npc->AddToHateList($target, 1);
+            }
+        }
+
+        for my $i (1..2) {
+            my $rand = int(rand(99)) + 1;
+            quest::settimer("call_for_help_$i", $rand);
+        }
+        for my $i (1..2) {
+            my $rand = int(rand(99)) + 1;
+            quest::settimer("cleanse_debuff_$i", $rand);
+        }
+
+        quest::settimer("life_drain", 5);
+    } else {
+        # ✅ Clear pet aggro if combat ends
+        my $pet_npc = $entity_list->GetNPCByID($pet_npc_id);
+        $pet_npc->WipeHateList() if $pet_npc;
+
+        for my $i (1..2) {
+            quest::stoptimer("call_for_help_$i");
+            quest::stoptimer("cleanse_debuff_$i");
+        }
+        quest::stoptimer("life_drain");
+    }
+}
+
+sub EVENT_TIMER {
+    return unless $npc;
+
+    if ($timer eq "life_drain") {
+        my ($x, $y, $z) = ($npc->GetX(), $npc->GetY(), $npc->GetZ());
+        my $radius = 50;
+        my $dmg = 6000;
+
+        foreach my $c ($entity_list->GetClientList()) {
+            next unless $c && $c->CalculateDistance($x, $y, $z) <= $radius;
+            $c->Damage($npc, $dmg, 0, 1, false);
+        }
+
+        foreach my $b ($entity_list->GetBotList()) {
+            next unless $b && $b->CalculateDistance($x, $y, $z) <= $radius;
+            $b->Damage($npc, $dmg, 0, 1, false);
+        }
+    }
+
+    elsif ($timer =~ /^call_for_help_/) {
+        quest::stoptimer($timer);
+
+        if (!$npc->IsEngaged()) {
+            plugin::Debug("[$timer] fired but boss not in combat, skipping help call.");
+            return;
+        }
+
+        quest::shout("Minions, to me! Aid your master!");
+        my $top = $npc->GetHateTop();
+        return unless $top;
+
+        foreach my $mob ($entity_list->GetNPCList()) {
+            next unless $mob && $mob->GetID() != $npc->GetID();
+            my $dist = $npc->CalculateDistance($mob);
+            $mob->AddToHateList($top, 1) if defined $dist && $dist <= 500;
+        }
+    }
+
+    elsif ($timer =~ /^cleanse_debuff_/) {
+        quest::stoptimer($timer);
+
+        if (!$npc->IsEngaged()) {
+            plugin::Debug("[$timer] fired but boss not in combat, skipping debuff cleanse.");
+            return;
+        }
+
+        # ✅ Unified: match default.pl — wipe ALL buffs
+        $npc->BuffFadeAll();
+        quest::shout("I shake off all magic!");
+    }
+}
+
+sub EVENT_DAMAGE_TAKEN {
+    return unless $npc;
+
+    my %excluded_pet_npc_ids = (
+        500 => 1, 857 => 1, 681 => 1, 679 => 1, 776 => 1,
+        map { $_ => 1 } (2000000..2000017)
+    );
+
+    if (!$wrath_triggered && $npc->GetHP() <= ($npc->GetMaxHP() * 0.10)) {
+        $wrath_triggered = 1;
+
+        if (quest::ChooseRandom(1..100) <= 20) {
+            $npc->Shout("The Wrath of Luclin is unleashed!");
+
+            my ($x, $y, $z) = ($npc->GetX(), $npc->GetY(), $npc->GetZ());
+            my $radius = 50;
+            my $dmg = 40000;
+
+            foreach my $e ($entity_list->GetClientList()) {
+                next unless $e;
+                $e->Damage($npc, $dmg, 0, 1, false) if $e->CalculateDistance($x, $y, $z) <= $radius;
+
+                my $pet = $e->GetPet();
+                if ($pet && $pet->CalculateDistance($x, $y, $z) <= $radius) {
+                    next if $excluded_pet_npc_ids{$pet->GetNPCTypeID()};
+                    $pet->Damage($npc, $dmg, 0, 1, false);
+                }
+            }
+
+            foreach my $b ($entity_list->GetBotList()) {
+                next unless $b;
+                $b->Damage($npc, $dmg, 0, 1, false) if $b->CalculateDistance($x, $y, $z) <= $radius;
+
+                my $pet = $b->GetPet();
+                if ($pet && $pet->CalculateDistance($x, $y, $z) <= $radius) {
+                    next if $excluded_pet_npc_ids{$pet->GetNPCTypeID()};
+                    $pet->Damage($npc, $dmg, 0, 1, false);
+                }
+            }
+        }
+    }
+
+    return $damage;
+}
+
+sub EVENT_DEATH_COMPLETE {
+    return unless $npc;
+
+    my %exclusion_list = (
+        153095 => 1, 1986 => 1, 1984 => 1, 1922 => 1, 1954 => 1, 1974 => 1,
+        1992 => 1, 1936 => 1, 1921 => 1, 1709 => 1, 1568 => 1, 1831 => 1,
+        857 => 1, 681 => 1, 679 => 1, 776 => 1,
+    );
+
+    my $npc_id = $npc->GetNPCTypeID() || 0;
+    return if exists $exclusion_list{$npc_id};
+
+    if (quest::ChooseRandom(1..100) <= 10) {
+        my ($x, $y, $z, $h) = ($npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
+        quest::spawn2(1984, 0, 0, $x, $y, $z, $h);
+    }
+}

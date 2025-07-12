@@ -54,19 +54,19 @@ sub EVENT_SAY {
     }
 
     if ($text =~ /akheva/i) {
-        my $group = $client->GetGroup();
-        my $zone_id = "akheva";
-        my $version = 0;
-        my $x = 60;
-        my $y = -1395;
-        my $z = 23.06;
-        my $h = 0;
+    my $group = $client->GetGroup();
+    my $zone_id = "akheva";
+    my $version = 0;
+    my $x = 56.79;
+    my $y = -1362.09;
+    my $z = 23.06;
+    my $h = 510;
 
-        plugin::Whisper("Go then, to the stones that still speak. May Sel’Rheza veil your intentions.");
-        if ($group) {
-            $client->SendToInstance("group", $zone_id, $version, $x, $y, $z, $h, "akheva", 14400);
-        } else {
-            $client->SendToInstance("solo", $zone_id, $version, $x, $y, $z, $h, "akheva", 14400);
-        }
+    plugin::Whisper("Go then, to the stones that still speak. May Sel’Rheza veil your intentions.");
+    if ($group) {
+        $client->SendToInstance("group", $zone_id, $version, $x, $y, $z, $h, "akheva", 14400);
+    } else {
+        $client->SendToInstance("solo", $zone_id, $version, $x, $y, $z, $h, "akheva", 14400);
     }
+}
 }

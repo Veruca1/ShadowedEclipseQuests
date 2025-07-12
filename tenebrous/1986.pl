@@ -2,7 +2,8 @@
 
 sub EVENT_SPAWN {
     return unless $npc;
-
+    $npc->CameraEffect(3000, 3);
+    quest::shout("A crystal flashes and rattles the northern sky!");
     quest::settimer("init_effects", 1);
 
     # Apply stats

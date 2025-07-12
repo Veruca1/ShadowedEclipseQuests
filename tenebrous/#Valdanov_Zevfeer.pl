@@ -1,13 +1,14 @@
 sub EVENT_SPAWN {
-    quest::settimer(1, 3600);                  # Depop timer
+    quest::settimer(1, 3600);                  # Depop timer (1 hour hard cap)
     quest::settimer("init_effects", 1);        # Buff/init visuals
+    quest::settimer("out_of_combat", 300);     # 5 min no-combat depop timer
 
     return unless $npc;
 
     # BOSS TIER STATS
     $npc->ModifyNPCStat("level", 64);
     $npc->ModifyNPCStat("ac", 20000);
-    $npc->ModifyNPCStat("max_hp", 40500000);
+    $npc->ModifyNPCStat("max_hp", 50500000);
     $npc->ModifyNPCStat("hp_regen", 1000);
     $npc->ModifyNPCStat("mana_regen", 10000);
     $npc->ModifyNPCStat("min_hit", 10000);
@@ -61,17 +62,32 @@ sub EVENT_TIMER {
         return unless $npc;
 
         my $has_debuff = $npc->FindBuff(40752);
-        my $top = $npc->GetHateTop();
-        if ($top && $top->IsClient()) {
-            my $client = $top->CastToClient();
-            my $item = $client->GetItemIDAt(14);
-            if ($has_debuff && $item == 42447) {
-                $npc->SetSpecialAbility(35, 0); # Make vulnerable
+
+        if ($has_debuff) {
+            my $vulnerable = 0;
+
+            my @hate_list = $npc->GetHateList();
+            foreach my $ent (@hate_list) {
+                my $mob = $ent->GetEnt();
+                next unless $mob && $mob->IsClient();
+                my $client = $mob->CastToClient();
+                my $item = $client->GetItemIDAt(14); # Secondary slot
+
+                plugin::Debug("Checking " . $client->GetName() . " secondary slot: $item");
+                if ($item == 42447) {
+                    $vulnerable = 1;
+                    plugin::Debug("Condition met by: " . $client->GetName());
+                    last; # One valid player is enough
+                }
+            }
+
+            if ($vulnerable) {
+                $npc->SetInvul(0); # VULNERABLE
             } else {
-                $npc->SetSpecialAbility(35, 1); # Invulnerable
+                $npc->SetInvul(1); # INVULNERABLE
             }
         } else {
-            $npc->SetSpecialAbility(35, 1);
+            $npc->SetInvul(1); # INVULNERABLE if no debuff present
         }
     }
     elsif ($timer eq "init_effects") {
@@ -83,6 +99,10 @@ sub EVENT_TIMER {
         # Apply buff if not already present
         $npc->CastSpell(12403, $npc->GetID()) unless $npc->FindBuff(12403);
     }
+    elsif ($timer eq "out_of_combat") {
+        plugin::Debug("No combat in 5 mins. Depopping boss.");
+        quest::depop();
+    }
     elsif ($timer == 1) {
         quest::depop();
     }
@@ -91,9 +111,11 @@ sub EVENT_TIMER {
 sub EVENT_COMBAT {
     if ($combat_state == 1) {
         quest::settimer("check_conditions", 3);
+        quest::stoptimer("out_of_combat");  # In combat, stop no-combat depop
     } else {
         quest::stoptimer("check_conditions");
-        $npc->SetSpecialAbility(35, 1);
+        $npc->SetInvul(1); # Always reset to invulnerable out of combat
+        quest::settimer("out_of_combat", 300); # Start no-combat depop timer again
     }
 }
 
@@ -120,5 +142,14 @@ sub EVENT_HP {
         }
 
         quest::setnexthpevent(25) if $hpevent == 75;
+    }
+}
+
+sub EVENT_SPELL_EFFECT {
+    my ($spell_id, $caster) = ($spell_id, $caster);
+
+    if ($spell_id == 40752) {
+        plugin::Debug("Bypassing invul for spell 40752 from " . $caster->GetCleanName());
+        $npc->BuffSpell(40752, 0, 0);
     }
 }

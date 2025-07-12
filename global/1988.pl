@@ -8,7 +8,8 @@ my $dz_duration = 28800;
 # Define zone categories with their shortnames and full names
 my @antonica_zones = (
     { shortname => "tutorialb", name => "The Mines of Gloomingdeep" },
-    { shortname => "befallen", name => "Befallen" },
+    { shortname => "commons", name => "Commonlands" },
+    { shortname => "befallen", name => "Befallen" },    
     { shortname => "unrest", name => "The Estate of Unrest" },
     { shortname => "najena", name => "Najena" },
     { shortname => "hateplaneb", name => "Plane of Hate" },
@@ -93,6 +94,19 @@ my %zone_versions = (
     "sirens" => 1,
     "paw" => 1,
 );
+
+sub EVENT_SPAWN {
+    #quest::shout("DEBUG: I have spawned and set the timer!");
+    quest::settimer("depop_me", 60);
+}
+
+sub EVENT_TIMER {
+    #quest::shout("DEBUG: Timer fired: [$timer]");
+    if ($timer eq "depop_me") {
+        #quest::shout("DEBUG: Depopping now...");
+        quest::depop();
+    }
+}
 
 sub EVENT_SAY {
     if ($text =~ /ready/i) {
@@ -235,16 +249,5 @@ sub EVENT_SAY {
         if (!$zone_found) {
             plugin::Whisper("I'm sorry, but '$zone_input' is not a valid zone name or shortname. Say [list zones] to see the available options.");
         }
-    }
-}
-
-sub EVENT_SPAWN {
-    quest::settimer("depop_me", 60); # 60 seconds = 1 minute
-}
-
-sub EVENT_TIMER {
-    if ($timer eq "depop_me") {
-        quest::stoptimer("depop_me");
-        $npc->Depop();
     }
 }

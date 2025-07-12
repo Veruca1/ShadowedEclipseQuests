@@ -1,6 +1,5 @@
 sub EVENT_SPAWN {
-    quest::settimer("depop", 3600);
-    return unless $npc;    
+    return unless $npc;
 
     # BOSS TIER STATS
     $npc->ModifyNPCStat("level", 63);
@@ -54,25 +53,6 @@ sub EVENT_SPAWN {
     quest::setnexthpevent(75);
 }
 
-sub EVENT_COMBAT {
-    if ($combat_state == 1) {
-        # Engaged: stop the despawn timer
-        quest::stoptimer("depop");
-        plugin::Debug("Timer stopped on combat engage");
-    } elsif ($combat_state == 0) {
-        # Not engaged: restart the despawn timer
-        quest::settimer("depop", 3600);
-        plugin::Debug("Timer restarted on combat wipe/reset");
-    }
-}
-
-sub EVENT_TIMER {
-    if ($timer eq "depop") {
-        quest::shout("The boss has despawned due to time limit.");
-        quest::depop();
-    }
-}
-
 sub EVENT_HP {
     return unless $npc;
 
@@ -101,12 +81,11 @@ sub EVENT_HP {
 }
 
 sub EVENT_DEATH_COMPLETE {
-    quest::unique_spawn(172184,0,0,-1425,576,317,128); # spawn Valdanov Zevfeer
-    my $random_result = int(rand(100));
-    if ($random_result < 25) {
-        my $npc_check = $entity_list->GetNPCByNPCTypeID(172155);
-        if (!$npc_check) {
-            quest::spawn2(172155, 0, 0, -1425, 576, 317, 128);
-        }
-    }
+	my $random_result = int(rand(100));
+	if ($random_result < 25) {
+		my $npc_check = $entity_list->GetNPCByNPCTypeID(172155);
+		if (!$npc_check) {
+			quest::spawn2(1999, 0, 0, -1425, 576, 317, 128);
+		}
+	}
 }

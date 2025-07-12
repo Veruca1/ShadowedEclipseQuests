@@ -48,7 +48,7 @@ sub EVENT_TIMER {
 
             if ($random_ability == 1) {
                 # Spawn a random elemental
-                my $elemental_id = quest::ChooseRandom(170210, 170229, 170225); # New elemental IDs
+                my $elemental_id = quest::ChooseRandom(170210, 170229); # New elemental IDs
                 quest::shout("Feel the might of my elementals!");
                 quest::spawn2($elemental_id, 0, 0, $x + 10, $y + 10, $z, $h);
             } elsif ($random_ability == 2) {
