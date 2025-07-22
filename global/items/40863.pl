@@ -8,7 +8,7 @@ sub EVENT_ITEM_CLICK {
     # Roll for success (25% chance)
     my $roll = int(rand(100)) + 1;
 
-    if ($roll <= 25) {
+    if ($roll <= 50) {
         # Success: Set the zone flag for Akheva Ruins (zone ID 179)
         quest::set_zone_flag(179);
         quest::we(14, "$name has earned access to Akheva Ruins!");

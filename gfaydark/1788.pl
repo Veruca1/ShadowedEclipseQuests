@@ -1,5 +1,5 @@
 # Configuration options
-my $enable_easter_island = 1;  # Set to 0 to disable Easter Island zones
+my $enable_easter_island = 0;  # Set to 0 to disable Easter Island zones
 my $expedition_name_prefix = "DZ - ";
 my $min_players = 1;
 my $max_players = 12;

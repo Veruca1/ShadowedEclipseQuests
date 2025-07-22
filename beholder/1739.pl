@@ -2,16 +2,17 @@ my $minions_spawned = 0;
 
 sub EVENT_SPAWN {
     quest::settimer("check_buffs", 1);
+    quest::settimer("check_engagement", 600); # 10-minute depop timer
 }
 
 sub EVENT_COMBAT {
     if ($combat_state == 1) {
+        quest::stoptimer("check_engagement"); # Stop depop while in combat
         quest::settimer("spell_cast", 30);
         quest::settimer("minion_check", 1);
         quest::settimer("check_hp", 1);
-        quest::settimer("elphaba_drain", 30);  # Life drain every 30 seconds
+        quest::settimer("elphaba_drain", 30);
 
-        # Thematic combat message
         foreach my $entity ($entity_list->GetClientList()) {
             $entity->Message(14, "Elphaba raises her hands, and a wicked green glow radiates as the air grows heavy with dark magic!");
         }
@@ -25,10 +26,17 @@ sub EVENT_COMBAT {
         quest::stoptimer("minion_check");
         quest::stoptimer("check_hp");
         quest::stoptimer("elphaba_drain");
+        quest::settimer("check_engagement", 600); # Restart depop timer
     }
 }
 
 sub EVENT_TIMER {
+    if ($timer eq "check_engagement") {
+        if ($npc->GetHateList()->IsEmpty()) {
+            quest::depop();
+        }
+    }
+
     if ($timer eq "check_buffs") {
         quest::stoptimer("check_buffs");
         $npc->CastSpell(12879, $npc->GetID()) if !$npc->FindBuff(12879);
@@ -67,16 +75,8 @@ sub EVENT_TIMER {
         my $radius = 50;
         my $drain_amount = plugin::RandomRange(5000, 20000);
 
-        # Thematic drain message
         foreach my $entity ($entity_list->GetClientList()) {
             $entity->Message(14, "Elphaba cackles as an emerald surge erupts, siphoning the very essence of those nearby!");
-        }
-        foreach my $bot ($entity_list->GetBotList()) {
-            #$bot->Message(14, "Elphaba cackles as an emerald surge erupts, siphoning the very essence of those nearby!");
-        }
-
-        # Damage players, bots, and pets within range
-        foreach my $entity ($entity_list->GetClientList()) {
             if ($entity->CalculateDistance($npc_x, $npc_y, $npc_z) <= $radius) {
                 $entity->Damage($npc, $drain_amount, 0, 1, false);
             }
@@ -87,6 +87,7 @@ sub EVENT_TIMER {
         }
 
         foreach my $bot ($entity_list->GetBotList()) {
+            #$bot->Message(14, "Elphaba cackles as an emerald surge erupts, siphoning the very essence of those nearby!");
             if ($bot->CalculateDistance($npc_x, $npc_y, $npc_z) <= $radius) {
                 $bot->Damage($npc, $drain_amount, 0, 1, false);
             }
@@ -113,5 +114,6 @@ sub EVENT_DEATH_COMPLETE {
     quest::stoptimer("minion_check");
     quest::stoptimer("check_hp");
     quest::stoptimer("elphaba_drain");
+    quest::stoptimer("check_engagement");
     quest::signalwith(10, 3, 0);
 }

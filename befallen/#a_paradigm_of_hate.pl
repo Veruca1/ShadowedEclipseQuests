@@ -148,11 +148,16 @@ sub EVENT_ITEM {
 }
 
 sub EVENT_TIMER {
-    if ($timer eq "shake") {
-        $npc->CameraEffect(3000, 6); # Longer shake duration
-        quest::settimer("shout", 3.1); # Delay to ensure the shake completes before the shout
-        quest::stoptimer("shake");
+if ($timer eq "shake") {
+    if (defined $npc) {
+        $npc->CameraEffect(3000, 6); # Safe call
+    } else {
+        plugin::Debug("CameraEffect skipped: \$npc is undefined");
     }
+    quest::settimer("shout", 3.1);
+    quest::stoptimer("shake");
+}
+
     elsif ($timer eq "shout") {
         # Assuming the NPC 36126 will be the last spawned NPC
         my $npc_id = 36126;

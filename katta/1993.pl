@@ -36,7 +36,7 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("corruption_resist", 500);
     $npc->ModifyNPCStat("physical_resist", 10000);
 
-    $npc->ModifyNPCStat("runspeed", 2);
+    $npc->ModifyNPCStat("runspeed", 0);
     $npc->ModifyNPCStat("trackable", 1);
     $npc->ModifyNPCStat("see_invis", 1);
     $npc->ModifyNPCStat("see_invis_undead", 1);
@@ -44,7 +44,7 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("see_improved_hide", 1);
 
     # ✅ CORRECT SPECIAL ABILITIES FOR YOUR SERVER
-    $npc->ModifyNPCStat("special_abilities", "2,1^3,1^4,1^5,1^12,1^13,1^14,1^15,1^16,1^17,1^21,1^29,1");
+    $npc->ModifyNPCStat("special_abilities", "2,1^3,1^4,1^5,1^12,1^13,1^14,1^15,1^16,1^17,1^21,1^29,1^33,1");
 
     # Heal to full after stat change
     my $max_hp = $npc->GetMaxHP();

@@ -39,7 +39,7 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("corruption_resist", 1244);
     $npc->ModifyNPCStat("physical_resist", 24883);
 
-    $npc->ModifyNPCStat("runspeed", 2);
+    $npc->ModifyNPCStat("runspeed", 0);
     $npc->ModifyNPCStat("trackable", 1);
     $npc->ModifyNPCStat("see_invis", 1);
     $npc->ModifyNPCStat("see_invis_undead", 1);
@@ -47,7 +47,7 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("see_improved_hide", 1);
 
     # ✅ Final boss special abilities
-    $npc->ModifyNPCStat("special_abilities", "2,1^3,1^4,1^5,1^12,1^13,1^14,1^15,1^16,1^17,1^21,1^29,1");
+    $npc->ModifyNPCStat("special_abilities", "2,1^3,1^4,1^5,1^12,1^13,1^14,1^15,1^16,1^17,1^21,1^29,1^33,1");
 
     # Full heal
     my $max_hp = $npc->GetMaxHP();
@@ -66,33 +66,42 @@ sub EVENT_SPAWN {
     quest::setnexthpevent(80);
 
     # ✅ UPDATED RANDOMIZED LOOT TABLES
+
+    # Group 1: Named + weapon items
     my @named_items = (
         42435,  # Sacred Lunar Shield of Healing
         42436,  # Sacred Lunar Shield of Chaos
         42437,  # Upside (Shawl of Lunar) Down (Madness)
-        39591   # Glyph of Whirlwind
+        39591,  # Glyph of Whirlwind
+        87487,  # Masamune, the Skycutter
+        117452  # Penumbral Bow of the Mistress
     );
 
-    my @unnamed_items = (
-        41152, 41153, 41154, 41155, 41156, 41157, 41158, 41173, 41174,
-        87487, 117452
+    # Group 2: Runes
+    my @rune_items = (
+        41152, 41153, 41154, 41155, 41156, 41157, 41158, 41173, 41174
     );
 
     # Shuffle both lists
-    my @shuffled_named   = sort { rand() <=> rand() } @named_items;
-    my @shuffled_unnamed = sort { rand() <=> rand() } @unnamed_items;
+    my @shuffled_named = sort { rand() <=> rand() } @named_items;
+    my @shuffled_runes = sort { rand() <=> rand() } @rune_items;
 
-    # ✅ Always drop 2 named
+    # ✅ Drop exactly 2 from named group
     $npc->AddItem($shuffled_named[0]);
     $npc->AddItem($shuffled_named[1]);
 
-    # ✅ Always drop 2 unnamed
-    $npc->AddItem($shuffled_unnamed[0]);
-    $npc->AddItem($shuffled_unnamed[1]);
+    # ✅ Always drop 2 runes
+    $npc->AddItem($shuffled_runes[0]);
+    $npc->AddItem($shuffled_runes[1]);
 
-    # ✅ 35% chance for a 3rd unnamed
+    # ✅ 35% chance to drop a 3rd rune
     if (int(rand(100)) < 35) {
-        $npc->AddItem($shuffled_unnamed[2]);
+        $npc->AddItem($shuffled_runes[2]);
+    }
+
+    # ✅ 25% chance to drop a 4th rune
+    if (int(rand(100)) < 25) {
+        $npc->AddItem($shuffled_runes[3]);
     }
 }
 

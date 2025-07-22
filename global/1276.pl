@@ -1,5 +1,7 @@
 sub EVENT_SPAWN {
-    $ownerid = $npc->GetOwnerID();
+    return unless defined $npc;
+
+    my $ownerid = $npc->GetOwnerID();
 
     plugin::pokemon_pet_spellcast($npc, { context => 'buff' });
 
@@ -18,6 +20,7 @@ sub EVENT_SPAWN {
         }
     }
 }
+
 
 # sub get_flag_rank {
 #     #quest::debug("[FlagRank] Checking zone flags for rank...");

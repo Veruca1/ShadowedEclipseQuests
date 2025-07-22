@@ -29,9 +29,8 @@ sub EVENT_COMBAT {
 
 sub EVENT_TIMER {
     if ($timer eq "check_engagement") {
-        # Check if NPC has been engaged
-        if ($npc->GetHateTop() == undef) {
-            # If no target (not engaged), depop the NPC
+        # Check if NPC has been out of combat
+        if ($npc->GetHateList()->IsEmpty()) {
             quest::depop();
         }
     }

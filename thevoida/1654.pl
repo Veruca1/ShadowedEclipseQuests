@@ -42,6 +42,12 @@ sub EVENT_ITEM {
         quest::summonitem(33208, $credits);
         # REMOVE quest::removeitem(42448, 1);
     }
+    elsif (plugin::check_handin(\%itemcount, 43647 => 1)) {
+    my $credits = quest::ChooseRandom(66..95);
+    $client->Message(15, "You receive $credits Hunter Credits.");
+    quest::summonitem(33208, $credits);
+    # REMOVE quest::removeitem(43647, 1);
+}
     else {
         plugin::return_items(\%itemcount);
     }

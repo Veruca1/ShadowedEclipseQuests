@@ -263,6 +263,7 @@ sub EVENT_WARP {
     my $zone_blocklist = {
         akheva         => 1,
         frozenshadow   => 1,
+        fungusgrove    => 1,
         katta          => 1,
         maiden         => 1,
         neriakb        => 1,

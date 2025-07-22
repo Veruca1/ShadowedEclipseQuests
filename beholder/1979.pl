@@ -1,5 +1,6 @@
 sub EVENT_SPAWN {
     #quest::shout("The secrets of Akheva grow restless once more.");
+    quest::settimer("check_engagement", 600); # 10-minute depop timer
 
     if (defined $npc) {
         $npc->ModifyNPCStat("level", 65);
@@ -47,23 +48,38 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5^7,1^8,1^13,1^14,1^17,1^21,1^31,1^33,1");
 
         my @buffs = (
-        5278,   # Hand of Conviction
-        5297,   # Brell's Brawny Bulwark
-        5488,   # Circle of Fireskin
-        10028,  # Talisman of Persistence
-        10031,  # Talisman of the Stoic One
-        10013,  # Talisman of Foresight
-        10664,  # Voice of Intuition
-        9414,   # Holy Battle Hymn V
-        300,    # Boon of the Avenging Angel IV
-        15031,  # Strength of Gladwalker
-        2530,   # Khura's Focusing
-        20147   # Nimbus of Discordant Spines
-    );
+            5278,   # Hand of Conviction
+            5297,   # Brell's Brawny Bulwark
+            5488,   # Circle of Fireskin
+            10028,  # Talisman of Persistence
+            10031,  # Talisman of the Stoic One
+            10013,  # Talisman of Foresight
+            10664,  # Voice of Intuition
+            9414,   # Holy Battle Hymn V
+            300,    # Boon of the Avenging Angel IV
+            15031,  # Strength of Gladwalker
+            2530,   # Khura's Focusing
+            20147   # Nimbus of Discordant Spines
+        );
 
-    foreach my $spell_id (@buffs) {
-        $npc->ApplySpellBuff($spell_id);
+        foreach my $spell_id (@buffs) {
+            $npc->ApplySpellBuff($spell_id);
+        }
     }
-        
+}
+
+sub EVENT_COMBAT {
+    if ($combat_state == 1) {
+        quest::stoptimer("check_engagement");
+    } elsif ($combat_state == 0) {
+        quest::settimer("check_engagement", 600); # Restart 10-minute depop
+    }
+}
+
+sub EVENT_TIMER {
+    if ($timer eq "check_engagement") {
+        if ($npc->GetHateList()->IsEmpty()) {
+            quest::depop();
+        }
     }
 }

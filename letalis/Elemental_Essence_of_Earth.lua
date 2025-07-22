@@ -5,8 +5,8 @@ end
 function event_combat(e)
 	if e.joined then
 		eq.set_timer("avapower",35*1000);
-		eq.set_timer("bury",30*1000);
-		eq.set_timer("wave",12*1000);		
+		eq.set_timer("bury II",30*1000);
+		eq.set_timer("wave II",12*1000);		
 	end
 end
 
@@ -16,9 +16,9 @@ function event_timer(e)
 	elseif(e.timer=="avapower") then
 		e.self:CastSpell(808, e.self:GetTarget():GetID()); -- Spell: Avatar Power
 	elseif (e.timer=="bury") then
-		e.self:CastSpell(5001, e.self:GetTarget():GetID()); -- Spell: Bury
+		e.self:CastSpell(40763, e.self:GetTarget():GetID()); -- Spell: Bury
 	elseif (e.timer=="wave") then
-		e.self:CastSpell(4493, e.self:GetTarget():GetID()); -- Spell: Earth Wave
+		e.self:CastSpell(40764, e.self:GetTarget():GetID()); -- Spell: Earth Wave
 	end
 	
 end

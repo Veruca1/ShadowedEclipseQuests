@@ -224,6 +224,7 @@ sub EVENT_DAMAGE_TAKEN {
 sub EVENT_DEATH {
     return unless $npc;
 
+    # Drop the tint-aligned item
     my $last_tint_index = ($current == 0) ? scalar(@tints) - 1 : $current - 1;
     my $active_tint = $tints[$last_tint_index];
     my $item_id = $tint_to_item{$active_tint};
@@ -231,6 +232,49 @@ sub EVENT_DEATH {
     if ($item_id) {
         $npc->AddItem($item_id, 1);
         quest::shout("You have shattered my form aligned with tint $active_tint — take the element’s power!");
+    }
+
+    # Always drop 1x 43666, plus 25% chance for a second
+    $npc->AddItem(43666, 1);
+    if (quest::ChooseRandom(1..100) <= 25) {
+        $npc->AddItem(43666, 1);
+    }
+
+    # Base bonus item: 1 of the original 3
+    my @base_bonus_items = (43672, 43754, 39080);
+    $npc->AddItem(quest::ChooseRandom(@base_bonus_items), 1);
+
+    # Additional drop pool
+    my @extra_items = (
+        43756, # Glyph of Invul
+        43757, # Glyph of Rapture
+        43758, # Glyph of Rage
+        43759, # Twink Chest of Luclin
+        43760, # Twink Legs of Luclin
+        43761, # Twink Helm of Luclin
+        43762, # Twink Boots of Luclin
+    );
+
+    # Determine if extra items drop
+    my $extra_drop_roll = quest::ChooseRandom(1..100);
+    my $extra_count = 0;
+
+    if ($extra_drop_roll <= 15) {
+        $extra_count = 3; # 1 base + 3 extra = 4 total
+    }
+    elsif ($extra_drop_roll <= 40) { # 25% window for 3 total
+        $extra_count = 2; # 1 base + 2 extra = 3 total
+    }
+
+    if ($extra_count > 0) {
+        my %picked;
+        while ($extra_count > 0) {
+            my $item = quest::ChooseRandom(@extra_items);
+            next if $picked{$item}; # Avoid dupes
+            $picked{$item} = 1;
+            $npc->AddItem($item, 1);
+            $extra_count--;
+        }
     }
 }
 

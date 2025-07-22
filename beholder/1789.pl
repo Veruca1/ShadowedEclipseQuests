@@ -1,12 +1,14 @@
 sub EVENT_SPAWN {
     quest::shout("Fresh meat for the ring! You won't last three rounds with me!");
+    quest::settimer("check_engagement", 600); # 10-minute depop timer
 }
 
 sub EVENT_COMBAT {
     if ($combat_state == 1) { # Engaged in combat
-        quest::settimer("taunt", 30);  # Random taunt every 30 seconds
-        quest::settimer("drain_message", 20);  # Message every 20 seconds
-        
+        quest::stoptimer("check_engagement"); # Stop depop timer
+        quest::settimer("taunt", 30);         # Random taunt every 30 seconds
+        quest::settimer("drain_message", 20); # Message every 20 seconds
+
         foreach my $entity ($entity_list->GetClientList()) {
             $entity->Message(14, "Bald Bull cracks his knuckles: 'Hope you've been training, rookie!'");
         }
@@ -16,6 +18,7 @@ sub EVENT_COMBAT {
     } elsif ($combat_state == 0) { # Combat ends
         quest::stoptimer("taunt");
         quest::stoptimer("drain_message");
+        quest::settimer("check_engagement", 600); # Restart depop timer
     }
 }
 
@@ -35,14 +38,18 @@ sub EVENT_HP {
 }
 
 sub EVENT_TIMER {
-    if ($timer eq "taunt") {
+    if ($timer eq "check_engagement") {
+        if ($npc->GetHateList()->IsEmpty()) {
+            quest::depop();
+        }
+    }
+    elsif ($timer eq "taunt") {
         my @taunts = (
             "You’re out of your league, little Mac!",
             "Nobody survives the Bull Charge!",
             "I've crushed better fighters than you!",
             "Give up now, or I’ll make you regret it!"
         );
-
         my $random_taunt = $taunts[rand @taunts];
         quest::shout($random_taunt);
     }
@@ -69,6 +76,12 @@ sub Perform_Charge {
         $entity->Message(14, "Bald Bull stomps the ground and prepares his devastating Bull Charge!");
         $entity->Damage($npc, 30000, 0, 1, false);
         $npc->DoKnockback($entity, 1000, 1000);
+
+        my $pet = $entity->GetPet();
+        if ($pet) {
+            $pet->Damage($npc, 30000, 0, 1, false);
+            $npc->DoKnockback($pet, 1000, 1000);
+        }
     }
 
     foreach my $bot ($entity_list->GetBotList()) {
@@ -80,14 +93,6 @@ sub Perform_Charge {
         if ($bot_pet) {
             $bot_pet->Damage($npc, 30000, 0, 1, false);
             $npc->DoKnockback($bot_pet, 1000, 1000);
-        }
-    }
-
-    foreach my $entity ($entity_list->GetClientList()) {
-        my $pet = $entity->GetPet();
-        if ($pet) {
-            $pet->Damage($npc, 30000, 0, 1, false);
-            $npc->DoKnockback($pet, 1000, 1000);
         }
     }
 }

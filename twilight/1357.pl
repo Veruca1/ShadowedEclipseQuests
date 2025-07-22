@@ -55,9 +55,9 @@ sub EVENT_SAY {
         my $version = 0; # force version 0
 
         # Hardcoded safe loc for Fungus Grove (adjust if needed)
-        my $x = -1450.0;
-        my $y = -900.0;
-        my $z = -120.0;
+        my $x = -1005.00;
+        my $y = -2088.08;
+        my $z = -307.93;
         my $h = 0.0;
 
         plugin::Whisper("Descend, then, into marble’s last dream. The Chorus shall listen as the stone remembers.");
