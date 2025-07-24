@@ -6,16 +6,14 @@ sub EVENT_SPAWN {
 
     my $raw_name = $npc->GetName() || '';
     my $npc_id   = $npc->GetNPCTypeID() || 0;
-
+    return if $npc->IsPet();
+    
     # Use plugin to check exclusion list
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
-    return if $npc->IsPet();
-
+    
     $is_boss = ($raw_name =~ /^#/ || ($npc_id == 1919 && $npc_id != 1974)) ? 1 : 0;
-
     $npc->SetNPCFactionID(623);
-
     $wrath_triggered = 0;
 
     if ($is_boss) {
@@ -179,6 +177,11 @@ sub EVENT_TIMER {
 
 sub EVENT_DAMAGE_TAKEN {
     return unless $npc;
+    
+    my $npc_id = $npc->GetNPCTypeID() || 0;
+    # Use plugin to check exclusion list
+    my $exclusion_list = plugin::GetExclusionList();
+    return if exists $exclusion_list->{$npc_id};
 
     if (!$wrath_triggered && $npc->GetHP() <= ($npc->GetMaxHP() * 0.10)) {
         $wrath_triggered = 1;
@@ -191,7 +194,7 @@ sub EVENT_DAMAGE_TAKEN {
             my $radius = 50;
             my $dmg = 40000;
 
-            # Get exclusion list from plugin
+            # Get exclusion list from plugin for pet checks
             my $excluded_npc_ids = plugin::GetExclusionList();
 
             foreach my $e ($entity_list->GetClientList()) {
@@ -222,10 +225,9 @@ sub EVENT_DAMAGE_TAKEN {
 }
 
 sub EVENT_DEATH_COMPLETE {
-    return unless $npc;
-
-    my $npc_id = $npc->GetNPCTypeID() || 0;
+    return unless $npc;    
     
+    my $npc_id = $npc->GetNPCTypeID() || 0;
     # Use plugin to check exclusion list
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
@@ -233,5 +235,92 @@ sub EVENT_DEATH_COMPLETE {
     if (quest::ChooseRandom(1..100) <= 10) {
         my ($x, $y, $z, $h) = ($npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
         quest::spawn2(1984, 0, 0, $x, $y, $z, $h);
+    }
+}
+
+sub EVENT_KILLED_MERIT {
+    return unless $killer && $killer->IsClient();
+
+    my $client = $killer->CastToClient();
+    my $charid = $client->CharacterID();
+    my $npc_id = $npc->GetNPCTypeID();
+
+    my $kill_key = "GreyKill_${npc_id}";
+    return if quest::get_data($kill_key);
+    quest::set_data($kill_key, 1, 10);  # Expire after 10 seconds
+
+    my $trash_flag = "~Grey_Trash_${charid}~";
+    my $trash_count_key = "${trash_flag}_count";
+
+    # 35% chance for trash flag credit
+    if (!quest::get_data($trash_flag)) {
+        if (int(rand(100)) < 100) {
+            my $count = quest::get_data($trash_count_key) || 0;
+            $count++;
+            quest::set_data($trash_count_key, $count);
+            $client->Message(15, "Essence gathered... [$count/40]");
+            if ($count >= 40) {
+                quest::set_data($trash_flag, 1);
+                $client->Message(14, "You've gathered enough essence from the Grey's minions.");
+            }
+        }
+    }
+
+    # Named mob flag logic
+    my %named_ids = (
+        171068 => "171068_Grey_${charid}",
+        171056 => "171056_Grey_${charid}",
+        171065 => "171065_Grey_${charid}",
+        171057 => "171057_Grey_${charid}",
+        171073 => "171073_Grey_${charid}"
+    );
+
+    if (exists $named_ids{$npc_id}) {
+        my $flag = $named_ids{$npc_id};
+        if (!quest::get_data($flag) && int(rand(100)) < 100) {
+            quest::set_data($flag, 1);
+            $client->Message(15, "You absorb the essence of the vanquished named...");
+        }
+    }
+
+    # Check for all flags
+    my $final_flag = "Grey_AllFlags_${charid}";
+    if (!quest::get_data($final_flag) && quest::get_data($trash_flag)) {
+        my $complete = 1;
+        foreach my $flag (values %named_ids) {
+            unless (quest::get_data($flag)) {
+                $complete = 0;
+                last;
+            }
+        }
+
+        if ($complete) {
+            quest::set_data($final_flag, 1);
+
+            my @eligible;
+            if ($client->GetRaid()) {
+                my $raid = $client->GetRaid();
+                for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                    my $rc = $raid->GetMember($i);
+                    push @eligible, $rc if $rc && $rc->GetIP() eq $client->GetIP();
+                }
+            } elsif ($client->GetGroup()) {
+                my $group = $client->GetGroup();
+                for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                    my $gc = $group->GetMember($i);
+                    push @eligible, $gc if $gc && $gc->GetIP() eq $client->GetIP();
+                }
+            } else {
+                push @eligible, $client;
+            }
+
+            foreach my $pc (@eligible) {
+                next unless $pc && $pc->IsClient();
+                $pc = $pc->CastToClient();
+                $pc->SetZoneFlag(162);
+                $pc->Message(14, "You have earned access to Ssraeshza Temple!");
+                quest::we(14, $pc->GetCleanName() . " has earned access to Ssraeshza Temple!");
+            }
+        }
     }
 }

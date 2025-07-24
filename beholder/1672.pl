@@ -30,7 +30,7 @@ sub EVENT_COMBAT {
 sub EVENT_TIMER {
     if ($timer eq "check_engagement") {
         # Check if NPC has been out of combat
-        if ($npc->GetHateList()->IsEmpty()) {
+        if (!$npc->IsEngaged()) {
             quest::depop();
         }
     }
@@ -43,24 +43,20 @@ sub EVENT_TIMER {
 
         # Cast spells and perform actions based on health percentage thresholds
         if ($health_percent <= 10 && $spell_cast_10 == 0) {
-            # Shout and cast Right Hook (40278) at 10% health
             quest::shout("Right Hook!");
             $npc->CastSpell(40278, $npc->GetID());
             $spell_cast_10 = 1;
         } elsif ($health_percent <= 30 && $spell_cast_30 == 0) {
-            # Spawn 3 Glass Groupies (NPC ID: 1673) at 30% health
             quest::shout("The Glass Groupies have arrived!");
             for (1..3) {
                 quest::spawn2(1673, 0, 0, $x + (rand(10) - 5), $y + (rand(10) - 5), $z, $h);
             }
             $spell_cast_30 = 1;
         } elsif ($health_percent <= 50 && $spell_cast_50 == 0) {
-            # Shout and cast Upper Cut (12693) at 50% health
             quest::shout("Upper Cut!");
             $npc->CastSpell(12693, $npc->GetID());
             $spell_cast_50 = 1;
         } elsif ($health_percent <= 80 && $spell_cast_80 == 0) {
-            # Shout and cast Gut Punch (12802) at 80% health
             quest::shout("Body Blow!");
             $npc->CastSpell(12802, $npc->GetID());
             $spell_cast_80 = 1;

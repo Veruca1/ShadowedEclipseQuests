@@ -1,51 +1,37 @@
 my $spell_cast_25 = 0;
 
 sub EVENT_SPAWN {
-    # List of spell IDs to apply as buffs
     my @buffs = (167, 2177, 161, 649, 2178);
-
-    # Apply buffs to NPC 44133 itself
     foreach my $spell_id (@buffs) {
         $npc->SpellFinished($spell_id, $npc);
     }
 
-    # Set a timer to check health and engagement
     quest::settimer("check_health", 1);
-    quest::settimer("check_engagement", 600); # 600 seconds = 10 minutes
 }
 
 sub EVENT_COMBAT {
-    if ($combat_state == 1) { # Entering combat
-        quest::stoptimer("check_engagement");
-        quest::settimer("life_drain", 1);         # Start life drain every second
-        quest::settimer("drain_message", 20);    # Start the message timer every 20 seconds
+    if ($combat_state == 1) {
+        quest::stoptimer("depop_check");
+        quest::settimer("life_drain", 1);
+        quest::settimer("drain_message", 20);
 
-        # Send an initial message at the start of combat
         foreach my $entity ($entity_list->GetClientList()) {
             $entity->Message(14, "Boney reaches out for a hero and inadvertently does 500 damage to everyone in the process!");
         }
 
-        # Also notify bots
-        foreach my $bot ($entity_list->GetBotList()) {
-            #$bot->Message(14, "Boney reaches out for a hero and inadvertently does 500 damage to everyone in the process!");
-        }
-
-    } elsif ($combat_state == 0) { # Leaving combat
+    } elsif ($combat_state == 0) {
         quest::stoptimer("life_drain");
         quest::stoptimer("drain_message");
-        quest::settimer("check_engagement", 600); # Restart depop timer
+        quest::settimer("depop_check", 600);  # Depop after 10 minutes out of combat
     }
 }
 
 sub EVENT_TIMER {
-    if ($timer eq "check_engagement") {
-        # Check if NPC has been out of combat
-        if ($npc->GetHateList()->IsEmpty()) {
-            quest::depop();
-        }
+    if ($timer eq "depop_check") {
+        quest::depop();
     }
 
-    if ($timer eq "check_health") {
+    elsif ($timer eq "check_health") {
         my $health = $npc->GetHP();
         my $max_hp = $npc->GetMaxHP();
         my $health_percent = ($health / $max_hp) * 100;
@@ -59,7 +45,7 @@ sub EVENT_TIMER {
         }
     }
 
-    if ($timer eq "life_drain") {
+    elsif ($timer eq "life_drain") {
         my $npc_x = $npc->GetX();
         my $npc_y = $npc->GetY();
         my $npc_z = $npc->GetZ();
@@ -103,10 +89,6 @@ sub EVENT_TIMER {
     elsif ($timer eq "drain_message") {
         foreach my $entity ($entity_list->GetClientList()) {
             $entity->Message(14, "Boney reaches out for a hero and inadvertently does 500 damage to everyone in the process!");
-        }
-
-        foreach my $bot ($entity_list->GetBotList()) {
-            #$bot->Message(14, "Boney reaches out for a hero and inadvertently does 500 damage to everyone in the process!");
         }
     }
 }
