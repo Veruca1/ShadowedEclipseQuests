@@ -19,7 +19,7 @@ sub EVENT_SPAWN {
     if ($is_boss) {
         $npc->ModifyNPCStat("level", 63);
         $npc->ModifyNPCStat("ac", 30000);
-        $npc->ModifyNPCStat("max_hp", 37500000);
+        $npc->ModifyNPCStat("max_hp", 45500000);
         $npc->ModifyNPCStat("hp_regen", 1000);
         $npc->ModifyNPCStat("mana_regen", 10000);
         $npc->ModifyNPCStat("min_hit", 12000);
@@ -60,7 +60,31 @@ sub EVENT_SPAWN {
 
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1");
 
-        quest::setnexthpevent(75);
+# ✅ Boss loot
+my $veru = plugin::verugems();
+my @veru_ids = keys %$veru;
+$npc->AddItem($veru_ids[int(rand(@veru_ids))]);
+
+if (int(rand(100)) < 30) {
+    my $grey = plugin::botthegrey();
+    my @grey_ids = keys %$grey;
+    $npc->AddItem($grey_ids[int(rand(@grey_ids))]);
+}
+
+if (int(rand(100)) < 20) {
+    my $gear = plugin::ch6classgear();
+    my @all_gear_ids = map { @{$gear->{$_}} } keys %$gear;
+    $npc->AddItem($all_gear_ids[int(rand(@all_gear_ids))]);
+}
+
+# 🏹 Guaranteed drop of 2 huntercred items (33208)
+my $cred = plugin::huntercred();
+my @cred_ids = keys %$cred;
+$npc->AddItem($cred_ids[0]);
+$npc->AddItem($cred_ids[0]);
+
+quest::setnexthpevent(75);
+
     } else {
         $npc->ModifyNPCStat("level", 61);
         $npc->ModifyNPCStat("ac", 20000);
@@ -104,6 +128,23 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
         $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1");
+
+        # ✅ Non-boss loot
+my $veru = plugin::verugems();
+my @veru_ids = keys %$veru;
+$npc->AddItem($veru_ids[int(rand(@veru_ids))]);
+
+if (int(rand(100)) < 18) {
+    my $grey = plugin::botthegrey();
+    my @grey_ids = keys %$grey;
+    $npc->AddItem($grey_ids[int(rand(@grey_ids))]);
+}
+
+# 🏹 Guaranteed drop of 1 huntercred item (33208)
+my $cred = plugin::huntercred();
+my @cred_ids = keys %$cred;
+$npc->AddItem($cred_ids[0]);
+        
     }
 
     my $max_hp = $npc->GetMaxHP();
@@ -117,7 +158,7 @@ sub EVENT_HP {
     if ($hpevent == 75 || $hpevent == 25) {
         # Check if NPC has debuff spell 40745 active
         if ($npc->FindBuff(40745)) {
-            plugin::Debug("Boss has debuff 40745 mark of silence, skipping help call.");
+            ##plugin::debug("Boss has debuff 40745 mark of silence, skipping help call.");
             return;
         }
 
@@ -224,103 +265,164 @@ sub EVENT_DAMAGE_TAKEN {
     return $damage;
 }
 
+
+
 sub EVENT_DEATH_COMPLETE {
-    return unless $npc;    
-    
+    return unless $npc;
+
     my $npc_id = $npc->GetNPCTypeID() || 0;
-    # Use plugin to check exclusion list
+    #plugin::debug("EVENT_DEATH_COMPLETE: NPC ID $npc_id, killer_id: $killer_id");
+
     my $exclusion_list = plugin::GetExclusionList();
-    return if exists $exclusion_list->{$npc_id};
-
-    if (quest::ChooseRandom(1..100) <= 10) {
-        my ($x, $y, $z, $h) = ($npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
-        quest::spawn2(1984, 0, 0, $x, $y, $z, $h);
+    if (exists $exclusion_list->{$npc_id}) {
+        #plugin::debug("NPC ID $npc_id is excluded. Skipping flag logic.");
+        return;
     }
-}
 
-sub EVENT_KILLED_MERIT {
-    return unless $killer && $killer->IsClient();
+    # 10% spawn chance
+    if (quest::ChooseRandom(1..100) <= 13) {
+        #plugin::debug("Spawning 1984 at death location.");
+        quest::spawn2(1984, 0, 0, $killed_x, $killed_y, $killed_z, $killed_h);
+    }
 
-    my $client = $killer->CastToClient();
-    my $charid = $client->CharacterID();
-    my $npc_id = $npc->GetNPCTypeID();
+    my $ent = $entity_list->GetMobID($killer_id);
+    my $client;
 
-    my $kill_key = "GreyKill_${npc_id}";
-    return if quest::get_data($kill_key);
-    quest::set_data($kill_key, 1, 10);  # Expire after 10 seconds
-
-    my $trash_flag = "~Grey_Trash_${charid}~";
-    my $trash_count_key = "${trash_flag}_count";
-
-    # 35% chance for trash flag credit
-    if (!quest::get_data($trash_flag)) {
-        if (int(rand(100)) < 100) {
-            my $count = quest::get_data($trash_count_key) || 0;
-            $count++;
-            quest::set_data($trash_count_key, $count);
-            $client->Message(15, "Essence gathered... [$count/40]");
-            if ($count >= 40) {
-                quest::set_data($trash_flag, 1);
-                $client->Message(14, "You've gathered enough essence from the Grey's minions.");
+    if ($ent) {
+        if ($ent->IsClient()) {
+            $client = $ent->CastToClient();
+            #plugin::debug("Killer is client: " . $client->GetCleanName());
+        } elsif ($ent->IsPet()) {
+            my $owner = $ent->GetOwner();
+            if ($owner && $owner->IsClient()) {
+                $client = $owner->CastToClient();
+                #plugin::debug("Killer was pet, owner is client: " . $client->GetCleanName());
+            } elsif ($owner && $owner->IsBot()) {
+                my $bot_owner = $owner->CastToBot()->GetOwner();
+                if ($bot_owner && $bot_owner->IsClient()) {
+                    $client = $bot_owner->CastToClient();
+                    #plugin::debug("Killer was bot pet, owner is client: " . $client->GetCleanName());
+                }
+            }
+        } elsif ($ent->IsBot()) {
+            my $owner = $ent->CastToBot()->GetOwner();
+            if ($owner && $owner->IsClient()) {
+                $client = $owner->CastToClient();
+                #plugin::debug("Killer is bot, owner is client: " . $client->GetCleanName());
             }
         }
     }
 
-    # Named mob flag logic
+    unless ($client) {
+        #plugin::debug("Could not resolve killer to client. Exiting.");
+        return;
+    }
+
+    my $base_ip = $client->GetIP();
+    my @ip_clients;
+    if ($client->GetRaid()) {
+        my $raid = $client->GetRaid();
+        for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+            my $m = $raid->GetMember($i);
+            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() eq $base_ip;
+        }
+    } elsif ($client->GetGroup()) {
+        my $group = $client->GetGroup();
+        for (my $i = 0; $i < $group->GroupCount(); $i++) {
+            my $m = $group->GetMember($i);
+            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() eq $base_ip;
+        }
+    } else {
+        push @ip_clients, $client;
+    }
+
     my %named_ids = (
-        171068 => "171068_Grey_${charid}",
-        171056 => "171056_Grey_${charid}",
-        171065 => "171065_Grey_${charid}",
-        171057 => "171057_Grey_${charid}",
-        171073 => "171073_Grey_${charid}"
+        171068 => 1,
+        171056 => 1,
+        171065 => 1,
+        171057 => 1,
+        171073 => 1
     );
 
-    if (exists $named_ids{$npc_id}) {
-        my $flag = $named_ids{$npc_id};
-        if (!quest::get_data($flag) && int(rand(100)) < 100) {
-            quest::set_data($flag, 1);
-            $client->Message(15, "You absorb the essence of the vanquished named...");
+    my %has_final_flag;
+    foreach my $pc (@ip_clients) {
+        next unless $pc && $pc->IsClient();
+        $pc = $pc->CastToClient();
+        my $cid = $pc->CharacterID();
+        my $final_flag = "Grey_AllFlags_${cid}";
+        $has_final_flag{$cid} = quest::get_data($final_flag) ? 1 : 0;
+    }
+
+    # 35% trash flag roll once
+    if (plugin::RandomRange(1, 100) <= 35) {
+        foreach my $pc (@ip_clients) {
+            next unless $pc && $pc->IsClient();
+            $pc = $pc->CastToClient();
+            my $cid = $pc->CharacterID();
+            next if $has_final_flag{$cid};
+            my $trash_flag = "~Grey_Trash_${cid}~";
+            my $trash_count_key = "${trash_flag}_count";
+
+            unless (quest::get_data($trash_flag)) {
+                my $count = quest::get_data($trash_count_key) || 0;
+                $count++;
+                quest::set_data($trash_count_key, $count);
+                $pc->Message(15, "Essence gathered... [$count/40]");
+                #plugin::debug("Trash count now $count for " . $pc->GetCleanName());
+
+                if ($count >= 40) {
+                    quest::set_data($trash_flag, 1);
+                    $pc->Message(14, "You've gathered enough essence from the Grey's minions.");
+                    #plugin::debug("Trash flag complete for " . $pc->GetCleanName());
+                }
+            }
         }
     }
 
-    # Check for all flags
-    my $final_flag = "Grey_AllFlags_${charid}";
-    if (!quest::get_data($final_flag) && quest::get_data($trash_flag)) {
+    # 75% named flag roll once
+    if (exists $named_ids{$npc_id} && plugin::RandomRange(1, 100) <= 75) {
+        foreach my $pc (@ip_clients) {
+            next unless $pc && $pc->IsClient();
+            $pc = $pc->CastToClient();
+            my $cid = $pc->CharacterID();
+            next if $has_final_flag{$cid};
+            my $named_flag = "${npc_id}_Grey_${cid}";
+            unless (quest::get_data($named_flag)) {
+                quest::set_data($named_flag, 1);
+                $pc->Message(15, "You absorb the essence of the vanquished named...");
+                #plugin::debug("Named flag set: $named_flag for " . $pc->GetCleanName());
+            }
+        }
+    }
+
+    # Check final flag
+    foreach my $pc (@ip_clients) {
+        next unless $pc && $pc->IsClient();
+        $pc = $pc->CastToClient();
+        my $cid = $pc->CharacterID();
+        next if $has_final_flag{$cid};
+        my $pname = $pc->GetCleanName();
+
+        my $trash_flag = "~Grey_Trash_${cid}~";
+        my $final_flag = "Grey_AllFlags_${cid}";
+        next unless quest::get_data($trash_flag);
+
         my $complete = 1;
-        foreach my $flag (values %named_ids) {
-            unless (quest::get_data($flag)) {
+        foreach my $id (keys %named_ids) {
+            my $check = "${id}_Grey_${cid}";
+            unless (quest::get_data($check)) {
                 $complete = 0;
+                #plugin::debug("Missing flag $check for $pname");
                 last;
             }
         }
 
         if ($complete) {
             quest::set_data($final_flag, 1);
-
-            my @eligible;
-            if ($client->GetRaid()) {
-                my $raid = $client->GetRaid();
-                for (my $i = 0; $i < $raid->RaidCount(); $i++) {
-                    my $rc = $raid->GetMember($i);
-                    push @eligible, $rc if $rc && $rc->GetIP() eq $client->GetIP();
-                }
-            } elsif ($client->GetGroup()) {
-                my $group = $client->GetGroup();
-                for (my $i = 0; $i < $group->GroupCount(); $i++) {
-                    my $gc = $group->GetMember($i);
-                    push @eligible, $gc if $gc && $gc->GetIP() eq $client->GetIP();
-                }
-            } else {
-                push @eligible, $client;
-            }
-
-            foreach my $pc (@eligible) {
-                next unless $pc && $pc->IsClient();
-                $pc = $pc->CastToClient();
-                $pc->SetZoneFlag(162);
-                $pc->Message(14, "You have earned access to Ssraeshza Temple!");
-                quest::we(14, $pc->GetCleanName() . " has earned access to Ssraeshza Temple!");
-            }
+            $pc->SetZoneFlag(162);
+            $pc->Message(14, "You have earned access to Ssraeshza Temple!");
+            quest::we(14, "$pname has earned access to Ssraeshza Temple!");
+            #plugin::debug("Zoneflag granted to $pname");
         }
     }
-}
+} 

@@ -18,7 +18,7 @@ sub EVENT_SPAWN {
 
     if ($is_boss) {
         # ✅ Boss stat block
-        $npc->ModifyNPCStat("level", 65);
+        $npc->ModifyNPCStat("level", 63);
         $npc->ModifyNPCStat("ac", 30000);
         $npc->ModifyNPCStat("max_hp", 55500000);
         $npc->ModifyNPCStat("hp_regen", 1000);
@@ -73,7 +73,7 @@ sub EVENT_SPAWN {
 
     } else {
         # ✅ Non-boss stat block
-        $npc->ModifyNPCStat("level", 62);
+        $npc->ModifyNPCStat("level", 61);
         $npc->ModifyNPCStat("ac", 20000);
         $npc->ModifyNPCStat("max_hp", 15000000);
         $npc->ModifyNPCStat("hp_regen", 1000);

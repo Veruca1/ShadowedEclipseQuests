@@ -5,63 +5,35 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();
     return unless defined $char_id;
 
-    my $flag_key = "mons_earth_boss_charid";
     my $cd_key = "${char_id}_mons_earth_boss_cd";
     my $cooldown = 600;
 
     if ($text =~ /hail/i) {
-        if (!quest::get_data($flag_key)) {
-            plugin::Whisper("You are not attuned to summon the elemental guardian.");
-            return;
-        }
-
         my $last_time = quest::get_data($cd_key) || 0;
         my $elapsed = time - $last_time;
 
         if ($elapsed < $cooldown) {
             my $remaining = $cooldown - $elapsed;
             plugin::Whisper("The elemental slumbers. Time remaining: " . format_time($remaining));
-        } else {
-            quest::spawn2(169127, 0, 0, $npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
-            quest::set_data($cd_key, time);
-            plugin::Whisper("The ground cracks open as the elemental guardian rises!");
+            return;
         }
+
+        # Check if boss already exists
+        my $boss_id = 169127;
+        my $existing = $entity_list->GetMobByNpcTypeID($boss_id);
+        if ($existing) {
+            plugin::Whisper("The elemental is already awakened. Wait until it returns to the earth.");
+            return;
+        }
+
+        quest::spawn2($boss_id, 0, 0, $npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
+        quest::set_data($cd_key, time);
+        plugin::Whisper("The ground cracks open as the elemental guardian rises!");
     }
 }
 
 sub EVENT_ITEM {
-    return unless defined $client && $client->IsClient();
-    return unless defined $npc;
-
-    my $char_id = $client->CharacterID();
-    return unless defined $char_id;
-
-    my $flag_key = "mons_earth_boss_charid";
-    my $cd_key = "${char_id}_mons_earth_boss_cd";
-    my $cooldown = 600;
-
-    if (plugin::check_handin(\%itemcount, 12345 => 1)) {
-        quest::set_data($flag_key, 1);
-        plugin::Whisper("You feel a tremor deep beneath the earth... something ancient stirs.");
-    }
-
-    elsif (quest::get_data($flag_key)) {
-        my $last_time = quest::get_data($cd_key) || 0;
-        my $elapsed = time - $last_time;
-
-        if ($elapsed < $cooldown) {
-            my $remaining = $cooldown - $elapsed;
-            plugin::Whisper("The earth must rest before it stirs again. Time remaining: " . format_time($remaining));
-            plugin::return_items(\%itemcount);
-            return;
-        }
-
-        quest::spawn2(169127, 0, 0, $npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
-        quest::set_data($cd_key, time);
-        plugin::Whisper("The earth rumbles violently as the guardian emerges...");
-    }
-
-    plugin::return_items(\%itemcount);
+    plugin::return_items(\%itemcount); # No item hand-ins needed
 }
 
 sub format_time {

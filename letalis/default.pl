@@ -6,22 +6,20 @@ sub EVENT_SPAWN {
 
     my $raw_name = $npc->GetName() || '';
     my $npc_id   = $npc->GetNPCTypeID() || 0;
-
+    return if $npc->IsPet();
+    
     # Use plugin to check exclusion list
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
-    return if $npc->IsPet();
-
+    
     $is_boss = ($raw_name =~ /^#/ || ($npc_id == 1919 && $npc_id != 1974)) ? 1 : 0;
-
     $npc->SetNPCFactionID(623);
-
     $wrath_triggered = 0;
 
     if ($is_boss) {
         $npc->ModifyNPCStat("level", 63);
         $npc->ModifyNPCStat("ac", 30000);
-        $npc->ModifyNPCStat("max_hp", 37500000);
+        $npc->ModifyNPCStat("max_hp", 45500000);
         $npc->ModifyNPCStat("hp_regen", 1000);
         $npc->ModifyNPCStat("mana_regen", 10000);
         $npc->ModifyNPCStat("min_hit", 12000);
@@ -62,7 +60,25 @@ sub EVENT_SPAWN {
 
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1");
 
+        # ✅ Boss loot
+        my $veru = plugin::verugems();
+        my @veru_ids = keys %$veru;
+        $npc->AddItem($veru_ids[int(rand(@veru_ids))]);
+
+        if (int(rand(100)) < 30) {
+            my $letal = plugin::botletal();
+            my @letal_ids = keys %$letal;
+            $npc->AddItem($letal_ids[int(rand(@letal_ids))]);
+        }
+
+        if (int(rand(100)) < 20) {
+            my $gear = plugin::ch6classgear();
+            my @all_gear_ids = map { @{$gear->{$_}} } keys %$gear;
+            $npc->AddItem($all_gear_ids[int(rand(@all_gear_ids))]);
+        }
+
         quest::setnexthpevent(75);
+
     } else {
         $npc->ModifyNPCStat("level", 61);
         $npc->ModifyNPCStat("ac", 20000);
@@ -106,6 +122,17 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
         $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1");
+
+        # ✅ Non-boss loot
+        my $veru = plugin::verugems();
+        my @veru_ids = keys %$veru;
+        $npc->AddItem($veru_ids[int(rand(@veru_ids))]);
+
+        if (int(rand(100)) < 18) {
+            my $letal = plugin::botletal();
+            my @letal_ids = keys %$letal;
+            $npc->AddItem($letal_ids[int(rand(@letal_ids))]);
+        }
     }
 
     my $max_hp = $npc->GetMaxHP();
@@ -119,11 +146,11 @@ sub EVENT_HP {
     if ($hpevent == 75 || $hpevent == 25) {
         # Check if NPC has debuff spell 40745 active
         if ($npc->FindBuff(40745)) {
-            plugin::Debug("Boss has debuff 40745 mark of silence, skipping help call.");
+            #plugin::Debug("Boss has debuff 40745 mark of silence, skipping help call.");
             return;
         }
 
-        quest::shout("Surrounding minions of the desert, arise and assist me!");
+        quest::shout("Surrounding minions of the woods, arise and assist me!");
         my $top = $npc->GetHateTop();
         return unless $top;
 
@@ -179,6 +206,11 @@ sub EVENT_TIMER {
 
 sub EVENT_DAMAGE_TAKEN {
     return unless $npc;
+    
+    my $npc_id = $npc->GetNPCTypeID() || 0;
+    # Use plugin to check exclusion list
+    my $exclusion_list = plugin::GetExclusionList();
+    return if exists $exclusion_list->{$npc_id};
 
     if (!$wrath_triggered && $npc->GetHP() <= ($npc->GetMaxHP() * 0.10)) {
         $wrath_triggered = 1;
@@ -191,7 +223,7 @@ sub EVENT_DAMAGE_TAKEN {
             my $radius = 50;
             my $dmg = 40000;
 
-            # Get exclusion list from plugin
+            # Get exclusion list from plugin for pet checks
             my $excluded_npc_ids = plugin::GetExclusionList();
 
             foreach my $e ($entity_list->GetClientList()) {
@@ -224,14 +256,128 @@ sub EVENT_DAMAGE_TAKEN {
 sub EVENT_DEATH_COMPLETE {
     return unless $npc;
 
+    my %named_ids = (
+        169018 => 1,  # #A_Corrupted_Hivemistress
+        169016 => 1,  # #A_Greater_Horror
+        2175   => 1,  # #A_Guardian_Spire_Spirit
+        169093 => 1,  # #A_Imploded_Stonegrabber
+        169099 => 1,  # #A_Stonegrabber_of_Growth
+        169007 => 1,  # #An_Ancient_Rockhopper
+        2174   => 1,  # #An_Angry_ShikNar
+        169126 => 1,  # #Drema_Young
+        169035 => 1   # #The_Spire_Lord
+    );
+
     my $npc_id = $npc->GetNPCTypeID() || 0;
-    
-    # Use plugin to check exclusion list
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
-    if (quest::ChooseRandom(1..100) <= 10) {
-        my ($x, $y, $z, $h) = ($npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
-        quest::spawn2(1984, 0, 0, $x, $y, $z, $h);
+    my $ent = $entity_list->GetMobID($killer_id);
+    my $client;
+
+    if ($ent) {
+        if ($ent->IsClient()) {
+            $client = $ent->CastToClient();
+        } elsif ($ent->IsPet()) {
+            my $owner = $ent->GetOwner();
+            if ($owner && $owner->IsClient()) {
+                $client = $owner->CastToClient();
+            } elsif ($owner && $owner->IsBot()) {
+                my $bot_owner = $owner->CastToBot()->GetOwner();
+                if ($bot_owner && $bot_owner->IsClient()) {
+                    $client = $bot_owner->CastToClient();
+                }
+            }
+        } elsif ($ent->IsBot()) {
+            my $owner = $ent->CastToBot()->GetOwner();
+            if ($owner && $owner->IsClient()) {
+                $client = $owner->CastToClient();
+            }
+        }
+    }
+
+    return unless $client;
+
+    my $base_ip = $client->GetIP();
+    my @ip_clients;
+    if ($client->GetRaid()) {
+        my $raid = $client->GetRaid();
+        for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+            my $m = $raid->GetMember($i);
+            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() eq $base_ip;
+        }
+    } elsif ($client->GetGroup()) {
+        my $group = $client->GetGroup();
+        for (my $i = 0; $i < $group->GroupCount(); $i++) {
+            my $m = $group->GetMember($i);
+            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() eq $base_ip;
+        }
+    } else {
+        push @ip_clients, $client;
+    }
+
+    # 35% trash flag
+    if (plugin::RandomRange(1, 100) <= 35) {
+        foreach my $pc (@ip_clients) {
+            next unless $pc && $pc->IsClient();
+            $pc = $pc->CastToClient();
+            my $cid = $pc->CharacterID();
+            my $trash_flag = "~letalis_trash_flag_${cid}";
+            my $trash_count_key = "${trash_flag}_count";
+
+            unless (quest::get_data($trash_flag)) {
+                my $count = quest::get_data($trash_count_key) || 0;
+                $count++;
+                quest::set_data($trash_count_key, $count);
+                $pc->Message(15, "Essence gathered... [$count/40]");
+                if ($count >= 40) {
+                    quest::set_data($trash_flag, 1);
+                    $pc->Message(14, "You've gathered enough essence from Letalis's minions.");
+                }
+            }
+        }
+    }
+
+    # 100% named flag
+    if (exists $named_ids{$npc_id}) {
+        foreach my $pc (@ip_clients) {
+            next unless $pc && $pc->IsClient();
+            $pc = $pc->CastToClient();
+            my $cid = $pc->CharacterID();
+            my $named_flag = "~letalis_named_flag_${npc_id}_${cid}";
+            unless (quest::get_data($named_flag)) {
+                quest::set_data($named_flag, 1);
+                $pc->Message(15, "You absorb the essence of the vanquished named...");
+            }
+        }
+    }
+
+    # Final flag check
+    foreach my $pc (@ip_clients) {
+        next unless $pc && $pc->IsClient();
+        $pc = $pc->CastToClient();
+        my $cid = $pc->CharacterID();
+        my $pname = $pc->GetCleanName();
+
+        my $trash_flag = "~letalis_trash_flag_${cid}";
+        my $final_flag = "~letalis_final_flag_${cid}";
+        next if quest::get_data($final_flag);
+        next unless quest::get_data($trash_flag);
+
+        my $complete = 1;
+        foreach my $id (keys %named_ids) {
+            my $check = "~letalis_named_flag_${id}_${cid}";
+            unless (quest::get_data($check)) {
+                $complete = 0;
+                last;
+            }
+        }
+
+        if ($complete) {
+            quest::set_data($final_flag, 1);
+            $pc->SetZoneFlag(171);  # The Grey
+            $pc->Message(14, "You have earned access to The Grey!");
+            quest::we(14, "$pname has earned access to The Grey!");
+        }
     }
 }

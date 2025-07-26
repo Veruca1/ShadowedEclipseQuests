@@ -47,6 +47,32 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("see_hide", 1);
     $npc->ModifyNPCStat("see_improved_hide", 1);
     $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1");
+
+    # ✅ Plugin-based loot setup
+my $veru = plugin::verugems();
+my @veru_ids = keys %$veru;
+$npc->AddItem($veru_ids[int(rand(@veru_ids))]);
+
+my $grim = plugin::botgrim();
+my @grim_ids = keys %$grim;
+$npc->AddItem($grim_ids[int(rand(@grim_ids))]);
+
+if (int(rand(100)) < 30) {
+    my $gear = plugin::ch6classgear();
+    my @all_gear_ids = map { @{$gear->{$_}} } keys %$gear;
+    $npc->AddItem($all_gear_ids[int(rand(@all_gear_ids))]);
+}
+
+# 25% chance to add item ID 45476
+if (int(rand(100)) < 25) {
+    $npc->AddItem(45476);
+}
+
+# 25% chance to add item ID 45480
+if (int(rand(100)) < 25) {
+    $npc->AddItem(45479, 45480);
+}
+
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
     quest::setnexthpevent(75);

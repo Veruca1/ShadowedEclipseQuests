@@ -21,7 +21,7 @@ function event_proximity_say(e)
 
 		if timestamp < now then
 			-- Cooldown expired — proceed
-			eq.zone_emote(MT.Yellow, "A voice booms from the center of the cauldron. These gems are sacred, important to our survival, you shall not have them.");
+			eq.zone_emote(MT.Yellow, "A voice booms from the center of the cauldron. The gems were sacred, important to our survival, you shall now burn in the sun.");
 			eq.spawn2(175306, 525410, 0, -334.12, -3.41, -37.06, 20); -- NPC: Elite_Sun_Revenant
 			eq.set_data(key, tostring(now + 600)); -- Set 10-minute cooldown
 			eq.depop_with_timer();

@@ -1,35 +1,32 @@
 # Life Drain Totem Script for NPC ID 1255
 
-my $totem_blast_spell_id = 33638;  # Spell ID for Totem Blast
-my $totem_heal_spell_id = 33639;   # Spell ID for Totem Heal
-my $heal_amount = 100;             # Amount of healing for the boss
-my $boss_id = 223003;              # NPC ID for the boss
+my $totem_blast_spell_id = 33638;  # Totem Blast
+my $totem_heal_spell_id  = 33639;  # Totem Heal
+my $boss_id = 223003;              # NPC ID of boss to heal
+my $next_cast = "aoe";             # Start with AoE cast
 
 sub EVENT_SPAWN {
-    quest::settimer("cast", 30);  # Set timer to alternate casting every 30 seconds
+    quest::settimer("cast_cycle", 30);
 }
 
 sub EVENT_TIMER {
-    if ($timer eq "aoe_cast") {
-        # Cast Totem Blast on all players
+    return unless $timer eq "cast_cycle";
+
+    if ($next_cast eq "aoe") {
         my @players = $entity_list->GetClientList();
         foreach my $player (@players) {
-            quest::castspell(33638, $player->GetID());  # Totem Blast spell
+            quest::castspell($totem_blast_spell_id, $player->GetID());
         }
-        # Schedule the next spell to be cast
-        quest::settimer("aoe_cast", 20);
-    }
-
-    if ($timer eq "heal_cast") {
-        # Heal the boss with Totem Heal
-        quest::castspell(33639, $npc->GetID());  # Totem Heal spell
-        # Schedule the next spell to be cast
-        quest::settimer("heal_cast", 30);
+        $next_cast = "heal";
+    } else {
+        my $boss = $entity_list->GetNPCByNPCTypeID($boss_id);
+        if ($boss) {
+            quest::castspell($totem_heal_spell_id, $boss->GetID());
+        }
+        $next_cast = "aoe";
     }
 }
 
 sub EVENT_DEATH_COMPLETE {
-    # Cleanup on death
-    quest::stoptimer("aoe_cast");
-    quest::stoptimer("heal_cast");
+    quest::stoptimer("cast_cycle");
 }
