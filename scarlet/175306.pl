@@ -46,7 +46,7 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("see_invis_undead", 1);
     $npc->ModifyNPCStat("see_hide", 1);
     $npc->ModifyNPCStat("see_improved_hide", 1);
-    $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1");
+    $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1");
 
     # ✅ Plugin-based loot setup
 my $veru = plugin::verugems();
@@ -57,20 +57,22 @@ my $grim = plugin::botgrim();
 my @grim_ids = keys %$grim;
 $npc->AddItem($grim_ids[int(rand(@grim_ids))]);
 
-if (int(rand(100)) < 30) {
+if (int(rand(100)) < 25) {
     my $gear = plugin::ch6classgear();
     my @all_gear_ids = map { @{$gear->{$_}} } keys %$gear;
     $npc->AddItem($all_gear_ids[int(rand(@all_gear_ids))]);
 }
 
 # 25% chance to add item ID 45476
-if (int(rand(100)) < 25) {
+if (int(rand(100)) < 20) {
     $npc->AddItem(45476);
 }
 
 # 25% chance to add item ID 45480
-if (int(rand(100)) < 25) {
-    $npc->AddItem(45479, 45480);
+if (int(rand(100)) < 20) {
+    my @items = (45480, 45479);
+    my $item = $items[int(rand(@items))];
+    $npc->AddItem($item);
 }
 
     my $max_hp = $npc->GetMaxHP();
@@ -104,10 +106,8 @@ sub EVENT_COMBAT {
             quest::settimer("cleanse_debuff_$i", int(rand(99)) + 1);
         }
         quest::settimer("life_drain", 5);
-        quest::settimer("call_for_help", 20);  # Call for help every 20s check
     } else {
         quest::stoptimer("life_drain");
-        quest::stoptimer("call_for_help");
         for my $i (1..2) {
             quest::stoptimer("cleanse_debuff_$i");
         }
@@ -120,12 +120,6 @@ sub EVENT_TIMER {
         my ($x, $y, $z) = ($npc->GetX(), $npc->GetY(), $npc->GetZ());
         foreach my $e ($entity_list->GetClientList(), $entity_list->GetBotList()) {
             $e->Damage($npc, 6000, 0, 1, false) if $e && $e->CalculateDistance($x, $y, $z) <= 50;
-        }
-    }
-    if ($timer eq "call_for_help") {
-        if ($npc->IsEngaged() && quest::ChooseRandom(1..100) <= 20) {
-            quest::shout("Come, children of the sun — they must not prevail!");
-            spawn_adds();
         }
     }
     if ($timer =~ /^cleanse_debuff_/) {

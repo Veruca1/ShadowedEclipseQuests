@@ -1,3 +1,5 @@
+require "plugins/ExclusionList.pl";
+
 sub EVENT_SAY {
     my $maiden_link = quest::saylink("maiden", 1);
     my $akheva_link = quest::saylink("akheva", 1);
@@ -24,13 +26,13 @@ sub EVENT_SAY {
         );
 
         quest::whisper("Speak if you wish to tread these paths — say $maiden_link for the Eye’s surface, or $akheva_link for its depths.");
-          # Depop all other NPCs in version 0, except self (1357)
+
         my $version = $zone->GetInstanceVersion();
         if ($version == 0) {
-            my @npcs = $entity_list->GetNPCList();
-            foreach my $mob (@npcs) {
+            my $excluded = plugin::GetExclusionList();
+            foreach my $mob ($entity_list->GetNPCList()) {
                 next unless $mob;
-                next if $mob->GetNPCTypeID() == 1357;
+                next if $excluded->{$mob->GetNPCTypeID()};
                 $mob->Depop();
             }
         }
@@ -54,19 +56,19 @@ sub EVENT_SAY {
     }
 
     if ($text =~ /akheva/i) {
-    my $group = $client->GetGroup();
-    my $zone_id = "akheva";
-    my $version = 0;
-    my $x = 56.79;
-    my $y = -1362.09;
-    my $z = 23.06;
-    my $h = 510;
+        my $group = $client->GetGroup();
+        my $zone_id = "akheva";
+        my $version = 0;
+        my $x = 56.79;
+        my $y = -1362.09;
+        my $z = 23.06;
+        my $h = 510;
 
-    plugin::Whisper("Go then, to the stones that still speak. May Sel’Rheza veil your intentions.");
-    if ($group) {
-        $client->SendToInstance("group", $zone_id, $version, $x, $y, $z, $h, "akheva", 14400);
-    } else {
-        $client->SendToInstance("solo", $zone_id, $version, $x, $y, $z, $h, "akheva", 14400);
+        plugin::Whisper("Go then, to the stones that still speak. May Sel’Rheza veil your intentions.");
+        if ($group) {
+            $client->SendToInstance("group", $zone_id, $version, $x, $y, $z, $h, "akheva", 14400);
+        } else {
+            $client->SendToInstance("solo", $zone_id, $version, $x, $y, $z, $h, "akheva", 14400);
+        }
     }
-}
 }

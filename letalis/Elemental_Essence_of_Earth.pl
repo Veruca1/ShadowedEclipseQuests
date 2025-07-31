@@ -12,12 +12,12 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("max_hp", 105500000);
     $npc->ModifyNPCStat("hp_regen", 1000);
     $npc->ModifyNPCStat("mana_regen", 10000);
-    $npc->ModifyNPCStat("min_hit", 20000);
-    $npc->ModifyNPCStat("max_hit", 30000);
-    $npc->ModifyNPCStat("atk", 1400);
+    $npc->ModifyNPCStat("min_hit", 30000);
+    $npc->ModifyNPCStat("max_hit", 60000);
+    $npc->ModifyNPCStat("atk", 2500);
     $npc->ModifyNPCStat("accuracy", 2000);
-    $npc->ModifyNPCStat("avoidance", 110);
-    $npc->ModifyNPCStat("attack_delay", 4);
+    $npc->ModifyNPCStat("avoidance", 50);
+    $npc->ModifyNPCStat("attack_delay", 6);
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 90);
     $npc->ModifyNPCStat("attack_count", 100);
@@ -47,33 +47,33 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("see_invis_undead", 1);
     $npc->ModifyNPCStat("see_hide", 1);
     $npc->ModifyNPCStat("see_improved_hide", 1);
-    $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1^33,1");
+    $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1^31,1^33,1");
 
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
 
     # ✅ Guaranteed loot
-    my $veru = plugin::verugems();
-    my @veru_ids = keys %$veru;
-    $npc->AddItem($veru_ids[int(rand(@veru_ids))]);
+my $veru = plugin::verugems();
+my @veru_ids = keys %$veru;
+$npc->AddItem($veru_ids[int(rand(@veru_ids))], 1, 0);  # Not equipped
 
-    my $letal = plugin::botletal();
-    my @letal_ids = keys %$letal;
-    $npc->AddItem($letal_ids[int(rand(@letal_ids))]);
+my $letal = plugin::botletal();
+my @letal_ids = keys %$letal;
+$npc->AddItem($letal_ids[int(rand(@letal_ids))], 1, 0);  # Not equipped
 
-    my $gear = plugin::ch6classgear();
-    my @gear_ids = map { @{$gear->{$_}} } keys %$gear;
-    $npc->AddItem($gear_ids[int(rand(@gear_ids))]);
+my $gear = plugin::ch6classgear();
+my @gear_ids = map { @{$gear->{$_}} } keys %$gear;
+$npc->AddItem($gear_ids[int(rand(@gear_ids))], 1, 0);  # Not equipped
 
-    # 🎲 30% chance at one of 45479, 45480, 45481
-    if (int(rand(100)) < 30) {
-        my @bonus_ids = (45479, 45480, 45481);
-        $npc->AddItem($bonus_ids[int(rand(@bonus_ids))]);
-    }
+# 🎲 30% chance at one of 45479, 45480, 45481
+if (int(rand(100)) < 30) {
+    my @bonus_ids = (45479, 45480, 45481);
+    $npc->AddItem($bonus_ids[int(rand(@bonus_ids))], 1, 0);  # Not equipped
+}
 
-    # 25% chance to add item ID 45480
+# 25% chance to add item ID 45477
 if (int(rand(100)) < 25) {
-    $npc->AddItem(45477);
+    $npc->AddItem(45477, 1, 0);  # Not equipped
 }
 
     # Depop in 30 minutes
@@ -92,10 +92,13 @@ sub EVENT_TIMER {
     if ($timer eq "depop") {
         quest::depop();
     } elsif ($timer eq "avapower") {
-        $npc->CastSpell(808, $npc->GetTarget()->GetID());
+        my $tgt = $npc->GetTarget();
+        $npc->CastSpell(40777, $tgt->GetID()) if $tgt;
     } elsif ($timer eq "bury") {
-        $npc->CastSpell(40763, $npc->GetTarget()->GetID());
+        my $tgt = $npc->GetTarget();
+        $npc->CastSpell(40763, $tgt->GetID()) if $tgt;
     } elsif ($timer eq "wave") {
-        $npc->CastSpell(40764, $npc->GetTarget()->GetID());
+        my $tgt = $npc->GetTarget();
+        $npc->CastSpell(40764, $tgt->GetID()) if $tgt;
     }
 }

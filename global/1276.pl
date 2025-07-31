@@ -8,33 +8,36 @@ sub EVENT_SPAWN {
     quest::settimer("check_inferno_shield", 30);
     quest::settimer("check_player_hp", 3);
 
-    if ($ownerid) {
-        my $owner = $entity_list->GetMobByID($ownerid);
-        if ($owner && $owner->IsClient()) {
-            my $level = $owner->GetLevel();
-            my $client = $owner->CastToClient();
-            my $flag_rank = plugin::get_flag_rank($client);
-            $npc->SetLevel($level);
-            $npc->AddNimbusEffect(462);
-            plugin::scale_pet_stats($npc, $level, $flag_rank);
-        }
+if ($ownerid) {
+    my $owner = $entity_list->GetMobByID($ownerid);
+    if ($owner && $owner->IsClient()) {
+        my $level = $owner->GetLevel();
+        my $client = $owner->CastToClient();
+        my $flag_rank = plugin::get_flag_rank($client);
+        $npc->SetLevel($level);
+        $npc->AddNimbusEffect(462);
+        #quest::debug("[SPAWN] Calling scale_pet_stats for NPCID " . $npc->GetNPCTypeID() . " | Level $level | FlagRank $flag_rank");
+        plugin::scale_pet_stats($npc, $level, $flag_rank);
+        #quest::debug("[SPAWN] scale_pet_stats finished for NPCID " . $npc->GetNPCTypeID());
+        #quest::debug("[SPAWN] Current DMG Range => Min: " . $npc->GetMinDMG() . " | Max: " . $npc->GetMaxDMG());
     }
+}
 }
 
 
 # sub get_flag_rank {
-#     #quest::debug("[FlagRank] Checking zone flags for rank...");
+#     ##quest::debug("[FlagRank] Checking zone flags for rank...");
 #     my ($client) = @_;
 #     return 0 unless $client && $client->IsClient();
 
 #     my @zones = (63, 186, 97, 89, 103, 108, 110, 118, 119, 127, 124); # 11 total
-#     #quest::debug("[FlagRank] Checking zone flags for: " . ($client ? $client->GetCleanName() : 'NO CLIENT'));
+#     ##quest::debug("[FlagRank] Checking zone flags for: " . ($client ? $client->GetCleanName() : 'NO CLIENT'));
 #     foreach my $i (0..$#zones) {
 #         my $zone_id = $zones[$i];
 #         my $has_flag = $client->CastToClient()->HasZoneFlag($zone_id);
-#         #quest::debug("[FlagRank] Zone $zone_id => Flag: " . ($has_flag ? 1 : 0));
+#         ##quest::debug("[FlagRank] Zone $zone_id => Flag: " . ($has_flag ? 1 : 0));
 #         if ($has_flag) {
-#             #quest::debug("[FlagRank] Matched flag for zone ID $zone_id at rank " . ($i + 1));
+#             ##quest::debug("[FlagRank] Matched flag for zone ID $zone_id at rank " . ($i + 1));
 #             return ($i + 1);
 #         }
 #     }

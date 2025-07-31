@@ -47,7 +47,7 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("see_invis_undead", 1);
     $npc->ModifyNPCStat("see_hide", 1);
     $npc->ModifyNPCStat("see_improved_hide", 1);
-    $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1^31,1");
+    $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1^31,1");
 
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
@@ -61,19 +61,19 @@ my $grim = plugin::botgrim();
 my @grim_ids = keys %$grim;
 $npc->AddItem($grim_ids[int(rand(@grim_ids))]);
 
-if (int(rand(100)) < 30) {
+if (int(rand(100)) < 20) {
     my $gear = plugin::ch6classgear();
     my @all_gear_ids = map { @{$gear->{$_}} } keys %$gear;
     $npc->AddItem($all_gear_ids[int(rand(@all_gear_ids))]);
 }
 
 # 25% chance to add item ID 45480
-if (int(rand(100)) < 25) {
+if (int(rand(100)) < 15) {
     $npc->AddItem(45480);
 }
 
 # 25% chance to add item ID 43836
-if (int(rand(100)) < 25) {
+if (int(rand(100)) < 15) {
     $npc->AddItem(43836);
 }
 

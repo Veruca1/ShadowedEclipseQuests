@@ -10,11 +10,17 @@ my @npc_ids = (
     127092, 127065, 127025, 127032, 127008, 127071, 127056, 127044, 127004, 127103, 127036
 );
 
-# Original spawn location for NPC ID 1834
+# Original spawn location for NPC ID 1834 and regular NPCs
 my $x = 612.57;
 my $y = 138.02;
 my $z = -88.59;
 my $heading = 260;
+
+# Updated safe spawn location for mini-bosses and final NPC
+my $mini_x = 654.79;
+my $mini_y = 291.83;
+my $mini_z = -55.37;
+my $mini_heading = 277.00;
 
 my $npc_count = 0;  # Counter for spawned regular NPCs
 my $mini_boss_count = 0;  # Counter for spawned mini-bosses
@@ -86,8 +92,8 @@ sub EVENT_TIMER {
             # Pick a random mini-boss NPC ID
             my $mini_boss_id = $mini_boss_ids[int(rand(scalar(@mini_boss_ids)))] ;
 
-            # Spawn the mini-boss at the fixed location (same as regular NPC spawn location)
-            quest::spawn2($mini_boss_id, 0, 0, $x, $y, $z, $heading);
+            # Spawn the mini-boss at the updated safe location
+            quest::spawn2($mini_boss_id, 0, 0, $mini_x, $mini_y, $mini_z, $mini_heading);
 
             # Increase mini-boss count
             $mini_boss_count++;
@@ -101,8 +107,8 @@ sub EVENT_TIMER {
             # Stop the timer once 4 mini-bosses are spawned
             quest::stoptimer("mini_boss_spawn_timer");
 
-            # Spawn the final NPC 127001 after mini-bosses have been spawned
-            quest::spawn2(127001, 0, 0, $x, $y, $z, $heading);
+            # Spawn the final NPC 127001 at the updated safe location
+            quest::spawn2(127001, 0, 0, $mini_x, $mini_y, $mini_z, $mini_heading);
         }
     }
 }

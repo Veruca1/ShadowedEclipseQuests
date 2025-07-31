@@ -13,8 +13,17 @@ sub EVENT_SAY {
         return;
     }
 
+    if ($text =~ /^#checkflag$/i) {
+        plugin::handle_trash_count_command($client);
+        return;
+    }
+
     if ($text =~ /^#itemgive$/i) {
     plugin::itemgive();
+    }
+
+    if ($text =~ /^#content\s+/i) {
+        plugin::update_spawn_content_flags($client, $text);
     }
 
     # Handle #model command
@@ -67,7 +76,7 @@ sub EVENT_ENTERZONE {
     quest::settimer("delayed_pet_scale", 3);  # 3 seconds should be safe
 
     if ($zoneid == 36) {
-        quest::message(15, "Upon entering this dungeon, you get a sense that, although it is already an undesirable place, it has somehow been disturbed even more and unsettled its undead inhabitants.");
+        quest::whisper("Upon entering this dungeon, you get a sense that, although it is already an undesirable place, it has somehow been disturbed even more and unsettled its undead inhabitants.");
     }
 
      if ($client->GetItemIDAt(3) == 649) {  # Check if mask is still equipped
@@ -81,7 +90,7 @@ sub EVENT_LEVEL_UP {
     plugin::AutoTrain($client, $ulevel);
 
     if ($ulevel == 30) {
-        quest::message(14, "Hello $name, I am Elondra Aradune. If you wish to seek extra help along your journey's please come see me in Greater Faydark, outside Felwithe.");
+        quest::whisper("Hello $name, I am Elondra Aradune. If you wish to seek extra help along your journey's please come see me in Greater Faydark, outside Felwithe.");
     }
 }
 

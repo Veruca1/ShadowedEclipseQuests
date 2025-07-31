@@ -4,7 +4,7 @@ eq.set_timer('depop', 3600 * 1000);
 end
 
 function event_enter(e)
-e.self:CastSpell(2076,e.other:GetID(),0,1); -- Spell: Presence of Ssraeshza
+e.self:CastSpell(40774,e.other:GetID(),0,1); -- Spell: Presence of Ssraeshza II
 end
 
 function event_timer(e)

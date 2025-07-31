@@ -17,17 +17,17 @@ sub EVENT_SPAWN {
     $wrath_triggered = 0;
 
     if ($is_boss) {
-        $npc->ModifyNPCStat("level", 63);
+        $npc->ModifyNPCStat("level", 65);
         $npc->ModifyNPCStat("ac", 30000);
-        $npc->ModifyNPCStat("max_hp", 45500000);
+        $npc->ModifyNPCStat("max_hp", 25500000);
         $npc->ModifyNPCStat("hp_regen", 1000);
         $npc->ModifyNPCStat("mana_regen", 10000);
-        $npc->ModifyNPCStat("min_hit", 12000);
-        $npc->ModifyNPCStat("max_hit", 20000);
-        $npc->ModifyNPCStat("atk", 1400);
+        $npc->ModifyNPCStat("min_hit", 50000);
+        $npc->ModifyNPCStat("max_hit", 70000);
+        $npc->ModifyNPCStat("atk", 2500);
         $npc->ModifyNPCStat("accuracy", 2000);
-        $npc->ModifyNPCStat("avoidance", 110);
-        $npc->ModifyNPCStat("attack_delay", 4);
+        $npc->ModifyNPCStat("avoidance", 50);
+        $npc->ModifyNPCStat("attack_delay", 9);
         $npc->ModifyNPCStat("attack_speed", 100);
         $npc->ModifyNPCStat("slow_mitigation", 90);
         $npc->ModifyNPCStat("attack_count", 100);
@@ -60,43 +60,20 @@ sub EVENT_SPAWN {
 
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1");
 
-# ✅ Boss loot
-my $veru = plugin::verugems();
-my @veru_ids = keys %$veru;
-$npc->AddItem($veru_ids[int(rand(@veru_ids))]);
-
-if (int(rand(100)) < 30) {
-    my $grey = plugin::botthegrey();
-    my @grey_ids = keys %$grey;
-    $npc->AddItem($grey_ids[int(rand(@grey_ids))]);
-}
-
-if (int(rand(100)) < 20) {
-    my $gear = plugin::ch6classgear();
-    my @all_gear_ids = map { @{$gear->{$_}} } keys %$gear;
-    $npc->AddItem($all_gear_ids[int(rand(@all_gear_ids))]);
-}
-
-# 🏹 Guaranteed drop of 2 huntercred items (33208)
-my $cred = plugin::huntercred();
-my @cred_ids = keys %$cred;
-$npc->AddItem($cred_ids[0]);
-$npc->AddItem($cred_ids[0]);
-
 quest::setnexthpevent(75);
 
     } else {
-        $npc->ModifyNPCStat("level", 61);
+        $npc->ModifyNPCStat("level", 62);
         $npc->ModifyNPCStat("ac", 20000);
-        $npc->ModifyNPCStat("max_hp", 8500000);
+        $npc->ModifyNPCStat("max_hp", 5000000);
         $npc->ModifyNPCStat("hp_regen", 800);
         $npc->ModifyNPCStat("mana_regen", 10000);
-        $npc->ModifyNPCStat("min_hit", 8000);
-        $npc->ModifyNPCStat("max_hit", 12000);
-        $npc->ModifyNPCStat("atk", 1200);
+        $npc->ModifyNPCStat("min_hit", 24000);
+        $npc->ModifyNPCStat("max_hit", 40000);
+        $npc->ModifyNPCStat("atk", 2500);
         $npc->ModifyNPCStat("accuracy", 1800);
-        $npc->ModifyNPCStat("avoidance", 100);
-        $npc->ModifyNPCStat("attack_delay", 4);
+        $npc->ModifyNPCStat("avoidance", 50);
+        $npc->ModifyNPCStat("attack_delay", 10);
         $npc->ModifyNPCStat("attack_speed", 100);
         $npc->ModifyNPCStat("slow_mitigation", 80);
         $npc->ModifyNPCStat("attack_count", 100);
@@ -128,26 +105,9 @@ quest::setnexthpevent(75);
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
         $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1");
-
-        # ✅ Non-boss loot
-my $veru = plugin::verugems();
-my @veru_ids = keys %$veru;
-$npc->AddItem($veru_ids[int(rand(@veru_ids))]);
-
-if (int(rand(100)) < 5) {
-    my $grey = plugin::botthegrey();
-    my @grey_ids = keys %$grey;
-    $npc->AddItem($grey_ids[int(rand(@grey_ids))]);
+    
 }
-
-# 🏹 Guaranteed drop of 1 huntercred item (33208)
-my $cred = plugin::huntercred();
-my @cred_ids = keys %$cred;
-$npc->AddItem($cred_ids[0]);
-        
-    }
-
-    my $max_hp = $npc->GetMaxHP();
+my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
 }
 

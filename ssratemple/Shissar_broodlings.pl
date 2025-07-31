@@ -11,15 +11,15 @@ sub EVENT_SPAWN {
     $npc->SetNPCFactionID(623);
     $npc->ModifyNPCStat("level", 62);
     $npc->ModifyNPCStat("ac", 20000);
-    $npc->ModifyNPCStat("max_hp", 15000000); 
+    $npc->ModifyNPCStat("max_hp", 1000000); 
     $npc->ModifyNPCStat("hp_regen", 800);
     $npc->ModifyNPCStat("mana_regen", 10000);
-    $npc->ModifyNPCStat("min_hit", 30000);
-    $npc->ModifyNPCStat("max_hit", 50000);
-    $npc->ModifyNPCStat("atk", 2500);
+    $npc->ModifyNPCStat("min_hit", 12000);
+    $npc->ModifyNPCStat("max_hit", 20000);
+    $npc->ModifyNPCStat("atk", 1200);
     $npc->ModifyNPCStat("accuracy", 1800);
     $npc->ModifyNPCStat("avoidance", 100);
-    $npc->ModifyNPCStat("attack_delay", 11);
+    $npc->ModifyNPCStat("attack_delay", 4);
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
@@ -56,6 +56,12 @@ sub EVENT_SPAWN {
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
 }
 
-sub EVENT_DEATH_COMPLETE {
-	quest::signal(162276);#cursed_seven
+sub EVENT_COMBAT {
+    return unless $npc;
+
+    if ($combat_state == 1) {
+        my $target = $npc->GetTarget();
+        $npc->CastSpell(40775, $target->GetID()) if $target;
+        quest::depop_with_timer();
+    }
 }

@@ -1,10 +1,10 @@
 sub EVENT_SAY {
     if ($text=~/hail/i) {
-        plugin::Whisper("Hello, adventurer! I can offer you buffs to help you on your adventure. Just say [" . quest::saylink("blessing", 1) . "] when you are ready.");
+        quest::whisper("Hello, adventurer! I can offer you buffs to help you on your adventure. Just say [" . quest::saylink("blessing", 1) . "] when you are ready.");
     }
     
     if ($text=~/blessing/i) {
-        plugin::Whisper("Go forth and rid us of the scourge that is the Shadowed Eclipse!");
+        quest::whisper("Go forth and rid us of the scourge that is the Shadowed Eclipse!");
 
         # Define the spell IDs to cast
         my @spells = (3842, 13, 161, 160, 152, 153, 171, 174, 278, 4053, 5862, 138, 61, 60, 457, 63, 64);
@@ -49,7 +49,7 @@ sub EVENT_SAY {
                     }
                 }
             } else {
-                plugin::Whisper("Error retrieving group information.");
+                quest::whisper("Error retrieving group information.");
             }
         }
 

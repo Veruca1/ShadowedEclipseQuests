@@ -58,7 +58,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_hide", 1);
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
-        $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^17,1^21,1");
+        $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1");
 
         # ✅ Boss loot
         my $veru = plugin::verugems();
@@ -126,7 +126,7 @@ sub EVENT_SPAWN {
         my @veru_ids = keys %$veru;
         $npc->AddItem($veru_ids[int(rand(@veru_ids))]);
 
-        if (int(rand(100)) < 17) {
+        if (int(rand(100)) < 5) {
             my $scar = plugin::botscar();
             my @scar_ids = keys %$scar;
             $npc->AddItem($scar_ids[int(rand(@scar_ids))]);
@@ -251,8 +251,6 @@ sub EVENT_DAMAGE_TAKEN {
     return $damage;
 }
 
-
-
 sub EVENT_DEATH_COMPLETE {
     return unless $npc;
 
@@ -270,6 +268,12 @@ sub EVENT_DEATH_COMPLETE {
     my $npc_id = $npc->GetNPCTypeID() || 0;
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
+
+    # 10% spawn chance
+    if (quest::ChooseRandom(1..100) <= 13) {
+        #plugin::debug("Spawning 1984 at death location.");
+        quest::spawn2(1984, 0, 0, $killed_x, $killed_y, $killed_z, $killed_h);
+    }
 
     my $ent = $entity_list->GetMobID($killer_id);
     my $client;

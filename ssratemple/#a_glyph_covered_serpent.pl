@@ -1,6 +1,9 @@
 sub EVENT_SPAWN {
     return unless $npc;
 
+    quest::zone_emote(15, "A roar fills the lower temple halls! The smell of burning ozone and decay fills the air!");
+    quest::settimer("depop", 30 * 60); # timer in seconds
+
     my $raw_name = $npc->GetName() || '';
     my $npc_id   = $npc->GetNPCTypeID() || 0;
     return if $npc->IsPet();
@@ -11,15 +14,15 @@ sub EVENT_SPAWN {
     $npc->SetNPCFactionID(623);
     $npc->ModifyNPCStat("level", 62);
     $npc->ModifyNPCStat("ac", 20000);
-    $npc->ModifyNPCStat("max_hp", 15000000); 
+    $npc->ModifyNPCStat("max_hp", 45000000); 
     $npc->ModifyNPCStat("hp_regen", 800);
     $npc->ModifyNPCStat("mana_regen", 10000);
-    $npc->ModifyNPCStat("min_hit", 30000);
-    $npc->ModifyNPCStat("max_hit", 50000);
-    $npc->ModifyNPCStat("atk", 2500);
+    $npc->ModifyNPCStat("min_hit", 12000);
+    $npc->ModifyNPCStat("max_hit", 20000);
+    $npc->ModifyNPCStat("atk", 1200);
     $npc->ModifyNPCStat("accuracy", 1800);
     $npc->ModifyNPCStat("avoidance", 100);
-    $npc->ModifyNPCStat("attack_delay", 11);
+    $npc->ModifyNPCStat("attack_delay", 4);
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
@@ -56,6 +59,24 @@ sub EVENT_SPAWN {
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
 }
 
+sub EVENT_COMBAT {
+    if ($combat_state == 1) {
+        if (!quest::istimerpaused("depop")) {
+            quest::pause_timer("depop");
+        }
+    } else {
+        quest::resume_timer("depop");
+        $npc->SaveGuardSpot($npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
+    }
+}
+
+sub EVENT_TIMER {
+    if ($timer eq "depop") {
+        quest::depop();
+    }
+}
+
 sub EVENT_DEATH_COMPLETE {
-	quest::signal(162276);#cursed_seven
+    quest::signal(162255, 1); # #cursed_controller
+    quest::setglobal("glyphed_dead", "1", 3, "D3");
 }

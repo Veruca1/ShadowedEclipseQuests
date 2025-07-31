@@ -6,6 +6,7 @@ sub EVENT_SPAWN {
 
     # Exclusion list: skip certain NPC IDs and pets
     my %exclusion_list = (
+        42109 => 1,
         857 => 1,
         681 => 1,
         679 => 1,
