@@ -13,22 +13,22 @@ sub EVENT_SPAWN {
 
 sub EVENT_SAY {
     if ($text =~ /Hail/i) {
-        $client->Message(14, "Hello again adventurer. Thank you again for saving me in Karnors. I have since learned about the time manipulation this Chronomancer Zarrin has been up to. We have discovered, with the help of Al`Kabor here, that the Chronomancer has been hiding in an alternate version of Sebilis. Please investigate and report back with findings of anything unusual.");
+        quest::whisper("Hello again adventurer. Thank you again for saving me in Karnors. I have since learned about the time manipulation this Chronomancer Zarrin has been up to. We have discovered, with the help of Al`Kabor here, that the Chronomancer has been hiding in an alternate version of Sebilis. Please investigate and report back with findings of anything unusual.");
 
-        quest::say("Please select your destination by clicking the option below: " . quest::saylink("Sebilis", 1) . ".");
-        quest::say("If you need assistance for your journey, click here for a " . quest::saylink("Blessing", 1) . ".");
+        quest::whisper("Please select your destination by clicking the option below: " . quest::saylink("Sebilis", 1) . ".");
+        quest::whisper("If you need assistance for your journey, click here for a " . quest::saylink("Blessing", 1) . ".");
     }
     elsif ($text =~ /Sebilis/i) {
         if ($client->HasZoneFlag(102)) {
-            quest::say("Very well! I will transport you to Sebilis.");
+            quest::whisper("Very well! I will transport you to Sebilis.");
             quest::movepc(89, 0.00, 250.00, 44.75, 258.50);
         } else {
-            quest::say("I'm afraid you are not yet attuned to access that version of Sebilis. Seek out the trials that will prove your readiness.");
+            quest::whisper("I'm afraid you are not yet attuned to access that version of Sebilis. Seek out the trials that will prove your readiness.");
         }
     }
     
     elsif ($text =~ /Blessing/i) {
-        plugin::Whisper("Go forth and rid us of the scourge that is the Shadowed Eclipse!");
+        quest::whisper("Go forth and rid us of the scourge that is the Shadowed Eclipse!");
 
         # Define the spell IDs to cast
         my @spells = (2895, 2570, 1447, 1669, 1598, 2517);
@@ -73,7 +73,7 @@ sub EVENT_SAY {
                     }
                 }
             } else {
-                plugin::Whisper("Error retrieving group information.");
+                quest::whisper("Error retrieving group information.");
             }
         }
 
@@ -136,16 +136,16 @@ sub EVENT_ITEM {
         quest::we(14, $name . " has earned access to Sebilis!");
         
         # Respond to the player after hand-in
-        $client->Message(14, "Hello again adventurer. Thank you again for saving me in Karnors. I have since learned about the time manipulation this Chronomancer Zarrin has been up to. We have discovered, with the help of Al`Kabor here, that the Chronomancer has been hiding in an alternate version of Sebilis. Please investigate and report back with findings of anything unusual.");
+        quest::whisper("Hello again adventurer. Thank you again for saving me in Karnors. I have since learned about the time manipulation this Chronomancer Zarrin has been up to. We have discovered, with the help of Al`Kabor here, that the Chronomancer has been hiding in an alternate version of Sebilis. Please investigate and report back with findings of anything unusual.");
         
         # Offering a teleport option
-        quest::say("Please select your destination by clicking the option below: " . quest::saylink("Sebilis", 1) . ".");
+        quest::whisper("Please select your destination by clicking the option below: " . quest::saylink("Sebilis", 1) . ".");
     }
 
     # If the player hands in item 383
     elsif (plugin::check_handin(\%itemcount, 383 => 1)) {
-        $client->Message(14, "This absolutely astonishing! I had feared we all may be doomed. Praise Tunare you are victorious, you shall be dubbed Savior of Kunark!");
-        $client->Message(14, "The letter you have there only bears the news that even though we are finally victorious, it seems we have perhaps only just begun the fight against the Shadowed Eclipse.");
+        quest::whisper("This absolutely astonishing! I had feared we all may be doomed. Praise Tunare you are victorious, you shall be dubbed Savior of Kunark!");
+        quest::whisper("The letter you have there only bears the news that even though we are finally victorious, it seems we have perhaps only just begun the fight against the Shadowed Eclipse.");
 
         # Grant the title "Savior of Kunark"
         quest::enabletitle(402);
@@ -154,7 +154,7 @@ sub EVENT_ITEM {
         quest::assigntask(27);
 
         # Additional message after assigning the task
-        $client->Message(14, "Let's get you another companion as it has been a while. It should help you with what's to come.");
+        quest::whisper("Let's get you another companion as it has been a while. It should help you with what's to come.");
 
         # Grant access to multiple zones
         quest::set_zone_flag(74);    # kerraridge

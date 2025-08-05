@@ -36,17 +36,17 @@ sub EVENT_SAY {
                 # Update the hail time to the current time
                 quest::set_data($cooldown_key, $current_time);
 
-                plugin::Whisper("Welcome back. Let me trigger the event for you.");
+                quest::whisper("Welcome back. Let me trigger the event for you.");
                 
                 # Spawn NPC 1408 at the specified location after the hail
                 quest::spawn2(1408, 0, 0, -247.07, -117.75, -10.98, 511.50);  # NPC 1408 with new location and heading
             } else {
                 # Cooldown is still active, notify the player
                 my $remaining_time = $cooldown_time - ($current_time - $last_hail_time);
-                plugin::Whisper("You must wait a little longer before you can trigger this event again. Time remaining: " . int($remaining_time / 60) . " minutes.");
+                quest::whisper("You must wait a little longer before you can trigger this event again. Time remaining: " . int($remaining_time / 60) . " minutes.");
             }
         } else {
-            plugin::Whisper("You must complete the hand-in before I can help you.");
+            quest::whisper("You must complete the hand-in before I can help you.");
         }
     }
 }

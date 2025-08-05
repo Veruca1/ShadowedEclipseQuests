@@ -8,22 +8,23 @@ sub EVENT_SPAWN {
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
+    # Apply base stats
     $npc->SetNPCFactionID(623);
-    $npc->ModifyNPCStat("level", 64);
+    $npc->ModifyNPCStat("level", 75);
     $npc->ModifyNPCStat("ac", 20000);
-    $npc->ModifyNPCStat("max_hp", 85000000); 
-    $npc->ModifyNPCStat("hp_regen", 800);
+    $npc->ModifyNPCStat("max_hp", 90000000); 
+    $npc->ModifyNPCStat("hp_regen", 500);
     $npc->ModifyNPCStat("mana_regen", 10000);
-    $npc->ModifyNPCStat("min_hit", 12000);
-    $npc->ModifyNPCStat("max_hit", 20000);
-    $npc->ModifyNPCStat("atk", 1200);
+    $npc->ModifyNPCStat("min_hit", 35000);
+    $npc->ModifyNPCStat("max_hit", 90000);
+    $npc->ModifyNPCStat("atk", 1500);
     $npc->ModifyNPCStat("accuracy", 1800);
     $npc->ModifyNPCStat("avoidance", 100);
-    $npc->ModifyNPCStat("attack_delay", 4);
+    $npc->ModifyNPCStat("attack_delay", 6);
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
-    $npc->ModifyNPCStat("heroic_strikethrough", 32);
+    $npc->ModifyNPCStat("heroic_strikethrough", 17);
     $npc->ModifyNPCStat("aggro", 55);
     $npc->ModifyNPCStat("assist", 1);
 
@@ -35,11 +36,11 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("int", 1000);
     $npc->ModifyNPCStat("cha", 800);
 
-    $npc->ModifyNPCStat("mr", 300);
-    $npc->ModifyNPCStat("fr", 300);
-    $npc->ModifyNPCStat("cr", 300);
-    $npc->ModifyNPCStat("pr", 300);
-    $npc->ModifyNPCStat("dr", 300);
+    $npc->ModifyNPCStat("mr", 2000);
+    $npc->ModifyNPCStat("fr", 2000);
+    $npc->ModifyNPCStat("cr", 2000);
+    $npc->ModifyNPCStat("pr", 2000);
+    $npc->ModifyNPCStat("dr", 2000);
     $npc->ModifyNPCStat("corruption_resist", 300);
     $npc->ModifyNPCStat("physical_resist", 800);
 
@@ -50,18 +51,10 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("see_hide", 1);
     $npc->ModifyNPCStat("see_improved_hide", 1);
 
-    $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1");
+    $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1^31,1");
 
+    # Heal to full HP
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
-}
 
-sub EVENT_COMBAT {
-    if ($combat_state == 1) {  # Engaged
-        my $target = $npc->GetTarget();
-        if ($target) {
-            $npc->CastSpell(40773, $target->GetID());  # Spell: Breath of the Shissar II
-        }
-        quest::depop_withtimer();
-    }
 }

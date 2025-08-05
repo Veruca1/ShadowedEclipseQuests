@@ -17,7 +17,7 @@ sub EVENT_ITEM {
         quest::set_data($sebilis_access_key_v2, 1);
         
         # Confirmation message for granting access
-        $client->Message(14, "Astonishing! With this, we are now able to locate Chronomancer Zarrin. Speak with me again if you'd like to finally put an end to this madness.");
+        quest::whisper("Astonishing! With this, we are now able to locate Chronomancer Zarrin. Speak with me again if you'd like to finally put an end to this madness.");
     } else {
         # Return any incorrect items handed in
         plugin::return_items(\%itemcount);
@@ -33,13 +33,13 @@ sub EVENT_SAY {
     if ($text =~ /hail/i) {
         if ($dz && $dz->GetName() eq $expedition_name_v2) {
             # Player already has an active expedition
-            plugin::Whisper("You are already in an expedition for 'The Final Showdown V2.' If you're [" . quest::saylink("ready") . "] to enter, let me know.");
+            quest::whisper("You are already in an expedition for 'The Final Showdown V2.' If you're [" . quest::saylink("ready") . "] to enter, let me know.");
         } elsif ($has_access_v2) {
             # Player has access but no active expedition, offer to create one
-            plugin::Whisper("Welcome back! You already have access to 'The Final Showdown V2.' You can [" . quest::saylink("request") . "] a new expedition or let me know when you're [" . quest::saylink("ready") . "] to enter.");
+            quest::whisper("Welcome back! You already have access to 'The Final Showdown V2.' You can [" . quest::saylink("request") . "] a new expedition or let me know when you're [" . quest::saylink("ready") . "] to enter.");
         } else {
             # Player does not have access yet
-            plugin::Whisper("Greetings, traveler. If you'd like to explore the final showdown, you'll need to hand in the proper item.");
+            quest::whisper("Greetings, traveler. If you'd like to explore the final showdown, you'll need to hand in the proper item.");
         }
     }
     elsif ($text =~ /request/i) {
@@ -49,26 +49,25 @@ sub EVENT_SAY {
             
             if ($dz) {
                 # Expedition created successfully
-                plugin::Whisper("Expedition to 'The Final Showdown V2' created. Tell me when you're [" . quest::saylink("ready") . "] to enter.");
-                $dz->AddReplayLockout(60);  # Add a 1-minute lockout (60 seconds)
+                quest::whisper("Expedition to 'The Final Showdown V2' created. Tell me when you're [" . quest::saylink("ready") . "] to enter.");
             } else {
                 # Error creating expedition
-                plugin::Whisper("There was an error creating the expedition. Please try again.");
+                quest::whisper("There was an error creating the expedition. Please try again.");
             }
         } else {
             # Deny access if the player hasn't handed in the required item
-            plugin::Whisper("You do not have access to 'The Final Showdown V2.' Please hand in the correct item first.");
+            quest::whisper("You do not have access to 'The Final Showdown V2.' Please hand in the correct item first.");
         }
     }
     elsif ($text =~ /ready/i) {
         # Check if the player is in the expedition
         if ($dz && $dz->GetName() eq $expedition_name_v2) {
             # Move the player to the dynamic zone (DZ)
-            plugin::Whisper("Moving you to 'The Final Showdown V2'.");
+            quest::whisper("Moving you to 'The Final Showdown V2'.");
             $client->MovePCDynamicZone($dz_zone_v2, $dz_version_v2);
         } else {
             # Player is not in the expedition
-            plugin::Whisper("You are not part of the expedition or there is an error with your access.");
+            quest::whisper("You are not part of the expedition or there is an error with your access.");
         }
     }
 }

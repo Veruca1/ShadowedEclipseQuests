@@ -8,10 +8,11 @@ sub EVENT_SPAWN {
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
-    $npc->SetNPCFactionID(623);
-    $npc->ModifyNPCStat("level", 64);
+    # Apply base stats
+    $npc->SetNPCFactionID(0);
+    $npc->ModifyNPCStat("level", 65);
     $npc->ModifyNPCStat("ac", 20000);
-    $npc->ModifyNPCStat("max_hp", 85000000); 
+    $npc->ModifyNPCStat("max_hp", 900000000); 
     $npc->ModifyNPCStat("hp_regen", 800);
     $npc->ModifyNPCStat("mana_regen", 10000);
     $npc->ModifyNPCStat("min_hit", 12000);
@@ -23,7 +24,7 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
-    $npc->ModifyNPCStat("heroic_strikethrough", 32);
+    $npc->ModifyNPCStat("heroic_strikethrough", 22);
     $npc->ModifyNPCStat("aggro", 55);
     $npc->ModifyNPCStat("assist", 1);
 
@@ -50,18 +51,21 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("see_hide", 1);
     $npc->ModifyNPCStat("see_improved_hide", 1);
 
-    $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1");
+    $npc->ModifyNPCStat("special_abilities", "12,1^13,1^14,1^15,1^16,1^17,1^18,1^35,1^39,1^42,1^26,1^19,1^20,1^21,1^23,1^22,1^24,1^25,1^41,1^45,1^46,1");
 
+    # Heal to full HP
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
+
+    # Delay tint to ensure it applies properly
+    quest::settimer("apply_tint", 1);
 }
 
-sub EVENT_COMBAT {
-    if ($combat_state == 1) {  # Engaged
-        my $target = $npc->GetTarget();
-        if ($target) {
-            $npc->CastSpell(40773, $target->GetID());  # Spell: Breath of the Shissar II
-        }
-        quest::depop_withtimer();
+sub EVENT_TIMER {
+    if ($timer eq "apply_tint") {
+        quest::stoptimer("apply_tint");
+
+        # Set tint to black (index 30)
+        $npc->SetNPCTintIndex(30);
     }
 }

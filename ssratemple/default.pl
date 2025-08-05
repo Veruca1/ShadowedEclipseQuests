@@ -65,7 +65,7 @@ quest::setnexthpevent(75);
     } else {
         $npc->ModifyNPCStat("level", 62);
         $npc->ModifyNPCStat("ac", 20000);
-        $npc->ModifyNPCStat("max_hp", 5000000);
+        $npc->ModifyNPCStat("max_hp", 6500000);
         $npc->ModifyNPCStat("hp_regen", 800);
         $npc->ModifyNPCStat("mana_regen", 10000);
         $npc->ModifyNPCStat("min_hit", 24000);
@@ -242,7 +242,7 @@ sub EVENT_DEATH_COMPLETE {
     # 10% spawn chance
     if (quest::ChooseRandom(1..100) <= 13) {
         #plugin::debug("Spawning 1984 at death location.");
-        quest::spawn2(1984, 0, 0, $killed_x, $killed_y, $killed_z, $killed_h);
+        #quest::spawn2(1984, 0, 0, $killed_x, $killed_y, $killed_z, $killed_h);
     }
 
     my $ent = $entity_list->GetMobID($killer_id);

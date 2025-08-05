@@ -23,7 +23,7 @@ sub EVENT_ITEM {
 
 sub EVENT_WAYPOINT_ARRIVE {
    # Ambush 1
-   if ($wp eq "13") {
+   if ($wp == 13) {
       # Commander Vjorik shout signal
       quest::signalwith(110096, 102); # NPC: Commander_Vjorik
       # 110097 - Kromrif tracking wolf (first version)
@@ -33,14 +33,14 @@ sub EVENT_WAYPOINT_ARRIVE {
       quest::spawn2(110097, 0, 0, 7512.5, -3575.6, 165.3, 65.6); # NPC: Kromrif_tracking_wolf
    }
    # Ambush 2
-   elsif ($wp eq "20") {
+   elsif ($wp == 20) {
       quest::spawn2(110120, 0, 0, 7243.8, -2153.7, 150.2, 221.6); # NPC: Frost_Giant_Skirmisher
       quest::spawn2(110120, 0, 0, 7211.8, -2204.5, 145.6, 139.8); # NPC: Frost_Giant_Skirmisher
       quest::spawn2(110120, 0, 0, 7254.1, -2246.1, 147.5, 17.8);  # NPC: Frost_Giant_Skirmisher
       quest::spawn2(110120, 0, 0, 7324.7, -2196.4, 153.9, 376.2); # NPC: Frost_Giant_Skirmisher
    }
    # Ambush 3
-   elsif ($wp eq "33") {
+   elsif ($wp == 33) {
    unless (quest::isnpcspawned(110112)) {
       quest::spawn2(110112, 0, 0, 5923.9, -1015.7, 162.5, 258.6); # NPC: Commander_Kvarid
    }
@@ -49,7 +49,7 @@ sub EVENT_WAYPOINT_ARRIVE {
    quest::spawn2(110121, 0, 0, 5973.3, -1041.8, 163.0, 355.2); # NPC: Frost_Giant_Skirmisher
    }
    # Ambush 4
-   elsif ($wp eq "68") {
+   elsif ($wp == 68) {
       quest::spawn2(110122, 0, 0, 2265.1, 1530.2, 60.1, 285.2); # NPC: Kromrif_Tracking_Wolf
       quest::spawn2(110122, 0, 0, 2249.0, 1536.2, 56.0, 246.8); # NPC: Kromrif_Tracking_Wolf
       quest::spawn2(110122, 0, 0, 2234.1, 1530.7, 52.4, 224.8); # NPC: Kromrif_Tracking_Wolf
@@ -57,7 +57,7 @@ sub EVENT_WAYPOINT_ARRIVE {
       quest::spawn2(110122, 0, 0, 2242.6, 1458.6, 52.0, 38.6);  # NPC: Kromrif_Tracking_Wolf
    }
    # Ambush 5
-   elsif ($wp eq "80") {
+   elsif ($wp == 80) {
       quest::spawn2(110109, 0, 0, 2695.9, 3725.1, 249.2, 256.8); # NPC: Commander_Vjorik
       quest::spawn2(110121, 0, 0, 2678.2, 3719.1, 250.3, 178.8); # NPC: Frost_Giant_Skirmisher
       quest::spawn2(110121, 0, 0, 2709.9, 3720.5, 245.5, 330.8); # NPC: Frost_Giant_Skirmisher

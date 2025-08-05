@@ -9,7 +9,8 @@ sub EVENT_COMBAT {
         quest::settimer("spell_cast", 30);
         quest::settimer("minion_check", 1);
         quest::settimer("check_hp", 1);  # Start checking health during combat
-        $npc->Attack($npc->GetHateTop());  # Re-engage attack on top hated target
+        my $target = $npc->GetHateTop();
+        $npc->Attack($target) if $target;  # Re-engage attack on top hated target
     } elsif ($combat_state == 0) {
         quest::stoptimer("spell_cast");
         quest::stoptimer("minion_check");
@@ -25,7 +26,8 @@ sub EVENT_TIMER {
 
     if ($timer eq "spell_cast") {
         $npc->CastSpell(40604, $npc->GetID());
-        $npc->Attack($npc->GetHateTop());  # Re-engage attack after casting
+        my $target = $npc->GetHateTop();
+        $npc->Attack($target) if $target; # Re-engage attack after casting
     }
 
     if ($timer eq "minion_check") {

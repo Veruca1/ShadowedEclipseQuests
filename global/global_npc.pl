@@ -178,9 +178,9 @@ sub EVENT_COMBAT {
 
     if ($combat_state == 1) {
         
-        # Aggro balance runs in all zones now
-     #   $npc->SetEntityVariable("aggro_balance_id", $id);
-       # quest::settimer("aggro_balance_$id", 1);
+      
+       $npc->SetEntityVariable("aggro_balance_id", $id);
+       quest::settimer("aggro_balance_$id", 1);
 
         # Swarm pet check only in zone 123
         if ($zoneid == 123) {
@@ -207,7 +207,7 @@ sub EVENT_TIMER {
         my $mob = $entity_list->GetNPCByID($npc_id);
         return unless $mob;
 
-      #  plugin::group_hate_shift_to_maintank($mob);
+      plugin::group_hate_shift_to_maintank($mob);
     }
 
     # Swarm pet check logic
@@ -421,10 +421,10 @@ if ($zoneid == 123 && !$damage_applied) {
         my $npc_name = $npc->GetCleanName();
 
         # Announce in-game
-        quest::gmsay("$npc_name has been killed by $player_name", 14, 1, 0, 0);
+        quest::gmsay("$npc_name has been killed by $player_name!", 14, 1, 0, 0);
 
         # Send message to Discord
-        quest::discordsend("victory", "$npc_name has been killed by $player_name");
+        quest::discordsend("victory", "$npc_name has been killed by $player_name!");
     } 
 }
 }

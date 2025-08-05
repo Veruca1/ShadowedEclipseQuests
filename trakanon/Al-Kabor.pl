@@ -16,7 +16,7 @@ sub EVENT_ITEM {
         quest::set_data($sebilis_access_key, 1);
         
         # Confirmation message for granting access
-        $client->Message(14, "Thank you! You now have access to explore the alternate version of Sebilis. Speak with me again if you'd like to investigate.");
+        quest::whisper("Thank you! You now have access to explore the alternate version of Sebilis. Speak with me again if you'd like to investigate.");
     } else {
         # Return any incorrect items handed in
         plugin::return_items(\%itemcount);
@@ -32,13 +32,13 @@ sub EVENT_SAY {
     if ($text =~ /hail/i) {
         if ($dz && $dz->GetName() eq $expedition_name) {
             # Player already has an active expedition
-            plugin::Whisper("You are already in an expedition for 'The Real Old Sebilis.' If you're [" . quest::saylink("ready") . "] to enter, let me know.");
+            quest::whisper("You are already in an expedition for 'The Real Old Sebilis.' If you're [" . quest::saylink("ready") . "] to enter, let me know.");
         } elsif ($has_access) {
             # Player has access but no active expedition, offer to create one
-            plugin::Whisper("Welcome back! You already have access to 'The Real Old Sebilis.' You can [" . quest::saylink("request") . "] a new expedition or let me know when you're [" . quest::saylink("ready") . "] to enter.");
+            quest::whisper("Welcome back! You already have access to 'The Real Old Sebilis.' You can [" . quest::saylink("request") . "] a new expedition or let me know when you're [" . quest::saylink("ready") . "] to enter.");
         } else {
             # Player does not have access yet
-            plugin::Whisper("Greetings, traveler. If you'd like to explore the alternate version of Sebilis, you'll need to hand in the proper item.");
+            quest::whisper("Greetings, traveler. If you'd like to explore the alternate version of Sebilis, you'll need to hand in the proper item.");
         }
     }
     elsif ($text =~ /request/i) {
@@ -48,26 +48,25 @@ sub EVENT_SAY {
             
             if ($dz) {
                 # Expedition created successfully
-                plugin::Whisper("Expedition to 'The Real Old Sebilis' created. Tell me when you're [" . quest::saylink("ready") . "] to enter.");
-                $dz->AddReplayLockout(60);  # Add a 1-minute lockout (60 seconds)
+                quest::whisper("Expedition to 'The Real Old Sebilis' created. Tell me when you're [" . quest::saylink("ready") . "] to enter.");
             } else {
                 # Error creating expedition
-                plugin::Whisper("There was an error creating the expedition. Please try again.");
+                quest::whisper("There was an error creating the expedition. Please try again.");
             }
         } else {
             # Deny access if the player hasn't handed in the required item
-            plugin::Whisper("You do not have access to 'The Real Old Sebilis.' Please hand in the correct item first.");
+            quest::whisper("You do not have access to 'The Real Old Sebilis.' Please hand in the correct item first.");
         }
     }
     elsif ($text =~ /ready/i) {
         # Check if the player is in the expedition
         if ($dz && $dz->GetName() eq $expedition_name) {
             # Move the player to the dynamic zone (DZ)
-            plugin::Whisper("Moving you to 'The Real Old Sebilis'.");
+            quest::whisper("Moving you to 'The Real Old Sebilis'.");
             $client->MovePCDynamicZone($dz_zone, $dz_version);
         } else {
             # Player is not in the expedition
-            plugin::Whisper("You are not part of the expedition or there is an error with your access.");
+            quest::whisper("You are not part of the expedition or there is an error with your access.");
         }
     }
 }

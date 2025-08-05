@@ -8,7 +8,7 @@ sub EVENT_ITEM {
         # Set the flag indicating the player has completed the hand-in
         quest::set_data($flag, 1);
         
-        plugin::Whisper("You have done well. You may now simply hail me to proceed in the future.");
+        quest::whisper("You have done well. You may now simply hail me to proceed in the future.");
 
         # Spawn NPC 1425, one NPC 1439, and one NPC 1442 at the specific locations after the hand-in
         quest::spawn2(1425, 0, 0, -644.02, -63.53, 16.98, 131.00);  # NPC 1425
@@ -85,7 +85,7 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();  # Get the character's unique ID
     my $flag = "$char_id-disturbance_flag";  # The flag for this NPC
     my $cooldown_key = "$char_id-disturbance_cooldown";  # A unique cooldown key
-    my $cooldown_time = 1200;  # 20-minute cooldown in seconds
+    my $cooldown_time = 30;  # 30 second cooldown
 
     # Check if the flag for the item hand-in is set
     if ($text =~ /hail/i) {
@@ -98,7 +98,7 @@ sub EVENT_SAY {
                 # Update the hail time to the current time
                 quest::set_data($cooldown_key, $current_time);
 
-                plugin::Whisper("Welcome back. Let me trigger the event for you.");
+                quest::whisper("Welcome back. Let me trigger the event for you.");
                 
                 # Spawn NPC 1425, one NPC 1439, and one NPC 1442 at the specified locations after the hail
 		# Send a signal with 1 to NPC 1427 with a delay of 2 seconds
@@ -112,10 +112,10 @@ sub EVENT_SAY {
             } else {
                 # Cooldown is still active, notify the player
                 my $remaining_time = $cooldown_time - ($current_time - $last_hail_time);
-                plugin::Whisper("You must wait a little longer before you can trigger this event again. Time remaining: " . int($remaining_time / 60) . " minutes.");
+                quest::whisper("You must wait a little longer before you can trigger this event again. Time remaining: $remaining_time seconds.");
             }
         } else {
-            plugin::Whisper("You must complete the hand-in before I can help you.");
+            quest::whisper("You must complete the hand-in before I can help you.");
         }
     }
 }

@@ -73,7 +73,7 @@ my $gear = plugin::ch6classgear();
 my @gear_ids = map { @{$gear->{$_}} } keys %$gear;
 $npc->AddItem($gear_ids[int(rand(@gear_ids))]);
 
-# 🎲 30% chance at one of 45479, 45480, 45481, 45482, 45483, 45484
+# 🎲 50% chance at one of 45479, 45480, 45481, 45482, 45483, 45484
 if (int(rand(100)) < 50) {
     my @bonus_ids = (45479, 45480, 45481, 45482, 45483, 45484);
     $npc->AddItem($bonus_ids[int(rand(@bonus_ids))]);
