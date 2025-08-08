@@ -1,9 +1,12 @@
-# Global flag to track if mirror logic has already been triggered
+# Global flags for mirror logic
 my $checked_mirror = 0;
 my $mirror_trigger_hp = 0;
 
 sub EVENT_SPAWN {
     return unless $npc;
+
+    quest::settimer("init_effects", 1);
+    quest::settimer("lunar_nimbus_buff", 8);
 
     my $raw_name = $npc->GetName() || '';
     my $npc_id   = $npc->GetNPCTypeID() || 0;
@@ -12,27 +15,26 @@ sub EVENT_SPAWN {
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
-    # Base stats and combat config
+    # Base stats
     $npc->SetNPCFactionID(623);
     $npc->ModifyNPCStat("level", 75);
     $npc->ModifyNPCStat("ac", 20000);
-    $npc->ModifyNPCStat("max_hp", 90000000); 
-    $npc->ModifyNPCStat("hp_regen", 500);
+    $npc->ModifyNPCStat("max_hp", 100000000); 
+    $npc->ModifyNPCStat("hp_regen", 800);
     $npc->ModifyNPCStat("mana_regen", 10000);
-    $npc->ModifyNPCStat("min_hit", 25000);
-    $npc->ModifyNPCStat("max_hit", 70000);
-    $npc->ModifyNPCStat("atk", 1500);
+    $npc->ModifyNPCStat("min_hit", 32000);
+    $npc->ModifyNPCStat("max_hit", 77000);
+    $npc->ModifyNPCStat("atk", 1600);
     $npc->ModifyNPCStat("accuracy", 1800);
     $npc->ModifyNPCStat("avoidance", 100);
     $npc->ModifyNPCStat("attack_delay", 6);
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
-    $npc->ModifyNPCStat("heroic_strikethrough", 17);
+    $npc->ModifyNPCStat("heroic_strikethrough", 18);
     $npc->ModifyNPCStat("aggro", 55);
     $npc->ModifyNPCStat("assist", 1);
 
-    # Stat attributes
     $npc->ModifyNPCStat("str", 1000);
     $npc->ModifyNPCStat("sta", 1000);
     $npc->ModifyNPCStat("agi", 1000);
@@ -41,7 +43,6 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("int", 1000);
     $npc->ModifyNPCStat("cha", 800);
 
-    # Resistances
     $npc->ModifyNPCStat("mr", 2000);
     $npc->ModifyNPCStat("fr", 2000);
     $npc->ModifyNPCStat("cr", 2000);
@@ -50,13 +51,13 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("corruption_resist", 300);
     $npc->ModifyNPCStat("physical_resist", 800);
 
-    # Visibility and special traits
     $npc->ModifyNPCStat("runspeed", 2);
     $npc->ModifyNPCStat("trackable", 1);
     $npc->ModifyNPCStat("see_invis", 1);
     $npc->ModifyNPCStat("see_invis_undead", 1);
     $npc->ModifyNPCStat("see_hide", 1);
     $npc->ModifyNPCStat("see_improved_hide", 1);
+
     $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1^31,1");
 
     $npc->SetHP($npc->GetMaxHP());
@@ -65,7 +66,12 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_COMBAT {
-    if ($combat_state == 0) {
+    if ($combat_state == 1) {
+        quest::settimer("cryptic_shout", 60);
+        quest::settimer("moonrock_summon", 30);
+    } else {
+        quest::stoptimer("cryptic_shout");
+        quest::stoptimer("moonrock_summon");
         $checked_mirror = 0;
         quest::stoptimer("mirror_check");
     }
@@ -79,32 +85,69 @@ sub EVENT_HP {
 }
 
 sub EVENT_TIMER {
-    if ($timer eq "mirror_check") {
+    if ($timer eq "init_effects") {
+        quest::stoptimer("init_effects");
+
+        my @buffs = (5278, 5297, 5488, 10028, 10031, 10013, 10664, 9414, 300, 15031, 2530);
+        foreach my $spell_id (@buffs) {
+            $npc->SpellFinished($spell_id, $npc);
+        }
+
+        quest::shout("Through shadow and silence, I return... and the Moon sees all.");
+    }
+
+    elsif ($timer eq "lunar_nimbus_buff") {
+        quest::stoptimer("lunar_nimbus_buff");
+        $npc->CastSpell(24061, $npc->GetID()) if !$npc->FindBuff(24061);
+    }
+
+    elsif ($timer eq "cryptic_shout") {
+        my @shouts = (
+            "So... the dreamers return to Ssra. Did you think the Moon forgot your footsteps?",
+            "Luclin watches. Always. Her gaze is the cold shadow at your back.",
+            "The Coven awaits you in the dark between stars. Will you walk willingly... or be dragged?",
+            "Nyseria’s threads are no longer whispers — they are chains, and you are already bound.",
+            "Beyond this hall lies the way to the Black Mirror. It does not reflect — it devours.",
+            "The Planes of Power stir. Do you think their lords will greet you as heroes... or as prey?",
+            "Every step forward is a step deeper into Her design. The web tightens.",
+            "You seek the Coven? Then step through the Mirror Moon, and be remade in shadow.",
+            "Nyseria’s embrace is not love, but surrender. Will you kneel when the circle closes?",
+            "The Eclipse was not an ending — it was Her invitation. You have already accepted.",
+            "The Mirror does not show truth... only the fate She chooses for you.",
+            "When the Circle gathers, even the gods will listen. And you... will kneel."
+        );
+        quest::shout($shouts[int(rand(@shouts))]);
+    }
+
+    elsif ($timer eq "moonrock_summon") {
+        quest::shout("By the shadow of the Mirror Moon, I summon the Moon Rocks to seek the intruders!");
+        my $count = int(rand(3)) + 1;
+        for (my $i = 0; $i < $count; $i++) {
+            quest::spawn2(1974, 0, 0, -78.17, -1084.92, -255.94, 103.75);
+        }
+    }
+
+    elsif ($timer eq "mirror_check") {
         return if $checked_mirror;
 
         my $hp_pct = int($npc->GetHPRatio());
-        return if $hp_pct < 10 || $hp_pct > $mirror_trigger_hp;
+        return if $hp_pct < 10;
+        return if $hp_pct > $mirror_trigger_hp;
 
-        my $found_client = 0;
-        my @clients = $entity_list->GetClientList();
-
-        foreach my $client (@clients) {
+        foreach my $client ($entity_list->GetClientList()) {
             next unless $client && $client->GetHP() > 0;
 
-            my $item = $client->GetItemAt(22);  # Ammo slot
+            my $item = $client->GetItemAt(22);
             my $item_id = $item ? $item->GetID() : 0;
             my $has_mirror = ($item_id == 49764);
-
-            my $buff_slot = $client->FindBuff(40778);
-            my $has_buff = ($buff_slot != -1);
+            my $has_buff   = $client->FindBuff(40778);
 
             next unless $has_mirror && $has_buff;
-            $found_client = 1;
 
             my $roll = int(rand(100));
             if ($roll < 20) {
                 quest::shout("The mirror cracks... and something darker stirs.");
-                quest::settimer("mirror_tint", 1);  # Tint effect delay
+                quest::settimer("mirror_tint", 1);
 
                 my $new_hp     = int($npc->GetMaxHP() * 1.5);
                 my $new_min    = int($npc->GetMinDMG() * 1.5);
@@ -128,10 +171,8 @@ sub EVENT_TIMER {
             last;
         }
 
-        if (!$found_client) {
-            $checked_mirror = 1;
-            quest::stoptimer("mirror_check");
-        }
+        $checked_mirror = 1;
+        quest::stoptimer("mirror_check");
     }
 
     elsif ($timer eq "mirror_tint") {

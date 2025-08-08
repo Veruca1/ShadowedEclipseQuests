@@ -117,12 +117,11 @@ sub EVENT_HP {
 
     if ($hpevent == 75 || $hpevent == 25) {
         # Check if NPC has debuff spell 40745 active
-        if ($npc->FindBuff(40745)) {
-            ##plugin::debug("Boss has debuff 40745 mark of silence, skipping help call.");
+        if ($npc->FindBuff(40745)) {           
             return;
         }
 
-        quest::shout("Surrounding minions of the desert, arise and assist me!");
+        quest::shout("Surrounding minions of the temple, arise and assist me!");
         my $top = $npc->GetHateTop();
         return unless $top;
 
@@ -193,7 +192,7 @@ sub EVENT_DAMAGE_TAKEN {
             my ($x, $y, $z) = ($npc->GetX(), $npc->GetY(), $npc->GetZ());
             return unless defined $x && defined $y && defined $z;
             my $radius = 50;
-            my $dmg = 40000;
+            my $dmg = 50000;
 
             # Get exclusion list from plugin for pet checks
             my $excluded_npc_ids = plugin::GetExclusionList();
@@ -225,23 +224,18 @@ sub EVENT_DAMAGE_TAKEN {
     return $damage;
 }
 
-
-
 sub EVENT_DEATH_COMPLETE {
     return unless $npc;
 
-    my $npc_id = $npc->GetNPCTypeID() || 0;
-    #plugin::debug("EVENT_DEATH_COMPLETE: NPC ID $npc_id, killer_id: $killer_id");
+    my $npc_id = $npc->GetNPCTypeID() || 0;   
 
     my $exclusion_list = plugin::GetExclusionList();
-    if (exists $exclusion_list->{$npc_id}) {
-        #plugin::debug("NPC ID $npc_id is excluded. Skipping flag logic.");
+    if (exists $exclusion_list->{$npc_id}) {        
         return;
     }
 
     # 10% spawn chance
-    if (quest::ChooseRandom(1..100) <= 13) {
-        #plugin::debug("Spawning 1984 at death location.");
+    if (quest::ChooseRandom(1..100) <= 13) {        
         #quest::spawn2(1984, 0, 0, $killed_x, $killed_y, $killed_z, $killed_h);
     }
 
@@ -250,31 +244,26 @@ sub EVENT_DEATH_COMPLETE {
 
     if ($ent) {
         if ($ent->IsClient()) {
-            $client = $ent->CastToClient();
-            #plugin::debug("Killer is client: " . $client->GetCleanName());
+            $client = $ent->CastToClient();            
         } elsif ($ent->IsPet()) {
             my $owner = $ent->GetOwner();
             if ($owner && $owner->IsClient()) {
-                $client = $owner->CastToClient();
-                #plugin::debug("Killer was pet, owner is client: " . $client->GetCleanName());
+                $client = $owner->CastToClient();                
             } elsif ($owner && $owner->IsBot()) {
                 my $bot_owner = $owner->CastToBot()->GetOwner();
                 if ($bot_owner && $bot_owner->IsClient()) {
-                    $client = $bot_owner->CastToClient();
-                    #plugin::debug("Killer was bot pet, owner is client: " . $client->GetCleanName());
+                    $client = $bot_owner->CastToClient();                    
                 }
             }
         } elsif ($ent->IsBot()) {
             my $owner = $ent->CastToBot()->GetOwner();
             if ($owner && $owner->IsClient()) {
-                $client = $owner->CastToClient();
-                #plugin::debug("Killer is bot, owner is client: " . $client->GetCleanName());
+                $client = $owner->CastToClient();                
             }
         }
     }
 
-    unless ($client) {
-        #plugin::debug("Could not resolve killer to client. Exiting.");
+    unless ($client) {        
         return;
     }
 
@@ -297,11 +286,16 @@ sub EVENT_DEATH_COMPLETE {
     }
 
     my %named_ids = (
-        171068 => 1,
-        171056 => 1,
-        171065 => 1,
-        171057 => 1,
-        171073 => 1
+        163075 => 1,
+        162177 => 1,
+        162206 => 1,
+        162076 => 1,
+        162190 => 1,
+        2181 => 1,
+        2182 => 1,
+        2183 => 1,
+        1742 => 1,
+        2184 => 1
     );
 
     my %has_final_flag;
@@ -309,53 +303,50 @@ sub EVENT_DEATH_COMPLETE {
         next unless $pc && $pc->IsClient();
         $pc = $pc->CastToClient();
         my $cid = $pc->CharacterID();
-        my $final_flag = "Grey_AllFlags_${cid}";
+        my $final_flag = "SSRA_AllFlags_${cid}";
         $has_final_flag{$cid} = quest::get_data($final_flag) ? 1 : 0;
     }
 
     # 35% trash flag roll once
-    if (plugin::RandomRange(1, 100) <= 35) {
+    #if (plugin::RandomRange(1, 100) <= 35) {
         foreach my $pc (@ip_clients) {
             next unless $pc && $pc->IsClient();
             $pc = $pc->CastToClient();
             my $cid = $pc->CharacterID();
             next if $has_final_flag{$cid};
-            my $trash_flag = "~Grey_Trash_${cid}~";
+            my $trash_flag = "~SSRA_Trash_${cid}~";
             my $trash_count_key = "${trash_flag}_count";
 
             unless (quest::get_data($trash_flag)) {
                 my $count = quest::get_data($trash_count_key) || 0;
                 $count++;
                 quest::set_data($trash_count_key, $count);
-                $pc->Message(15, "Essence gathered... [$count/40]");
-                #plugin::debug("Trash count now $count for " . $pc->GetCleanName());
+                $pc->Message(15, "Essence gathered... [$count/50]");                
 
-                if ($count >= 40) {
+                if ($count >= 50) {
                     quest::set_data($trash_flag, 1);
-                    $pc->Message(14, "You've gathered enough essence from the Grey's minions.");
-                    #plugin::debug("Trash flag complete for " . $pc->GetCleanName());
+                    $pc->Message(14, "You've gathered enough essence from the SSRA's minions.");                    
                 }
             }
         }
-    }
+    #}
 
     # 75% named flag roll once
-    if (exists $named_ids{$npc_id} && plugin::RandomRange(1, 100) <= 75) {
+    #if (exists $named_ids{$npc_id} && plugin::RandomRange(1, 100) <= 75) {
         foreach my $pc (@ip_clients) {
             next unless $pc && $pc->IsClient();
             $pc = $pc->CastToClient();
             my $cid = $pc->CharacterID();
             next if $has_final_flag{$cid};
-            my $named_flag = "${npc_id}_Grey_${cid}";
+            my $named_flag = "${npc_id}_SSRA_${cid}";
             unless (quest::get_data($named_flag)) {
                 quest::set_data($named_flag, 1);
-                $pc->Message(15, "You absorb the essence of the vanquished named...");
-                #plugin::debug("Named flag set: $named_flag for " . $pc->GetCleanName());
+                $pc->Message(15, "You absorb the essence of the vanquished named...");                
             }
         }
-    }
+    #}
 
-    # Check final flag
+        # Check final flag
     foreach my $pc (@ip_clients) {
         next unless $pc && $pc->IsClient();
         $pc = $pc->CastToClient();
@@ -363,26 +354,36 @@ sub EVENT_DEATH_COMPLETE {
         next if $has_final_flag{$cid};
         my $pname = $pc->GetCleanName();
 
-        my $trash_flag = "~Grey_Trash_${cid}~";
-        my $final_flag = "Grey_AllFlags_${cid}";
+        my $trash_flag = "~SSRA_Trash_${cid}~";
+        my $final_flag = "SSRA_AllFlags_${cid}";
         next unless quest::get_data($trash_flag);
 
         my $complete = 1;
         foreach my $id (keys %named_ids) {
-            my $check = "${id}_Grey_${cid}";
+            my $check = "${id}_SSRA_${cid}";
             unless (quest::get_data($check)) {
-                $complete = 0;
-                #plugin::debug("Missing flag $check for $pname");
+                $complete = 0;                
                 last;
             }
         }
 
         if ($complete) {
             quest::set_data($final_flag, 1);
-            $pc->SetZoneFlag(162);
-            $pc->Message(14, "You have earned access to Ssraeshza Temple!");
-            quest::we(14, "$pname has earned access to Ssraeshza Temple!");
-            #plugin::debug("Zoneflag granted to $pname");
+            $pc->Message(14, "You have defeated all bosses in Ssraeshza Temple!");
+            quest::we(14, "$pname has defeated all bosses in Ssraeshza Temple!");
+
+            # --- Title & Discord Logic for Final Completion ---
+            my $title_flag = "lunar_song_stopper_title_" . $cid;
+
+            if (!quest::get_data($title_flag)) {
+                quest::set_data($title_flag, 1); # Mark as received title
+                $pc->SetTitleSuffix("Lunar Song Stopper", 1); # Grant suffix title
+                $pc->NotifyNewTitlesAvailable();              # Refresh titles
+
+                $pc->Message(14, "You have earned the title: Lunar Song Stopper!");
+                quest::we(13, "$pname has earned the title Lunar Song Stopper!");
+                quest::discordsend("titles", "$pname has earned the title of Lunar Song Stopper!");
+            }
         }
     }
-} 
+}

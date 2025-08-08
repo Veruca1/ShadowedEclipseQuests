@@ -1,6 +1,6 @@
-# Global flag to track if mirror logic has already been triggered
-my $checked_mirror = 0;
-my $mirror_trigger_hp = 0;
+# Global flag and trigger HP
+my $checked_mirror     = 0;
+my $mirror_trigger_hp  = 0;
 
 sub EVENT_SPAWN {
     return unless $npc;
@@ -12,27 +12,26 @@ sub EVENT_SPAWN {
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
-    # Base stats and combat config
+    # Apply base stats
     $npc->SetNPCFactionID(623);
     $npc->ModifyNPCStat("level", 75);
     $npc->ModifyNPCStat("ac", 20000);
-    $npc->ModifyNPCStat("max_hp", 90000000); 
-    $npc->ModifyNPCStat("hp_regen", 500);
+    $npc->ModifyNPCStat("max_hp", 95000000); 
+    $npc->ModifyNPCStat("hp_regen", 700);
     $npc->ModifyNPCStat("mana_regen", 10000);
-    $npc->ModifyNPCStat("min_hit", 25000);
-    $npc->ModifyNPCStat("max_hit", 70000);
-    $npc->ModifyNPCStat("atk", 1500);
+    $npc->ModifyNPCStat("min_hit", 30000);
+    $npc->ModifyNPCStat("max_hit", 75000);
+    $npc->ModifyNPCStat("atk", 1600);
     $npc->ModifyNPCStat("accuracy", 1800);
     $npc->ModifyNPCStat("avoidance", 100);
     $npc->ModifyNPCStat("attack_delay", 6);
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
-    $npc->ModifyNPCStat("heroic_strikethrough", 17);
+    $npc->ModifyNPCStat("heroic_strikethrough", 18);
     $npc->ModifyNPCStat("aggro", 55);
     $npc->ModifyNPCStat("assist", 1);
 
-    # Stat attributes
     $npc->ModifyNPCStat("str", 1000);
     $npc->ModifyNPCStat("sta", 1000);
     $npc->ModifyNPCStat("agi", 1000);
@@ -41,7 +40,6 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("int", 1000);
     $npc->ModifyNPCStat("cha", 800);
 
-    # Resistances
     $npc->ModifyNPCStat("mr", 2000);
     $npc->ModifyNPCStat("fr", 2000);
     $npc->ModifyNPCStat("cr", 2000);
@@ -50,7 +48,6 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("corruption_resist", 300);
     $npc->ModifyNPCStat("physical_resist", 800);
 
-    # Visibility and special traits
     $npc->ModifyNPCStat("runspeed", 2);
     $npc->ModifyNPCStat("trackable", 1);
     $npc->ModifyNPCStat("see_invis", 1);
@@ -60,6 +57,8 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1^31,1");
 
     $npc->SetHP($npc->GetMaxHP());
+
+    # Mirror logic setup
     $checked_mirror = 0;
     quest::setnexthpevent(80);
 }
@@ -73,7 +72,7 @@ sub EVENT_COMBAT {
 
 sub EVENT_HP {
     if ($hpevent == 80 && !$checked_mirror) {
-        $mirror_trigger_hp = int(rand(69)) + 11;
+        $mirror_trigger_hp = int(rand(69)) + 11;  # 11% to 79%
         quest::settimer("mirror_check", 5);
     }
 }
@@ -86,25 +85,21 @@ sub EVENT_TIMER {
         return if $hp_pct < 10 || $hp_pct > $mirror_trigger_hp;
 
         my $found_client = 0;
-        my @clients = $entity_list->GetClientList();
-
-        foreach my $client (@clients) {
+        foreach my $client ($entity_list->GetClientList()) {
             next unless $client && $client->GetHP() > 0;
 
-            my $item = $client->GetItemAt(22);  # Ammo slot
+            my $item = $client->GetItemAt(22);
             my $item_id = $item ? $item->GetID() : 0;
             my $has_mirror = ($item_id == 49764);
-
-            my $buff_slot = $client->FindBuff(40778);
-            my $has_buff = ($buff_slot != -1);
+            my $has_buff   = $client->FindBuff(40778);
 
             next unless $has_mirror && $has_buff;
-            $found_client = 1;
 
+            $found_client = 1;
             my $roll = int(rand(100));
             if ($roll < 20) {
                 quest::shout("The mirror cracks... and something darker stirs.");
-                quest::settimer("mirror_tint", 1);  # Tint effect delay
+                quest::settimer("mirror_tint", 1);
 
                 my $new_hp     = int($npc->GetMaxHP() * 1.5);
                 my $new_min    = int($npc->GetMinDMG() * 1.5);

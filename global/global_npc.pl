@@ -404,16 +404,7 @@ if ($zoneid == 123 && !$damage_applied) {
         # Set the flag to indicate damage has been applied
         $damage_applied = 1;
     }
-    
-    # Check if the NPC is Phase Spider (1793) or Phase Spiderling (1791)
-    if ($npc->GetNPCTypeID() == 1793 || $npc->GetNPCTypeID() == 1791) {
-        # 40% chance to spawn Veil Spider (1792)
-        my $spawn_chance = int(rand(100)) + 1;
-        if ($spawn_chance <= 50) {
-            # Spawn Veil Spider (NPC ID 1792) at the NPC's location
-            quest::spawn2(1792, 0, 0, $npc_x, $npc_y, $npc_z, $npc->GetHeading());
-        }
-    }
+   
 }
 
     # Check if the NPC is a raid target or rare spawn and handle death announcement

@@ -1,0 +1,48 @@
+my @items = (
+    45487,
+    45488,
+    45489,
+    45490,
+    45491,
+    45492
+);
+
+my @locations = (
+    { 'x' => 241.26,   'y' => -53.26,    'z' => -4.25,    'h' => 127.50 },
+    { 'x' => 493.72,   'y' => 27.22,     'z' => 16.75,    'h' => 134.25 },
+    { 'x' => -108.58,  'y' => 532.44,    'z' => -253.98,  'h' => 255.00 },
+    { 'x' => 260.37,   'y' => -486.67,   'z' => -252.74,  'h' => 12.25 },
+    { 'x' => 117.71,   'y' => -1056.46,  'z' => -256.25,  'h' => 303.50 },
+    { 'x' => 256.20,   'y' => 290.29,    'z' => 251.25,   'h' => 2.50 },
+    { 'x' => 727.60,   'y' => -325.92,   'z' => 403.75,   'h' => 386.25 }
+);
+
+sub EVENT_SPAWN {
+    my @shuffled_items = shuffle(@items);
+    my @chosen_items   = @shuffled_items[0..1];
+    my @shuffled_locs  = shuffle(@locations);
+    my @chosen_locs    = @shuffled_locs[0..1];
+
+    for my $i (0..1) {
+        my $item_id = $chosen_items[$i];
+        my $loc     = $chosen_locs[$i];
+        quest::creategroundobject(
+            $item_id,
+            $loc->{'x'},
+            $loc->{'y'},
+            $loc->{'z'},
+            $loc->{'h'},
+            600000
+        );
+    }
+}
+
+sub shuffle {
+    my @array = @_;
+    my $i = @array;
+    while ($i--) {
+        my $j = int(rand($i + 1));
+        @array[$i, $j] = @array[$j, $i];
+    }
+    return @array;
+}

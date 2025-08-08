@@ -55,7 +55,7 @@ sub EVENT_SAY {
 		"Warrior" => 1, "Cleric" => 2, "Paladin" => 3, "Ranger" => 4,
 		"Shadowknight" => 5, "Druid" => 6, "Monk" => 7, "Bard" => 8,
 		"Rogue" => 9, "Shaman" => 10, "Necromancer" => 11, "Wizard" => 12,
-		"Mage" => 13, "Enchanter" => 14, "Beastlord" => 15, "Berserker" => 16,
+		"Magician" => 13, "Enchanter" => 14, "Beastlord" => 15, "Berserker" => 16,
 	);
 
 	if ($text =~ /hail/i) {

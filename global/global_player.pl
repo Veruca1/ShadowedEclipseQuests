@@ -108,10 +108,16 @@ sub EVENT_LEVEL_UP {
 
 
 sub EVENT_EQUIP_ITEM_CLIENT {
-	if ($slot_id == 3 && $item_id == 649) {  # Mask equipped in slot 3
-		quest::settimer("malfoy_insult", 30);  # Start insult timer
-		$client->Message(15, "Draco Malfoy's Mask shivers in your hands... something feels wrong.");
-	}
+    # Check for Draco Malfoy's Mask in slot 3
+    if ($slot_id == 3 && $item_id == 649) {
+        quest::settimer("malfoy_insult", 30);
+        $client->Message(15, "Draco Malfoy's Mask shivers in your hands... something feels wrong.");
+    }
+
+    # Check for item ID 12345 and play MP3
+    if ($item_id == 50259) {
+        $client->PlayMP3("rr.mp3");
+    }
 }
 
 sub EVENT_TIMER {
