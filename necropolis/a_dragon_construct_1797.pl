@@ -8,7 +8,7 @@ sub EVENT_DEATH_COMPLETE {
         if ($chance < 25) {
             # Spawn NPC 1799 at the specified location
             quest::spawn2(1799, 0, 0, 283.33, 1520.50, 5.64, 243.50);
-            #plugin::Whisper("A strange presence fills the air as a dragon construct rises from the earth.");
+            #plugin::Whisper("A strange presence fills the air as a dragon construct rises from the earth!.");
         }
     }
 }
