@@ -63,9 +63,9 @@ sub EVENT_SAY {
 		my $class_link = quest::silent_saylink("Change Class");
 		my $race_link = quest::silent_saylink("Change Race");
 		quest::whisper("Hello, $name. I can assist you with the following options:");
-		quest::message(315, "[$aa_link] - Change your class.");
-		quest::message(315, "[$class_link] - Change your race.");
-		quest::message(315, "[$race_link] - Unlearn your AAs and return all spent points.");
+		quest::message(315, "[$aa_link] - Unlearn your AAs and return all spent point.");
+		quest::message(315, "[$class_link] - Change your class.");
+		quest::message(315, "[$race_link] - Change your race.");
 	} elsif ($text =~ /Refund AAs/i) {
 		quest::whisper("Unlearning your AAs and refunding all points...");
 		$client->ResetAA();

@@ -314,6 +314,7 @@ sub EVENT_WARP {
 		neriaka        => 1,
 		paludal        => 1,
 		shadeweaver    => 1,
+		ssratemple     => 1,
 		templeveeshan  => 1,
 		tenebrous      => 1,
 		thedeep        => 1,
@@ -326,19 +327,22 @@ sub EVENT_WARP {
 	my $donator_flag_key = "warp_donator_flag$char_id";
 	my $donator_flag = quest::get_data($donator_flag_key);
 
-   # quest::debug("Warp Event: Checking $donator_flag_key - Value: " . (defined $donator_flag ? $donator_flag : "undef"));
-
-	if (defined $donator_flag && $donator_flag == 1) {
-	   # quest::debug("Warp Event: Donator flag is set, skipping enforcement.");
-		return;
-	}
-
 	my $zone_name = $zone->GetShortName();
 	return unless exists $zone_blocklist->{$zone_name};
 
+	# TEMPORARY OVERRIDE: Block warping in ssratemple even for donators
+	if ($zone_name eq "ssratemple" && defined $donator_flag && $donator_flag == 1) {
+		$client->Message(15, "Even as a donator, warping is currently disabled in Ssra Temple, this will unlock in 1 week.");
+		$donator_flag = 0; # force enforcement
+	}
+
+	# Allow donators to skip enforcement (except ssratemple override above)
+	if (defined $donator_flag && $donator_flag == 1) {
+		return;
+	}
+
 	my $suppress_key = "warp_suppress_$char_id";
 	if (quest::get_data($suppress_key)) {
-	  #  quest::debug("Warp Event: Suppress flag present, skipping warp check.");
 		quest::delete_data($suppress_key);
 		return;
 	}
@@ -352,17 +356,16 @@ sub EVENT_WARP {
 	my $warned = quest::get_data($warn_key);
 
 	if (defined $warned && $warned == 1) {
-	   # quest::debug("Warp Event: Already warned, killing client.");
 		$client->Message(15, "You were warned. Warping is not allowed here.");
 		$client->Kill();
 	} else {
-	 #   quest::debug("Warp Event: Warning issued, moving client to safe spot.");
 		quest::set_data($warn_key, 1);
 		quest::set_data($suppress_key, 1, 2);
 		$client->MovePCInstance($zone_name, $client->GetInstanceID(), $safe_x, $safe_y, $safe_z, $safe_h);
 		$client->Message(15, "Warping is disabled in this zone. Further attempts will result in death.");
 	}
 }
+
 
 
 

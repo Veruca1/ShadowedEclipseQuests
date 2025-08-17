@@ -106,10 +106,42 @@ sub EVENT_SAY {
 sub EVENT_ITEM {
     # Check if the correct items are handed in
     if (plugin::check_handin(\%itemcount, 575 => 1, 576 => 1, 577 => 1, 578 => 1)) {
-        # Set the zone flag and send messages
-        quest::set_zone_flag(112);
-        quest::we(14, "$name has earned access to Velketor's Labyrinth.");
-        $client->Message(14, "Excellent work hero. Please venture into this Labyrinth and investigate. It is rumored that Frostbane's grip in Velious tightens at this point.");
+        my $clicker_ip = $client->GetIP();
+        my $group = $client->GetGroup();
+        my $raid = $client->GetRaid();
+        my $flagged = 0;
+
+        if ($group) {
+            for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                my $member = $group->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    $member->SetZoneFlag(112);
+                    $member->Message(14, "Excellent work hero. Please venture into this Labyrinth and investigate. It is rumored that Frostbane's grip in Velious tightens at this point.");
+                    $flagged = 1;
+                }
+            }
+            if ($flagged) {
+                quest::we(14, "$name and group members on the same IP have earned access to Velketor's Labyrinth.");
+            }
+        } elsif ($raid) {
+            for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                my $member = $raid->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    $member->SetZoneFlag(112);
+                    $member->Message(14, "Excellent work hero. Please venture into this Labyrinth and investigate. It is rumored that Frostbane's grip in Velious tightens at this point.");
+                    $flagged = 1;
+                }
+            }
+            if ($flagged) {
+                quest::we(14, "$name and raid members on the same IP have earned access to Velketor's Labyrinth.");
+            }
+        } else {
+            $client->SetZoneFlag(112);
+            quest::we(14, "$name has earned access to Velketor's Labyrinth.");
+            $client->Message(14, "Excellent work hero. Please venture into this Labyrinth and investigate. It is rumored that Frostbane's grip in Velious tightens at this point.");
+        }
     }
 
     # Return unused items

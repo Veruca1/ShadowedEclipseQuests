@@ -9,27 +9,55 @@ my $dz_duration_chardok  = 2592000;                       # Duration of the inst
 sub EVENT_ITEM {
     my $char_id = $client->CharacterID();  # Get the character's ID 
     my $chardok_access_key = "$char_id-chardok_access";  # Unique key for this character's access to Chardok
+    my $clicker_ip = $client->GetIP();
+    my $group = $client->GetGroup();
+    my $raid = $client->GetRaid();
+    my $flagged = 0;
 
-    # Check if the player hands in item 395 (Key to Chardok)
     if (plugin::check_handin(\%itemcount, $item_id_chardok => 1)) {
-        # Set a data flag for the player indicating they handed in the key to Chardok
-        quest::set_data($chardok_access_key, 1);
-        
-        # Grant the zone flag for Chardok (Zone ID 103)
-        quest::set_zone_flag(103);
-
-        # Confirmation message for granting access
-        $client->Message(14, "Very well, you may enter at your own risk.");
-        
-        # Global announcement indicating the player now has access to Chardok
-        quest::we(14, "$name has gained access to Chardok. Proceed with caution!");
+        if ($group) {
+            for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                my $member = $group->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    my $member_char_id = $member->CharacterID();
+                    my $member_access_key = "$member_char_id-chardok_access";
+                    quest::set_data($member_access_key, 1);
+                    $member->SetZoneFlag(103);
+                    $member->Message(14, "Very well, you may enter at your own risk.");
+                    $flagged = 1;
+                }
+            }
+            if ($flagged) {
+                quest::we(14, "$name and group members on the same IP have gained access to Chardok. Proceed with caution!");
+            }
+        }
+        elsif ($raid) {
+            for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                my $member = $raid->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    my $member_char_id = $member->CharacterID();
+                    my $member_access_key = "$member_char_id-chardok_access";
+                    quest::set_data($member_access_key, 1);
+                    $member->SetZoneFlag(103);
+                    $member->Message(14, "Very well, you may enter at your own risk.");
+                    $flagged = 1;
+                }
+            }
+            if ($flagged) {
+                quest::we(14, "$name and raid members on the same IP have gained access to Chardok. Proceed with caution!");
+            }
+        } else {
+            quest::set_data($chardok_access_key, 1);
+            $client->SetZoneFlag(103);
+            $client->Message(14, "Very well, you may enter at your own risk.");
+            quest::we(14, "$name has gained access to Chardok. Proceed with caution!");
+        }
     } else {
-        # Return any incorrect items handed in
         plugin::return_items(\%itemcount);
     }
 }
-
-
 
 sub EVENT_SAY {
     my $char_id = $client->CharacterID();  # Get the character's ID

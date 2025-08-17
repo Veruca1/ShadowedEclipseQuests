@@ -1,39 +1,61 @@
 # New Item ID for Veeshan's Peak access
-my $item_id = 424;                        # Item ID for granting access
-my $expedition_name = "Veeshan's Peak Expedition";   # Name of the expedition
-my $min_players     = 1;                        # Minimum number of players
-my $max_players     = 99;                       # Maximum number of players
-my $dz_zone         = "veeshan";          # Valid zone name (Veeshan's Peak)
-my $dz_version      = 0;                        # Version of the dynamic zone (Veeshan's Peak Version 0)
-my $dz_duration     = 2592000;                  # Duration of the instance (1 Month)
+my $item_id = 424;
+my $expedition_name = "Veeshan's Peak Expedition";
+my $min_players = 1;
+my $max_players = 99;
+my $dz_zone = "veeshan";
+my $dz_version = 0;
+my $dz_duration = 2592000;
 
 sub EVENT_ITEM {
-    my $char_id = $client->CharacterID();  # Get the character's ID 
-    my $veeshans_peak_access_key = "$char_id-veeshans_peak_access"; # Unique key for this character
-    my $bot_limit_flag = "$char_id-bot_limit"; # Key to track bot spawn limit upgrades
+    my $char_id = $client->CharacterID();
+    my $veeshans_peak_access_key = "$char_id-veeshans_peak_access";
+    my $bot_limit_flag = "$char_id-bot-limit";
 
-    # Check if the player hands in item 424
     if (plugin::check_handin(\%itemcount, $item_id => 1)) {
-        # Set a data flag for the player indicating they handed in item 424
-        quest::set_data($veeshans_peak_access_key, 1);
-        
-        # Grant access to Veeshan's Peak by setting the zone flag for Veeshan's Peak
-        quest::set_zone_flag(108);   # Set zone flag for Veeshan's Peak
-        
-        # Announce to the whole zone that the player has been granted access to Veeshan's Peak
-        quest::we(14, $name . " has earned access to Veeshan's Peak!");
-        
-        # Confirmation message for granting access
-        $client->Message(14, "Thank you! You now have access to Veeshan's Peak. Speak with me again if you'd like to investigate.");
-        
-        # Increase bot limit to 5
-        $client->SetBotSpawnLimit(5);
-        quest::we(14, "Help me congratulate $name! They have upgraded their bot spawn limit to 5!");
+        my $clicker_ip = $client->GetIP();
+        my $group = $client->GetGroup();
+        my $raid = $client->GetRaid();
 
-        # Set the bot limit flag to 5
-        quest::set_data($bot_limit_flag, 5);
+        if ($group) {
+            for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                my $member = $group->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    my $member_char_id = $member->CharacterID();
+                    quest::set_data("$member_char_id-veeshans_peak_access", 1);
+                    $member->SetZoneFlag(108);
+                    $member->Message(14, "Thank you! You now have access to Veeshan's Peak. Speak with me again if you'd like to investigate.");
+                    $member->SetBotSpawnLimit(5);
+                    quest::set_data("$member_char_id-bot-limit", 5);
+                }
+            }
+            quest::we(14, "$name and group members on the same IP have earned access to Veeshan's Peak and upgraded their bot spawn limit to 5!");
+        }
+        elsif ($raid) {
+            for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                my $member = $raid->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    my $member_char_id = $member->CharacterID();
+                    quest::set_data("$member_char_id-veeshans_peak_access", 1);
+                    $member->SetZoneFlag(108);
+                    $member->Message(14, "Thank you! You now have access to Veeshan's Peak. Speak with me again if you'd like to investigate.");
+                    $member->SetBotSpawnLimit(5);
+                    quest::set_data("$member_char_id-bot-limit", 5);
+                }
+            }
+            quest::we(14, "$name and raid members on the same IP have earned access to Veeshan's Peak and upgraded their bot spawn limit to 5!");
+        }
+        else {
+            quest::set_data($veeshans_peak_access_key, 1);
+            $client->SetZoneFlag(108);
+            $client->Message(14, "Thank you! You now have access to Veeshan's Peak. Speak with me again if you'd like to investigate.");
+            $client->SetBotSpawnLimit(5);
+            quest::we(14, "$name has earned access to Veeshan's Peak and upgraded their bot spawn limit to 5!");
+            quest::set_data($bot_limit_flag, 5);
+        }
     } else {
-        # Return any incorrect items handed in
         plugin::return_items(\%itemcount);
     }
 }

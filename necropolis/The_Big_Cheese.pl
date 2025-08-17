@@ -56,6 +56,6 @@ sub EVENT_DEATH_COMPLETE {
         # Spawn NPC 1813 at the specified location
         quest::spawn2(1813, 0, 0, -288.45, -275.56, -247.24, 384.50);
     } else {
-        plugin::Whisper("An entity is already in play. You'll need to wait.");
+        quest::shout("An entity is already in play. You'll need to wait.");
     }
 }

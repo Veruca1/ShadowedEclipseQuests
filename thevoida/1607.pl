@@ -51,7 +51,7 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_SAY {
-    if ($text=~/hail/i) {
+    if ($text =~ /hail/i) {
         my $char_id = $client->CharacterID();
         my $flag_key = "${char_id}_shadeweaver_flag";
 
@@ -67,12 +67,46 @@ sub EVENT_SAY {
         );
 
         if (!quest::get_data($flag_key)) {
-            quest::set_zone_flag(165); # Zone ID for Shadeweaver's Thicket
+            my $clicker_ip = $client->GetIP();
+            my $group = $client->GetGroup();
+            my $raid = $client->GetRaid();
+            my $announced = 0;
+
+            # Group logic
+            if ($group) {
+                for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                    my $member = $group->GetMember($i);
+                    next unless $member;
+                    if ($member->GetIP() == $clicker_ip) {
+                        $member->SetZoneFlag(165);
+                        $announced = 1;
+                    }
+                }
+                quest::we(15, "$name and group members on the same IP have earned access to Shadeweaver’s Thicket.") if $announced;
+            }
+            # Raid logic
+            elsif ($raid) {
+                for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                    my $member = $raid->GetMember($i);
+                    next unless $member;
+                    if ($member->GetIP() == $clicker_ip) {
+                        $member->SetZoneFlag(165);
+                        $announced = 1;
+                    }
+                }
+                quest::we(15, "$name and raid members on the same IP have earned access to Shadeweaver’s Thicket.") if $announced;
+            }
+            # Solo fallback
+            else {
+                $client->SetZoneFlag(165);
+                quest::we(15, "$name has earned access to Shadeweaver’s Thicket.");
+            }
+
             quest::set_data($flag_key, 1);
-            quest::we(15, "$name has earned access to The Shadeweaver's Thicket.");
-            quest::whisper("You have been granted access to the Shadeweaver`s Thicket beyond the breach. May your steps be silent, and your mind sharp.");
-        } else {
-            quest::whisper("You have already been granted access to the the Shadeweaver`s Thicket. There is nothing more for you here.");
+            quest::whisper("You have been granted access to the Shadeweaver’s Thicket beyond the breach. May your steps be silent, and your mind sharp.");
+        }
+        else {
+            quest::whisper("You have already been granted access to the Shadeweaver’s Thicket. Tread softly, nothing more awaits here.");
         }
     }
 }

@@ -29,14 +29,10 @@ sub EVENT_COMBAT {
 	quest::shout("I'm going to serve exactly what you are.....");
         quest::settimer("cast_spell", 50);  # Every 50 seconds
         quest::settimer("life_drain", 45);  # Every 45 seconds
-        quest::settimer("drain_message", 20);  # Every 20 seconds
+        quest::settimer("drain_message", 45);  # Every 20 seconds
 
         foreach my $entity ($entity_list->GetClientList()) {
             $entity->Message(14, "Hope you don’t mind a little mess, it's about to get real gooey in here!");
-        }
-
-        foreach my $bot ($entity_list->GetBotList()) {
-            #$bot->Message(14, "Hope you don’t mind a little mess, it's about to get real gooey in here!");
         }
     } 
     elsif ($combat_state == 0) {  # Out of combat

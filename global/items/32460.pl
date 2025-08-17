@@ -1,12 +1,27 @@
 sub EVENT_ITEM_CLICK {
-    my $clicked_check = $client->GetBucket("-portOn");
-    if($itemid == 32460) {  # Updated item ID
-        if (!$clicked_check) {            
-            # Move to Charasis zone (ID 105) with specified coordinates and heading
-            $client->MovePC(105, 0.00, 0.00, 4.75, 0.00);
-            $client->SetBucket("-portOn", 1, 120);
-        } else {
-            quest::message(315, "You must wait [" . quest::secondstotime($client->GetBucketRemaining("-portOn")) . "] to use again");
+    my $clicker_ip = $client->GetIP();
+    my $group = $client->GetGroup();
+
+    if ($group) {
+        for (my $i = 0; $i < $group->GroupCount(); $i++) {
+            my $member = $group->GetMember($i);
+            next unless $member;
+
+            if ($member->GetIP() == $clicker_ip) {
+                $member->Message(15, "You have earned access to The Howling Stones.");
+                $member->SetZoneFlag(105);
+            }
         }
+
+        quest::we(14, "$name and group members on the same IP have earned access to The Howling Stones.");
+    } else {
+        # Solo player
+        $client->SetZoneFlag(105);
+        quest::we(14, "$name has earned access to The Howling Stones.");
+    }
+
+    # Remove the item if it exists
+    if (quest::countitem(32460) >= 1) {
+        quest::removeitem(32460, 1);
     }
 }

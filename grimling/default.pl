@@ -278,13 +278,13 @@ sub EVENT_DEATH_COMPLETE {
         my $raid = $client->GetRaid();
         for (my $i = 0; $i < $raid->RaidCount(); $i++) {
             my $m = $raid->GetMember($i);
-            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() eq $base_ip;
+            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() == $base_ip;
         }
     } elsif ($client->GetGroup()) {
         my $group = $client->GetGroup();
         for (my $i = 0; $i < $group->GroupCount(); $i++) {
             my $m = $group->GetMember($i);
-            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() eq $base_ip;
+            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() == $base_ip;
         }
     } else {
         push @ip_clients, $client;

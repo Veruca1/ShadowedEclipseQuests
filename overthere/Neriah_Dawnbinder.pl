@@ -8,40 +8,60 @@ sub EVENT_SAY {
 }
 
 sub EVENT_ITEM {
-	# Define the item IDs
-	my $howling_stones_item = 32460;  # Item required for Howling Stones access
-	my $love_letter_item = 32471;     # Love Letter from Drusella to Venril
-	
-	# Check if the player handed in the task completion item for Howling Stones access
+	my $howling_stones_item = 32460;   # Item required for Howling Stones access
+	my $love_letter_item    = 32471;   # Love Letter from Drusella to Venril
+
+	my $clicker_ip = $client->GetIP();
+	my $group = $client->GetGroup();
+	my $raid = $client->GetRaid();
+	my $flagged = 0;
+
 	if (plugin::check_handin(\%itemcount, $howling_stones_item => 1)) {
-		# Grant access to Howling Stones by setting the zone flag
-		quest::set_zone_flag(105);   # Set zone flag for Howling Stones
+		if ($group) {
+			for (my $i = 0; $i < $group->GroupCount(); $i++) {
+				my $member = $group->GetMember($i);
+				next unless $member;
+				if ($member->GetIP() == $clicker_ip) {
+					$member->SetZoneFlag(105);
+					$member->Message(15, "You now have access to Howling Stones. Tread carefully, for it is filled with great danger.");
+					$member->AssignTask(16);
+					$flagged = 1;
+				}
+			}
+		 if ($flagged) {
+			 quest::we(14, "$name and group members on the same IP have earned access to Howling Stones!");
+		 }
+		} elsif ($raid) {
+			for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+				my $member = $raid->GetMember($i);
+				next unless $member;
+				if ($member->GetIP() == $clicker_ip) {
+					$member->SetZoneFlag(105);
+					$member->Message(15, "You now have access to Howling Stones. Tread carefully, for it is filled with great danger.");
+					$member->AssignTask(16);
+					$flagged = 1;
+				}
+			}
+			if ($flagged) {
+				quest::we(14, "$name and raid members on the same IP have earned access to Howling Stones!");
+			}
+		} else {
+			$client->SetZoneFlag(105);
+			quest::we(14, "$name has earned access to Howling Stones!");
+			quest::whisper("You now have access to Howling Stones. Tread carefully, for it is filled with great danger.");
+			quest::assigntask(16);
+		}
 
-		# Announce to the whole zone that the player has been granted access to Howling Stones
-		quest::we(14, "$name has earned access to Howling Stones!");
-
-		# Notify the player that they now have access
-		quest::whisper("You now have access to Howling Stones. Tread carefully, for it is filled with great danger.");
-		
-		# Assign quest/task 16 to the player
-		quest::assigntask(16);  # Assign task ID 16
-		
-		# Optionally, provide experience points or additional rewards
 		quest::exp(1000);
-		
-		# Return the item 32460 since it is needed for Charasis access
-		quest::summonitem($howling_stones_item);
+		quest::summonitem($howling_stones_item);  # Return the item, used later
 	}
-	# Check if the player hands in the Love Letter from Drusella to Venril
 	elsif (plugin::check_handin(\%itemcount, $love_letter_item => 1)) {
-		# Grant the player the Tomb Raider title (suffix)
-		$client->SetTitleSuffix("Tomb Raider", 1);  # Correct: grant suffix title
-		$client->NotifyNewTitlesAvailable();        # Refresh available titles list
+		$client->SetTitleSuffix("Tomb Raider", 1);
+		$client->NotifyNewTitlesAvailable();
 		quest::whisper("What a significant find! This letter reveals secrets long buried. For such a discovery, you shall be known as 'Tomb Raider'.");
 		quest::we(13, "$name has uncovered ancient secrets and earned the title Tomb Raider!");
-		quest::discordsend("titles", "$name has earned the title of Tomb Raider!");        
-		# Summon item 33177 as an additional reward
-		quest::summonitem(33177);  # Summon item with ID 33177
+		quest::discordsend("titles", "$name has earned the title of Tomb Raider!");
+		quest::summonitem(54269);
 	}
 
 	plugin::return_items(\%itemcount);

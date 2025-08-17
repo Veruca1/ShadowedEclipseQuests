@@ -57,7 +57,7 @@ sub EVENT_COMBAT {
         quest::settimer("heat_aura", 1);  # Heat damage every second
 
         # One-time heat warning shout
-        quest::shout("The searing heat surges outward — step too close and you will burn!");
+        #quest::shout("The searing heat surges outward — step too close and you will burn!");
 
         # Optional: Client message for more subtle notice
         foreach my $entity ($entity_list->GetClientList()) {

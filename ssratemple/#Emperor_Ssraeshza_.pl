@@ -8,9 +8,15 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_TIMER {
-  quest::stoptimer("EmpDepop");
-  quest::signalwith(162260,3,0); #EmpCycle
-  quest::depop();
+  if ($timer eq "EmpDepop") {
+    quest::stoptimer("EmpDepop");
+    #quest::signalwith(162260,3,0); #EmpCycle
+    quest::depop();
+  }
+  elsif ($timer eq "SpawnNoTargetEmp") {
+    quest::stoptimer("SpawnNoTargetEmp");
+    quest::spawn2(162189, 0, 0, 990.0, -325.0, 415.0, 384); # NoTarget Emperor
+  }
 }
 
 sub EVENT_COMBAT {
@@ -27,11 +33,13 @@ sub EVENT_DEATH_COMPLETE {
   quest::spawn2(162210,0,0,953, -356, 404,385); # NPC: A_shissar_wraith
   quest::spawn2(162210,0,0,773, -360, 403,128); # NPC: A_shissar_wraith
   quest::spawn2(162210,0,0,770, -289, 403,128); # NPC: A_shissar_wraith
-  quest::signalwith(162260,2,0); #EmpCycle
+
+  # Start a 10 minute timer to spawn 162065
+  quest::settimer("SpawnNoTargetEmp", 600);
 }
 
 sub EVENT_SLAY {
   quest::say("Your god has found you lacking.");
 }
 
-# EOF zone: ssratemple ID: 162227 NPC: #Emperor_Ssraeshza_ (Real)
+# EOF zone: ssratemple ID: 2190 NPC: #Emperor_Ssraeshza_ (Real)

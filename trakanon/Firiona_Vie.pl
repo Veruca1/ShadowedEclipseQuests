@@ -100,96 +100,111 @@ sub EVENT_SAY {
     }
 }
 
-
 sub EVENT_ITEM {
-    # Check if the player hands in item 382 (Firiona's Filled Satchel)
-    if (plugin::check_handin(\%itemcount, 382 => 1)) {
-        my $char_id = $client->CharacterID(); 
-        my $bot_limit_flag = "$char_id-bot_spawn_limit"; # New flag for bot spawn limits
-        
-        quest::message(14, "Thanks for your service, Savior! That was no easy feat. As promised, here is your extra companion.");
-        
-        # Check the current bot spawn limit
-        if (quest::get_data($bot_limit_flag) == 3) {
-            # If the player previously had a limit of 3, increase to 4
-            $client->SetBotSpawnLimit(4);
-            quest::we("Help me congratulate $name! They have upgraded their bot spawn limit to 4!");
-        } else {
-            # If this is their first limit increase, set it to 4
-            $client->SetBotSpawnLimit(4);
-            quest::we(14, "Help me congratulate $name! They have upgraded their bot spawn limit to 4!");
-        }
-        
-        # Set or update the new limit flag
-        quest::set_data($bot_limit_flag, 4); 
+    my $clicker_ip = $client->GetIP();
+    my $group = $client->GetGroup();
+    my $raid = $client->GetRaid();
 
-	# Give the player item 384
-        quest::summonitem(384); # Add item 384 to the player's inventory
-        
+    # Item 382: Firiona's Filled Satchel – Bot Limit Expansion
+    if (plugin::check_handin(\%itemcount, 382 => 1)) {
+        my @members = $group ? map { $group->GetMember($_) } (0 .. $group->GroupCount() - 1)
+                     : $raid  ? map { $raid->GetMember($_) }  (0 .. $raid->RaidCount() - 1)
+                     : ($client);
+
+        foreach my $member (@members) {
+            next unless $member && $member->GetIP() == $clicker_ip;
+
+            my $char_id = $member->CharacterID();
+            my $bot_limit_flag = "$char_id-bot_spawn_limit";
+
+            $member->Message(14, "Thanks for your service, Savior! That was no easy feat. As promised, here is your extra companion.");
+
+            if (quest::get_data($bot_limit_flag) == 3) {
+                $member->SetBotSpawnLimit(4);
+                quest::we("Help me congratulate " . $member->GetName() . "! They have upgraded their bot spawn limit to 4!");
+            } else {
+                $member->SetBotSpawnLimit(4);
+                quest::we(14, "Help me congratulate " . $member->GetName() . "! They have upgraded their bot spawn limit to 4!");
+            }
+
+            quest::set_data($bot_limit_flag, 4);
+            $member->SummonItem(384);
+        }
     }
-    # If the player hands in item 262
+
+    # Item 262: Access to Sebilis (ZoneID 89)
     elsif (plugin::check_handin(\%itemcount, 262 => 1)) {
-        # Grant access to Sebilis by setting the zone flag
-        quest::set_zone_flag(89);   # Set zone flag for Sebilis
-        
-        # Announce to the whole zone that the player has been granted access to Sebilis
-        quest::we(14, $name . " has earned access to Sebilis!");
-        
-        # Respond to the player after hand-in
-        quest::whisper("Hello again adventurer. Thank you again for saving me in Karnors. I have since learned about the time manipulation this Chronomancer Zarrin has been up to. We have discovered, with the help of Al`Kabor here, that the Chronomancer has been hiding in an alternate version of Sebilis. Please investigate and report back with findings of anything unusual.");
-        
-        # Offering a teleport option
+        my $flagged = 0;
+        my @members = $group ? map { $group->GetMember($_) } (0 .. $group->GroupCount() - 1)
+                     : $raid  ? map { $raid->GetMember($_) }  (0 .. $raid->RaidCount() - 1)
+                     : ($client);
+
+        foreach my $member (@members) {
+            next unless $member && $member->GetIP() == $clicker_ip;
+            $member->SetZoneFlag(89);
+            $member->Message(14, "You have earned access to Sebilis!");
+            $flagged = 1;
+        }
+
+        if ($flagged) {
+            quest::we(14, "$name and party members on the same IP have earned access to Sebilis!");
+        } else {
+            $client->SetZoneFlag(89);
+            quest::we(14, "$name has earned access to Sebilis!");
+        }
+
+        quest::whisper("Hello again adventurer. Thank you again for saving me in Karnors...");
         quest::whisper("Please select your destination by clicking the option below: " . quest::saylink("Sebilis", 1) . ".");
     }
 
-    # If the player hands in item 383
+    # Item 383: Savior of Kunark – Multiple Zone Flags
     elsif (plugin::check_handin(\%itemcount, 383 => 1)) {
-        quest::whisper("This absolutely astonishing! I had feared we all may be doomed. Praise Tunare you are victorious, you shall be dubbed Savior of Kunark!");
-        quest::whisper("The letter you have there only bears the news that even though we are finally victorious, it seems we have perhaps only just begun the fight against the Shadowed Eclipse.");
-
-        # Grant the title "Savior of Kunark"
+        quest::whisper("This absolutely astonishing! I had feared we all may be doomed...");
         quest::enabletitle(402);
-
-        # Assign quest/task ID 27
         quest::assigntask(27);
+        quest::whisper("Let's get you another companion as it has been a while...");
 
-        # Additional message after assigning the task
-        quest::whisper("Let's get you another companion as it has been a while. It should help you with what's to come.");
+        my @flags = (74, 101, 39, 407, 18, 72, 59, 64, 66, 71);
+        my $flagged = 0;
+        my @members = $group ? map { $group->GetMember($_) } (0 .. $group->GroupCount() - 1)
+                     : $raid  ? map { $raid->GetMember($_) }  (0 .. $raid->RaidCount() - 1)
+                     : ($client);
 
-        # Grant access to multiple zones
-        quest::set_zone_flag(74);    # kerraridge
-        quest::set_zone_flag(101);   # warrens
-        quest::set_zone_flag(39);    # hole
-        quest::set_zone_flag(407);   # highpasshold
-        quest::set_zone_flag(18);    # paw
-        quest::set_zone_flag(72);    # fearplane
-        quest::set_zone_flag(59);    # mistmoore
-        quest::set_zone_flag(64);    # kedge
-        quest::set_zone_flag(66);    # gukbottom
-        quest::set_zone_flag(71);    # airplane
+        foreach my $member (@members) {
+            next unless $member && $member->GetIP() == $clicker_ip;
+
+            foreach my $zoneid (@flags) {
+                $member->SetZoneFlag($zoneid);
+            }
+
+            $flagged = 1;
+        }
+
+        if ($flagged) {
+            quest::we(14, "$name and party members on the same IP have earned multiple zone accesses!");
+        } else {
+            foreach my $zoneid (@flags) {
+                $client->SetZoneFlag($zoneid);
+            }
+        }
     }
-
-    # No need to return the item; it is consumed
 }
 
-
 sub EVENT_COMBAT {
-    # Start casting the spell when engaged in combat
     if ($combat_state == 1) {
-        quest::castspell(21387, $npc->GetID());  # Cast spell on self
-        quest::settimer("recast_spell", 90);  # Set timer for recasting (90 seconds)
+        quest::castspell(21387, $npc->GetID());
+        quest::settimer("recast_spell", 90);
     } elsif ($combat_state == 0) {
-        quest::stoptimer("recast_spell");  # Stop the timer when combat ends
+        quest::stoptimer("recast_spell");
     }
 }
 
 sub EVENT_TIMER {
     if ($timer eq "recast_spell") {
-        quest::castspell(21387, $npc->GetID());  # Recast spell on self
+        quest::castspell(21387, $npc->GetID());
     }
 
     if ($timer eq "recast_buffs") {
-        # Reapply all buffs periodically
         my @buffs = (167, 2177, 161, 649, 2178, 21387);
         foreach my $spell_id (@buffs) {
             quest::castspell($spell_id, $npc->GetID());

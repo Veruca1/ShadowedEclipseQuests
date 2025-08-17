@@ -10,7 +10,7 @@ sub EVENT_SPAWN {
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
-    quest::shout("The Mirror tilts toward the eclipse... soon, you will feel its pull.");
+    quest::shout("Hahhahaha! Well well well, my old friend. Still at it are you? She will consume you in the planes, you know this right?");
 
     # Base stats
     $npc->SetNPCFactionID(623);
@@ -117,41 +117,49 @@ sub EVENT_TIMER {
         quest::castspell(40783, $npc->GetID());
     }
     elsif ($timer eq "mirror_check") {
-    return if $checked_mirror;
-    my $hp_pct = int($npc->GetHPRatio());
-    return if $hp_pct > 80 || $hp_pct < 10;
+        return if $checked_mirror;
+        my $hp_pct = int($npc->GetHPRatio());
+        return if $hp_pct > 80 || $hp_pct < 10;
 
-    foreach my $client ($entity_list->GetClientList()) {
-        next unless $client;
-        next if $client->GetHP() <= 0;
+        foreach my $client ($entity_list->GetClientList()) {
+            next unless $client;
+            next if $client->GetHP() <= 0;
 
-        my $item = $client->GetItemAt(22);
-        my $item_id = $item ? $item->GetID() : 0;
-        my $has_mirror = ($item_id == 49764);
-        my $has_buff = $client->FindBuff(40778);
+            my $item = $client->GetItemAt(22);
+            my $item_id = $item ? $item->GetID() : 0;
+            my $has_mirror = ($item_id == 49764);
+            my $has_buff   = $client->FindBuff(40778);
 
-        # Require both the item and the buff
-        next unless $has_mirror && $has_buff;
+            # Require both the item and the buff
+            next unless $has_mirror && $has_buff;
 
-        my $roll = int(rand(100));
-        if ($roll < 20) {
-            quest::shout("The mirror cracks... and something darker stirs.");
-            $npc->ModifyNPCStat("max_hp", int($npc->GetMaxHP() * 1.5));
-            $npc->ModifyNPCStat("min_hit", int($npc->GetMinDMG() * 1.5));
-            $npc->ModifyNPCStat("max_hit", int($npc->GetMaxDMG() * 1.5));
-            $npc->ModifyNPCStat("atk", int($npc->GetATK() * 1.5));
-            $npc->ModifyNPCStat("attack_delay", 5);
-            $npc->ModifyNPCStat("heroic_strikethrough", 24);
-            $npc->SetHP($npc->GetMaxHP());
-            $npc->CastSpell(21388, $npc->GetID()) if !$npc->FindBuff(21388);
-            $npc->SetNPCTintIndex(30);
+            my $roll = int(rand(100));
+            if ($roll < 25) {
+                quest::shout("The mirror cracks... and something darker stirs.");
+                $npc->ModifyNPCStat("max_hp", int($npc->GetMaxHP() * 1.5));
+                $npc->ModifyNPCStat("min_hit", int($npc->GetMinDMG() * 1.5));
+                $npc->ModifyNPCStat("max_hit", int($npc->GetMaxDMG() * 1.5));
+                $npc->ModifyNPCStat("atk", int($npc->GetATK() * 1.5));
+                $npc->ModifyNPCStat("attack_delay", 5);
+                $npc->ModifyNPCStat("heroic_strikethrough", 24);
+                $npc->SetHP($npc->GetMaxHP());
+                $npc->CastSpell(21388, $npc->GetID()) if !$npc->FindBuff(21388);
+                $npc->SetNPCTintIndex(30);
+
+                # --- Add title on transform ---
+                my $base_name = $npc->GetCleanName();
+                my $title_tag = "the Reflected";
+                my $new_name  = ($base_name =~ /\bReflected\b/i) ? $base_name : "$base_name $title_tag";
+                $npc->TempName($new_name);
+                $npc->ModifyNPCStat("lastname", "Reflected");
+                # --- end title ---
+            }
+
+            $checked_mirror = 1;
+            quest::stoptimer("mirror_check");
+            last;
         }
-
-        $checked_mirror = 1;
-        quest::stoptimer("mirror_check");
-        last;
     }
-}
 }
 
 sub Summon_Minions {

@@ -10,32 +10,127 @@ sub EVENT_SAY {
 }
 
 sub EVENT_ITEM {
-    if (plugin::check_handin(\%itemcount, 539 => 1)) { # Check if given item 539
-        quest::set_zone_flag(118); # Grant access to The Great Divide
-        quest::we(14, "$name has earned access to The Great Divide!"); # Announce to the zone
-        my $saylink = quest::saylink("to go", 1); # Create the saylink
+    if (plugin::check_handin(\%itemcount, 539 => 1)) { # The Great Divide
+        my $clicker_ip = $client->GetIP();
+        my $group = $client->GetGroup();
+        my $raid = $client->GetRaid();
+
+        if ($group) {
+            for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                my $member = $group->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    $member->SetZoneFlag(118);
+                }
+            }
+            quest::we(14, "$name and group members on the same IP have earned access to The Great Divide!");
+        } elsif ($raid) {
+            for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                my $member = $raid->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    $member->SetZoneFlag(118);
+                }
+            }
+            quest::we(14, "$name and raid members on the same IP have earned access to The Great Divide!");
+        } else {
+            $client->SetZoneFlag(118);
+            quest::we(14, "$name has earned access to The Great Divide!");
+        }
+        my $saylink = quest::saylink("to go", 1);
         quest::whisper("Arr, ye now 'ave access to The Great Divide! Seek out an old friend there; they'll guide ye further on this journey. Would ye like to [$saylink] there now?");
     }
-    elsif (plugin::check_handin(\%itemcount, 512 => 1)) { # Check if given item 512
-        quest::set_zone_flag(111); # Grant access to Tower of Frozen Shadows
-        quest::we(14, "$name has earned access to The Tower of Frozen Shadows!"); # Announce to the zone
-        quest::whisper("Well, ye now 'ave access to that terrible tower. Not sure why ye'd want to go in there. Nobody ever leaves, and that's by choice. Word is, some veiled influence 'as made Tserrina 'erself change 'er focus. Good luck, matey, ye'll need it!");
+    elsif (plugin::check_handin(\%itemcount, 512 => 1)) { # Tower of Frozen Shadows
+        my $clicker_ip = $client->GetIP();
+        my $group = $client->GetGroup();
+        my $raid = $client->GetRaid();
+
+        if ($group) {
+            for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                my $member = $group->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    $member->SetZoneFlag(111);
+                }
+            }
+            quest::we(14, "$name and group members on the same IP have earned access to The Tower of Frozen Shadows!");
+        } elsif ($raid) {
+            for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                my $member = $raid->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    $member->SetZoneFlag(111);
+                }
+            }
+            quest::we(14, "$name and raid members on the same IP have earned access to The Tower of Frozen Shadows!");
+        } else {
+            $client->SetZoneFlag(111);
+            quest::we(14, "$name has earned access to The Tower of Frozen Shadows!");
+        }
+        quest::whisper("Well, ye now 'ave access to that terrible tower. Not sure why ye'd want to go in there...");
     }
-    elsif (plugin::check_handin(\%itemcount, 528 => 1)) { # Check if given item 528
-        quest::set_zone_flag(121); # Grant access to Crystal Caverns
-        quest::we(14, "$name has earned access to The Crystal Caverns!"); # Announce to the zone
-        quest::whisper("Congratulations, adventurer! The Crystal Caverns await ye. Watch out for the shadows, and tread carefully through the caverns' icy embrace.");
+    elsif (plugin::check_handin(\%itemcount, 528 => 1)) { # Crystal Caverns
+        my $clicker_ip = $client->GetIP();
+        my $group = $client->GetGroup();
+        my $raid = $client->GetRaid();
+
+        if ($group) {
+            for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                my $member = $group->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    $member->SetZoneFlag(121);
+                }
+            }
+            quest::we(14, "$name and group members on the same IP have earned access to The Crystal Caverns!");
+        } elsif ($raid) {
+            for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                my $member = $raid->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    $member->SetZoneFlag(121);
+                }
+            }
+            quest::we(14, "$name and raid members on the same IP have earned access to The Crystal Caverns!");
+        } else {
+            $client->SetZoneFlag(121);
+            quest::we(14, "$name has earned access to The Crystal Caverns!");
+        }
+        quest::whisper("Congratulations, adventurer! The Crystal Caverns await ye...");
     }
-    elsif (plugin::check_handin(\%itemcount, 518 => 1)) { # Check if given item 518
-        quest::set_zone_flag(116); # Grant access to Eastern Wastes
-        quest::we(14, "$name has earned access to The Eastern Wastes!"); # Announce to the zone
-        quest::whisper("Ye've earned yer passage to the Eastern Wastes. Watch yer step, it's a treacherous land out there!");
+    elsif (plugin::check_handin(\%itemcount, 518 => 1)) { # Eastern Wastes
+        my $clicker_ip = $client->GetIP();
+        my $group = $client->GetGroup();
+        my $raid = $client->GetRaid();
+
+        if ($group) {
+            for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                my $member = $group->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    $member->SetZoneFlag(116);
+                }
+            }
+            quest::we(14, "$name and group members on the same IP have earned access to The Eastern Wastes!");
+        } elsif ($raid) {
+            for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                my $member = $raid->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    $member->SetZoneFlag(116);
+                }
+            }
+            quest::we(14, "$name and raid members on the same IP have earned access to The Eastern Wastes!");
+        } else {
+            $client->SetZoneFlag(116);
+            quest::we(14, "$name has earned access to The Eastern Wastes!");
+        }
+        quest::whisper("Ye've earned yer passage to the Eastern Wastes...");
     }
-    elsif (plugin::check_handin(\%itemcount, 60333 => 1)) { # Special handling for 60333
+    elsif (plugin::check_handin(\%itemcount, 60333 => 1)) {
         quest::whisper("Thank ye kindly for this, matey! I'll put it to good use.");
-        # Item is not returned intentionally.
     }
     else {
-        plugin::return_items(\%itemcount); # Return any items that don't match
+        plugin::return_items(\%itemcount);
     }
 }

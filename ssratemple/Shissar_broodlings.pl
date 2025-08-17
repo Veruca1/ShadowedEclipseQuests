@@ -62,6 +62,6 @@ sub EVENT_COMBAT {
     if ($combat_state == 1) {
         my $target = $npc->GetTarget();
         $npc->CastSpell(40775, $target->GetID()) if $target;
-        quest::depop_with_timer();
+        $npc->Depop(300); # despawn after 300 seconds
     }
 }

@@ -60,21 +60,21 @@ sub EVENT_SPAWN {
 
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1");
 
-        # ✅ Boss loot
+               # ✅ Boss loot
         my $veru = plugin::verugems();
         my @veru_ids = keys %$veru;
-        $npc->AddItem($veru_ids[int(rand(@veru_ids))]);
+        $npc->AddItem($veru_ids[int(rand(@veru_ids))], 1, 0);  # Not equipped
 
         if (int(rand(100)) < 30) {
             my $letal = plugin::botletal();
             my @letal_ids = keys %$letal;
-            $npc->AddItem($letal_ids[int(rand(@letal_ids))]);
+            $npc->AddItem($letal_ids[int(rand(@letal_ids))], 1, 0);  # Not equipped
         }
 
         if (int(rand(100)) < 20) {
             my $gear = plugin::ch6classgear();
             my @all_gear_ids = map { @{$gear->{$_}} } keys %$gear;
-            $npc->AddItem($all_gear_ids[int(rand(@all_gear_ids))]);
+            $npc->AddItem($all_gear_ids[int(rand(@all_gear_ids))], 1, 0);  # Not equipped
         }
 
         quest::setnexthpevent(75);
@@ -123,15 +123,15 @@ sub EVENT_SPAWN {
 
         $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1");
 
-        # ✅ Non-boss loot
+                # ✅ Non-boss loot
         my $veru = plugin::verugems();
         my @veru_ids = keys %$veru;
-        $npc->AddItem($veru_ids[int(rand(@veru_ids))]);
+        $npc->AddItem($veru_ids[int(rand(@veru_ids))], 1, 0);  # Not equipped
 
         if (int(rand(100)) < 5) {
             my $letal = plugin::botletal();
             my @letal_ids = keys %$letal;
-            $npc->AddItem($letal_ids[int(rand(@letal_ids))]);
+            $npc->AddItem($letal_ids[int(rand(@letal_ids))], 1, 0);  # Not equipped
         }
     }
 
@@ -272,9 +272,8 @@ sub EVENT_DEATH_COMPLETE {
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
-     # 10% spawn chance
+    # 10% spawn chance
     if (quest::ChooseRandom(1..100) <= 13) {
-        #plugin::debug("Spawning 1984 at death location.");
         quest::spawn2(1984, 0, 0, $killed_x, $killed_y, $killed_z, $killed_h);
     }
 
@@ -310,13 +309,13 @@ sub EVENT_DEATH_COMPLETE {
         my $raid = $client->GetRaid();
         for (my $i = 0; $i < $raid->RaidCount(); $i++) {
             my $m = $raid->GetMember($i);
-            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() eq $base_ip;
+            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() == $base_ip;
         }
     } elsif ($client->GetGroup()) {
         my $group = $client->GetGroup();
         for (my $i = 0; $i < $group->GroupCount(); $i++) {
             my $m = $group->GetMember($i);
-            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() eq $base_ip;
+            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() == $base_ip;
         }
     } else {
         push @ip_clients, $client;

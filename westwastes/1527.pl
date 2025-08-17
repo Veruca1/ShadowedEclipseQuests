@@ -2,22 +2,49 @@ sub EVENT_ITEM {
     my $char_id = $client->CharacterID();  # Get the character's unique ID
     my $item_id = 711;  # Charm of the Dragon (ID 711)
     my $flag = "$char_id-dragon_arena_flag";  # Create a unique flag identifier for this event
+    my $clicker_ip = $client->GetIP();
+    my $group = $client->GetGroup();
+    my $raid = $client->GetRaid();
+    my $flagged = 0;
 
     # Check if the player handed in the required item (Charm of the Dragon)
     if (plugin::check_handin(\%itemcount, $item_id => 1)) {
-        # Set the flag indicating the player has completed the hand-in
         quest::set_data($flag, 1);
-        
         plugin::Whisper("You have been flagged for the Dragon Arena Event. Hail me to begin the event.");
     } 
     # Check if the player hands in 4 of item ID 769
     elsif (plugin::check_handin(\%itemcount, 769 => 4)) {
-        quest::set_zone_flag(123);
-        quest::we(14, "$name has earned access to Dragon Necropolis.");
+        if ($group) {
+            for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                my $member = $group->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    $member->SetZoneFlag(123);
+                    $flagged = 1;
+                }
+            }
+            if ($flagged) {
+                quest::we(14, "$name and group members on the same IP have earned access to Dragon Necropolis.");
+            }
+        } elsif ($raid) {
+            for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                my $member = $raid->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip) {
+                    $member->SetZoneFlag(123);
+                    $flagged = 1;
+                }
+            }
+            if ($flagged) {
+                quest::we(14, "$name and raid members on the same IP have earned access to Dragon Necropolis.");
+            }
+        } else {
+            $client->SetZoneFlag(123);
+            quest::we(14, "$name has earned access to Dragon Necropolis.");
+        }
+
         plugin::Whisper("You have been granted access to Dragon Necropolis.");
-    } 
-    else {
-        # Return the item if it's not the correct one
+    } else {
         plugin::return_items(\%itemcount);
     }
 }

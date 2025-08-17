@@ -145,7 +145,7 @@ sub EVENT_TIMER {
             next unless $has_mirror && $has_buff;
 
             my $roll = int(rand(100));
-            if ($roll < 20) {
+            if ($roll < 25) {
                 quest::shout("The mirror cracks... and something darker stirs.");
                 quest::settimer("mirror_tint", 1);
 
@@ -164,6 +164,14 @@ sub EVENT_TIMER {
                 $npc->SetHP($npc->GetMaxHP());
 
                 $npc->CastSpell(21388, $npc->GetID()) if !$npc->FindBuff(21388);
+
+                # --- Add title on transform ---
+                my $base_name = $npc->GetCleanName();
+                my $title_tag = "the Reflected";
+                my $new_name  = ($base_name =~ /\bReflected\b/i) ? $base_name : "$base_name $title_tag";
+                $npc->TempName($new_name);
+                $npc->ModifyNPCStat("lastname", "Reflected");
+                # --- end title ---
             }
 
             $checked_mirror = 1;
@@ -179,4 +187,8 @@ sub EVENT_TIMER {
         quest::stoptimer("mirror_tint");
         $npc->SetNPCTintIndex(30);
     }
+}
+
+sub EVENT_DEATH_COMPLETE {
+    quest::spawn2(2184, 0, 0, -175.25, -917.95, -255.94, 290);
 }

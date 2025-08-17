@@ -271,7 +271,6 @@ sub EVENT_DEATH_COMPLETE {
 
     # 10% spawn chance
     if (quest::ChooseRandom(1..100) <= 13) {
-        #plugin::debug("Spawning 1984 at death location.");
         quest::spawn2(1984, 0, 0, $killed_x, $killed_y, $killed_z, $killed_h);
     }
 
@@ -307,13 +306,13 @@ sub EVENT_DEATH_COMPLETE {
         my $raid = $client->GetRaid();
         for (my $i = 0; $i < $raid->RaidCount(); $i++) {
             my $m = $raid->GetMember($i);
-            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() eq $base_ip;
+            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() == $base_ip;
         }
     } elsif ($client->GetGroup()) {
         my $group = $client->GetGroup();
         for (my $i = 0; $i < $group->GroupCount(); $i++) {
             my $m = $group->GetMember($i);
-            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() eq $base_ip;
+            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() == $base_ip;
         }
     } else {
         push @ip_clients, $client;

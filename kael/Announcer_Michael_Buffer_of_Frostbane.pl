@@ -30,13 +30,13 @@ sub EVENT_ITEM {
 		quest::set_data("$char_id-rematch-1756", 1);
 		quest::whisper("You've earned a rematch with Derakor the Vindicator! Hail me when you're ready.");
 	} elsif (plugin::check_handin(\%itemcount, 674 => 1)) {
-		quest::set_data("$char_id-rematch-1758", 1);
-		quest::whisper("You've earned a rematch with Overseer Hragveld Frostbane! Hail me when you're ready.");
-		$client->EnableTitle(405);  # Correct: grant the title to just this player
-		$client->Message(15, "You have earned the title 'Heavyweight Champion of Kael'!");
-		quest::we(13, "$name has defeated Frostbane's Overseer, and earned the title Heavyweight Champion of Kael!"); # Announce title in orange
-		quest::discordsend("titles", "$name has earned the title of Heavyweight Champion of Kael!");
-	}
+	quest::set_data("$char_id-rematch-1758", 1);
+	quest::whisper("You've earned a rematch with Overseer Hragveld Frostbane! Hail me when you're ready.");
+	quest::enabletitle(405);  # Enable title ID 405 for this player
+	$client->Message(15, "You have earned the title 'Heavyweight Champion of Kael'!");
+	quest::we(13, "$name has defeated Frostbane's Overseer, and earned the title Heavyweight Champion of Kael!");
+	quest::discordsend("titles", "$name has earned the title of Heavyweight Champion of Kael!");
+}
 
 	plugin::return_items(\%itemcount);
 }
@@ -55,7 +55,7 @@ sub EVENT_SAY {
 			quest::whisper("Sorry, kid! This is the **big leagues**, and stepping into the ring doesn't come cheap! It takes **proof of your skill** AND a **hefty price of admission** to earn your shot at glory!");
 		}
 		
-		ListRematches($char_id);
+		ListRematches($client);
 	} elsif ($text =~ /ready to rumble/i) {
 		if (quest::get_data($flag)) {
 			my $last_attempt_time = quest::get_data($cooldown_key);
@@ -264,7 +264,8 @@ sub EVENT_TIMER {
 }
 
 sub ListRematches {
-	my $character_id = shift;
+	my $client = shift;
+	my $character_id = $client->CharacterID();
 
 	my @messages = ();
 
