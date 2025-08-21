@@ -34,7 +34,7 @@ sub EVENT_SPAWN {
     $npc->SetNPCFactionID(623);
     $npc->ModifyNPCStat("level", 75);
     $npc->ModifyNPCStat("ac", 29000);
-    $npc->ModifyNPCStat("max_hp", 250000000);
+    $npc->ModifyNPCStat("max_hp", 300000000);
     $npc->ModifyNPCStat("hp_regen", 1700);
     $npc->ModifyNPCStat("mana_regen", 10000);
     $npc->ModifyNPCStat("min_hit", 40000);
@@ -46,7 +46,7 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
-    $npc->ModifyNPCStat("heroic_strikethrough", 21);
+    $npc->ModifyNPCStat("heroic_strikethrough", 25);
     $npc->ModifyNPCStat("aggro", 55);
     $npc->ModifyNPCStat("assist", 1);
 
@@ -146,4 +146,10 @@ sub EVENT_HP {
             quest::spawn2(2189, 0, 0, $mirror_x, $mirror_y, $mirror_z, $mirror_h);
         }
     }
+}
+
+sub EVENT_DEATH_COMPLETE {
+    quest::spawn2(1712, 0, 0, -82.01, -8.74, -163.54, 139.00);
+    quest::spawn2(1595, 0, 0, -105.02, 37.53, -159.68, 127.75);
+    quest::spawn2(1595, 0, 0, -107.91, -36.63, -159.68, 129.50);
 }

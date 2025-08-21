@@ -7,31 +7,46 @@ sub EVENT_SPAWN {
     my $raw_name = $npc->GetName() || '';
     my $npc_id   = $npc->GetNPCTypeID() || 0;
     return if $npc->IsPet();
-    
+
     # Use plugin to check exclusion list
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
-    
+
     $is_boss = ($raw_name =~ /^#/ || ($npc_id == 1919 && $npc_id != 1974)) ? 1 : 0;
     $npc->SetNPCFactionID(623);
     $wrath_triggered = 0;
 
+    # Check for raid presence: 6+ real clients (bots do NOT count)
+    my $client_count = 0;
+    foreach my $c ($entity_list->GetClientList()) {
+        $client_count++ if $c && $c->GetHP() > 0;
+    }
+    my $is_raid = ($client_count >= 6) ? 1 : 0;
+
     if ($is_boss) {
+        my $ac        = $is_raid ? 30000 * 1.5 : 30000;
+        my $hp        = $is_raid ? 25500000 * 1.5 : 25500000;
+        my $regen     = $is_raid ? 2500 * 1.5 : 2500;
+        my $min_hit   = $is_raid ? 50000 * 1.5 : 50000;
+        my $max_hit   = $is_raid ? 70000 * 1.5 : 70000;
+        my $atk       = $is_raid ? 2500 * 1.5 : 2500;
+        my $accuracy  = $is_raid ? 2000 * 1.5 : 2000;
+
         $npc->ModifyNPCStat("level", 65);
-        $npc->ModifyNPCStat("ac", 30000);
-        $npc->ModifyNPCStat("max_hp", 25500000);
-        $npc->ModifyNPCStat("hp_regen", 2500);
+        $npc->ModifyNPCStat("ac", int($ac));
+        $npc->ModifyNPCStat("max_hp", int($hp));
+        $npc->ModifyNPCStat("hp_regen", int($regen));
         $npc->ModifyNPCStat("mana_regen", 10000);
-        $npc->ModifyNPCStat("min_hit", 50000);
-        $npc->ModifyNPCStat("max_hit", 70000);
-        $npc->ModifyNPCStat("atk", 2500);
-        $npc->ModifyNPCStat("accuracy", 2000);
+        $npc->ModifyNPCStat("min_hit", int($min_hit));
+        $npc->ModifyNPCStat("max_hit", int($max_hit));
+        $npc->ModifyNPCStat("atk", int($atk));
+        $npc->ModifyNPCStat("accuracy", int($accuracy));
         $npc->ModifyNPCStat("avoidance", 50);
-        $npc->ModifyNPCStat("attack_delay", 9);
+        $npc->ModifyNPCStat("attack_delay", $is_raid ? 6 : 9);
         $npc->ModifyNPCStat("attack_speed", 100);
         $npc->ModifyNPCStat("slow_mitigation", 90);
         $npc->ModifyNPCStat("attack_count", 100);
-        $npc->ModifyNPCStat("heroic_strikethrough", 32);
+        $npc->ModifyNPCStat("heroic_strikethrough", $is_raid ? 36 : 32);
         $npc->ModifyNPCStat("aggro", 60);
         $npc->ModifyNPCStat("assist", 1);
 
@@ -42,7 +57,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("wis", 1200);
         $npc->ModifyNPCStat("int", 1200);
         $npc->ModifyNPCStat("cha", 1000);
-        
+
         $npc->ModifyNPCStat("mr", 400);
         $npc->ModifyNPCStat("fr", 400);
         $npc->ModifyNPCStat("cr", 400);
@@ -50,7 +65,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("dr", 400);
         $npc->ModifyNPCStat("corruption_resist", 500);
         $npc->ModifyNPCStat("physical_resist", 1000);
- 
+
         $npc->ModifyNPCStat("runspeed", 2);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
@@ -62,22 +77,34 @@ sub EVENT_SPAWN {
 
         quest::setnexthpevent(75);
 
+        # Set HP again after scaling
+        my $max_hp = $npc->GetMaxHP();
+        $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
+
     } else {
+        my $ac        = $is_raid ? 20000 * 1.5 : 20000;
+        my $hp        = $is_raid ? 6500000 * 1.5 : 6500000;
+        my $regen     = $is_raid ? 800 * 1.5 : 800;
+        my $min_hit   = $is_raid ? 24000 * 1.5 : 24000;
+        my $max_hit   = $is_raid ? 40000 * 1.5 : 40000;
+        my $atk       = $is_raid ? 2500 * 1.5 : 2500;
+        my $accuracy  = $is_raid ? 1800 * 1.5 : 1800;
+
         $npc->ModifyNPCStat("level", 62);
-        $npc->ModifyNPCStat("ac", 20000);
-        $npc->ModifyNPCStat("max_hp", 6500000);
-        $npc->ModifyNPCStat("hp_regen", 800);
+        $npc->ModifyNPCStat("ac", int($ac));
+        $npc->ModifyNPCStat("max_hp", int($hp));
+        $npc->ModifyNPCStat("hp_regen", int($regen));
         $npc->ModifyNPCStat("mana_regen", 10000);
-        $npc->ModifyNPCStat("min_hit", 24000);
-        $npc->ModifyNPCStat("max_hit", 40000);
-        $npc->ModifyNPCStat("atk", 2500);
-        $npc->ModifyNPCStat("accuracy", 1800);
+        $npc->ModifyNPCStat("min_hit", int($min_hit));
+        $npc->ModifyNPCStat("max_hit", int($max_hit));
+        $npc->ModifyNPCStat("atk", int($atk));
+        $npc->ModifyNPCStat("accuracy", int($accuracy));
         $npc->ModifyNPCStat("avoidance", 50);
-        $npc->ModifyNPCStat("attack_delay", 10);
+        $npc->ModifyNPCStat("attack_delay", $is_raid ? 8 : 10);
         $npc->ModifyNPCStat("attack_speed", 100);
         $npc->ModifyNPCStat("slow_mitigation", 80);
         $npc->ModifyNPCStat("attack_count", 100);
-        $npc->ModifyNPCStat("heroic_strikethrough", 22);
+        $npc->ModifyNPCStat("heroic_strikethrough", $is_raid ? 26 : 22);
         $npc->ModifyNPCStat("aggro", 55);
         $npc->ModifyNPCStat("assist", 1);
 
@@ -105,10 +132,11 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_improved_hide", 1);
 
         $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1");
-    }
 
-    my $max_hp = $npc->GetMaxHP();
-    $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
+        # Set HP again after scaling
+        my $max_hp = $npc->GetMaxHP();
+        $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
+    }
 }
 
 # --- NEW: spawn Paradigm_of_Reflection (2178) 20s after a player enters,
@@ -370,7 +398,7 @@ sub EVENT_DEATH_COMPLETE {
 
                 $pc->Message(14, "You have earned the title: Snake Slayer!");
                 quest::we(13, "$pname has earned the title Snake Slayer!");
-                quest::discordsend("titles", "$pname has earned the title of SNake Slayer!");
+                quest::discordsend("titles", "$pname has earned the title of Snake Slayer!");
             }
         }
     }

@@ -3,6 +3,9 @@ sub EVENT_ITEM_CLICK {
     my $cooldown_seconds = 30;
     my $cooldown_var = "hammer_maiden_cd";
 
+    # Client validity check
+    return unless $client;
+
     # Level check
     if ($ulevel < 61) {
         $client->Message(15, "You are not powerful enough to wield the Hammer of the Maiden.");
@@ -28,28 +31,11 @@ sub EVENT_ITEM_CLICK {
     # Set cooldown
     $client->SetBucket($cooldown_var, $now);
 
-    # AoE damage to all nearby NPCs
-    my @npcs = $entity_list->GetNPCList();
-    my $hit = 0;
+    # Use built-in area damage function (much safer!)
+    # Note: Check your EQEmu version for exact function signature
+    $client->DamageAreaNPCs(500000, 30);
 
-    foreach my $npc (@npcs) {
-        next unless $npc;
-        next if $npc->IsPet();
-        next if $npc->IsCorpse();
-        next if $npc->GetHPRatio() <= 0;
-
-        my $dist = $npc->CalculateDistance($client->GetX(), $client->GetY(), $client->GetZ());
-        if ($dist <= 30) {
-            $npc->Damage($client, 500000, 0, true);
-            $hit = 1;
-        }
-    }
-
-    # Camera shake if it actually hits something
-    if ($hit) {
-        $client->CameraEffect(1000, 2.0);
-        $client->Message(13, "You slam the Hammer of the Maiden into the ground, sending shockwaves through the earth doing 500k damage to enemies within a 30 raius!");
-    } else {
-        $client->Message(15, "Nothing is close enough to feel the hammer’s fury.");
-    }
+    # Show camera shake effect
+    $client->CameraEffect(1000, 2.0);
+    $client->Message(13, "You slam the Hammer of the Maiden into the ground, sending shockwaves through the earth!");
 }

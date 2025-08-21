@@ -30,11 +30,11 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("atk", 1700);
     $npc->ModifyNPCStat("accuracy", 1800);
     $npc->ModifyNPCStat("avoidance", 100);
-    $npc->ModifyNPCStat("attack_delay", 6);
+    $npc->ModifyNPCStat("attack_delay", 4);
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
-    $npc->ModifyNPCStat("heroic_strikethrough", 19);
+    $npc->ModifyNPCStat("heroic_strikethrough", 36);
     $npc->ModifyNPCStat("aggro", 55);
     $npc->ModifyNPCStat("assist", 1);
 
@@ -62,7 +62,26 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("see_improved_hide", 1);
     $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1^31,1");
 
+    # ✅ Guaranteed loot
+    my $veru = plugin::verugems();
+    my @veru_ids = keys %$veru;
+    $npc->AddItem($veru_ids[int(rand(@veru_ids))]);
+
+    my $gear = plugin::ch6classgear();
+    my @gear_ids = map { @{$gear->{$_}} } keys %$gear;
+    for (1..5) {
+        $npc->AddItem($gear_ids[int(rand(@gear_ids))]);
+    }
+
+    my $cred = plugin::huntercred();
+    my @cred_ids = keys %$cred;
+    for (1..5) {
+        $npc->AddItem($cred_ids[0]);
+    }
+
     $npc->SetHP($npc->GetMaxHP());
+
+    quest::setnexthpevent(75);
 }
 
 sub EVENT_COMBAT {
@@ -70,13 +89,38 @@ sub EVENT_COMBAT {
 
     if ($combat_state == 1) {
         quest::settimer("lunar_eclipse", 60);
-        quest::settimer("wrath_of_luclin", 30);
+        quest::settimer("wrath_of_luclin", 15);
         quest::settimer("mirror_check", 5);
     } else {
         quest::stoptimer("lunar_eclipse");
         quest::stoptimer("wrath_of_luclin");
         quest::stoptimer("mirror_check");
         $checked_mirror = 0;
+    }
+}
+
+sub EVENT_HP {
+    if ($hpevent == 75 || $hpevent == 25) {
+        return if $npc->FindBuff(40745);
+
+        quest::shout("Minions of darkness, lend me your strength!");
+        my $top = $npc->GetHateTop();
+        return unless $top;
+
+        foreach my $mob ($entity_list->GetNPCList()) {
+            next unless $mob && $mob->GetID() != $npc->GetID();
+            my $dist = $npc->CalculateDistance($mob);
+            $mob->AddToHateList($top, 1) if defined $dist && $dist <= 300;
+        }
+
+        # Spawn 3 adds, randomly from 2179 and 2180
+        my @add_npcs = (2179, 2180);
+        for (1..6) {
+            my $chosen = $add_npcs[int(rand(@add_npcs))];
+            quest::spawn2($chosen, 0, 0, $npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
+        }
+
+        quest::setnexthpevent(25) if $hpevent == 75;
     }
 }
 
@@ -105,7 +149,7 @@ sub EVENT_TIMER {
             $npc->Shout("My Wrath is unleashed!");
             my ($x, $y, $z) = ($npc->GetX(), $npc->GetY(), $npc->GetZ());
             my $radius = 50;
-            my $dmg = 30000;
+            my $dmg = 100000;
             my $excluded = plugin::GetExclusionList();
 
             foreach my $c ($entity_list->GetClientList()) {
@@ -154,19 +198,20 @@ sub EVENT_TIMER {
                 $npc->ModifyNPCStat("min_hit", int($npc->GetMinDMG() * 1.5));
                 $npc->ModifyNPCStat("max_hit", int($npc->GetMaxDMG() * 1.5));
                 $npc->ModifyNPCStat("atk", int($npc->GetATK() * 1.5));
-                $npc->ModifyNPCStat("attack_delay", 5);
+                $npc->ModifyNPCStat("attack_delay", 3);
                 $npc->ModifyNPCStat("heroic_strikethrough", 20);
                 $npc->SetHP($npc->GetMaxHP());
                 $npc->CastSpell(21388, $npc->GetID()) if !$npc->FindBuff(21388);
                 $npc->SetNPCTintIndex(30);
 
-                # --- Add title on transform ---
                 my $base_name = $npc->GetCleanName();
                 my $title_tag = "the Reflected";
                 my $new_name  = ($base_name =~ /\bReflected\b/i) ? $base_name : "$base_name $title_tag";
                 $npc->TempName($new_name);
                 $npc->ModifyNPCStat("lastname", "Reflected");
-                # --- end title ---
+
+                my @reflected_loot = (54951, 54952, 54953, 54960, 51989);
+                $npc->AddItem($reflected_loot[int(rand(@reflected_loot))]);
             }
 
             $checked_mirror = 1;

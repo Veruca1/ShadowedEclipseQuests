@@ -68,6 +68,9 @@ sub EVENT_COMBAT {
 }
 
 sub EVENT_DEATH_COMPLETE {
-     #quest::depop(162065); # NoTarget Emperor
-     quest::spawn2(2190, 0, 0, 990.0, -325.0, 415.0, 384); # Real Emperor
+    my $npc_id = 2190; # Real Emperor
+
+    if (!$entity_list->GetMobByNpcTypeID($npc_id)) {
+        quest::spawn2($npc_id, 0, 0, 990.0, -325.0, 415.0, 384);
+    }
 }

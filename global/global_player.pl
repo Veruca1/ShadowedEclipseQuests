@@ -121,6 +121,7 @@ sub EVENT_EQUIP_ITEM_CLIENT {
 }
 
 sub EVENT_TIMER {
+	return if plugin::handle_timer($client, $timer, $entity_list);
 	if ($timer eq "delayed_pet_scale") {
 		quest::stoptimer("delayed_pet_scale");
 		plugin::scale_player_pet($client);
@@ -202,7 +203,10 @@ sub EVENT_DAMAGE_TAKEN {
 }
 
 
-
+sub EVENT_GROUP_CHANGE {
+    # Handle autoloot group functionality
+    plugin::handle_group_change($client);
+}
 
 
 

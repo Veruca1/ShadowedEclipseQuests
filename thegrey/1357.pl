@@ -37,7 +37,7 @@ sub EVENT_SAY {
 
 sub CreateCustomDZ {
     my ($shortname, $fullname) = @_;
-    my $dz_duration = 14400; # 4 hours duration
+    my $dz_duration = 86400; # 24 hours duration
     my $min_players = 1;
     my $max_players = 6;
     my $expedition_name = "DZ - $fullname";
