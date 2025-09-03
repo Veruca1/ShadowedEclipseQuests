@@ -23,7 +23,7 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();  # Get the character's unique ID
     my $flag = "$char_id-horizon_flag";  # The flag for this NPC
     my $cooldown_key = "$char_id-horizon_cooldown";  # A unique cooldown key
-    my $cooldown_time = 1200;  # 20-minute cooldown in seconds
+    my $cooldown_time = 60;  # 1-minute cooldown in seconds
 
     # Check if the flag for the item hand-in is set
     if ($text =~ /hail/i) {

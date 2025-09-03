@@ -116,19 +116,22 @@ sub EVENT_ITEM {
 
             my $char_id = $member->CharacterID();
             my $bot_limit_flag = "$char_id-bot_spawn_limit";
+            my $current_limit = $member->GetBotSpawnLimit();
+            my $new_limit = 4;
 
-            $member->Message(14, "Thanks for your service, Savior! That was no easy feat. As promised, here is your extra companion.");
-
-            if (quest::get_data($bot_limit_flag) == 3) {
-                $member->SetBotSpawnLimit(4);
-                quest::we("Help me congratulate " . $member->GetName() . "! They have upgraded their bot spawn limit to 4!");
+            # Only upgrade if current limit is less than the new limit
+            if ($current_limit < $new_limit) {
+                $member->SetBotSpawnLimit($new_limit);
+                quest::set_data($bot_limit_flag, $new_limit);
+                $member->SummonItem(384);
+                
+                $member->Message(14, "Thanks for your service, Savior! That was no easy feat. As promised, here is your extra companion.");
+                quest::we(14, "Help me congratulate " . $member->GetName() . "! They have upgraded their bot spawn limit from $current_limit to $new_limit!");
             } else {
-                $member->SetBotSpawnLimit(4);
-                quest::we(14, "Help me congratulate " . $member->GetName() . "! They have upgraded their bot spawn limit to 4!");
+                # Player already has this limit or higher
+                $member->Message(14, "You already have a bot spawn limit of $current_limit, which is equal to or higher than what this quest offers ($new_limit). Your limit remains unchanged.");
+                $member->SummonItem(384); # Still give them the item reward
             }
-
-            quest::set_data($bot_limit_flag, 4);
-            $member->SummonItem(384);
         }
     }
 

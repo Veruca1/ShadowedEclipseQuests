@@ -30,7 +30,7 @@ sub EVENT_SAY {
     if ($text =~ /Puppetmaster/i) {
         if (quest::get_data($puppetmaster_hand_in) == 1) {
             if (!$puppetmaster_lock) {
-                $client->SetBucket("-puppetmaster_lockout", 1, 300);
+                $client->SetBucket("-puppetmaster_lockout", 1, 60);
                 quest::depop(1203);
                 quest::spawn2($puppetmaster_id, 0, 0, $puppetmaster_x, $puppetmaster_y, $puppetmaster_z, $puppetmaster_h);
             } else {

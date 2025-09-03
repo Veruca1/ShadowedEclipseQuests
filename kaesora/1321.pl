@@ -17,7 +17,7 @@ sub EVENT_SAY {
     if ($text =~ /hail/i) {
         if (!$chosooth_lock) {
             quest::say("The bones begin to glow brighter and shake violently...");
-            $client->SetBucket("chosooth_lockout", 1, 300); # 5-minute lockout
+            $client->SetBucket("chosooth_lockout", 1, 60); # 1-minute lockout
 
             # Spawn Vampire Lord Chosooth at fixed location
             quest::spawn2(1319, 0, 0, -603.84, 5.35, -109.27, 0);

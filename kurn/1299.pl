@@ -47,7 +47,7 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();  # Get the character's unique ID
     my $flag = "$char_id-item_31687_flag";  # The flag for the item hand-in
     my $cooldown_key = "$char_id-item_31687_hail_cd";  # A unique cooldown key
-    my $cooldown_time = 300;  # 5-minute cooldown in seconds
+    my $cooldown_time = 60;  # 1-minute cooldown in seconds
     my $current_time = time();  # Current time in seconds
 
     if ($text =~ /hail/i) {

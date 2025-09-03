@@ -66,6 +66,10 @@ sub EVENT_HP {
     }
 }
 
+sub EVENT_KILLED_CLIENT {
+    quest::we(15, "Man Down!");
+}
+
 sub EVENT_DEATH_COMPLETE {
     quest::emote("screams as the forces of hate consume her...");
 }

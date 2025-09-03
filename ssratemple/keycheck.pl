@@ -5,6 +5,10 @@ sub EVENT_SPAWN {
 sub EVENT_ENTER {
     return unless $client && $client->IsClient();
 
+    # Extra safety: Ensure this is a real player, not an NPC or pet
+    my $actual_client = $entity_list->GetClientByID($client->GetID());
+    return unless $actual_client;
+
     if ($status < 80) {
         my $has_key = plugin::check_hasitem($client, 19719) || $client->KeyRingCheck(19719);
         return if $has_key;

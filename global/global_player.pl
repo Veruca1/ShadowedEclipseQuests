@@ -1,64 +1,39 @@
 sub EVENT_SAY {
 	return unless defined($client) && $client->IsClient();
 
-	# Handle auto-loot and lootfilter related commands
 	return if plugin::handle_autoloot_commands($client, $text);
 	return if plugin::handle_arena_commands($client, $text, $entity_list);
 	plugin::handle_admin_commands($client, $text, $status, $entity_list);
-	
-	
-	# Handle #enter to rejoin expedition
+
 	if ($text =~ /^#enter$/i) {
 		plugin::handle_enter_command($client);
 		return;
-	}
-
-	if ($text =~ /^#checkflag$/i) {
+	} elsif ($text =~ /^#checkflag$/i) {
 		plugin::handle_trash_count_command($client);
 		return;
-	}
-
-	if ($text =~ /^#itemgive$/i) {
-	plugin::itemgive();
-	}
-
-	if ($text =~ /^#content\s+/i) {
+	} elsif ($text =~ /^#itemgive$/i) {
+		plugin::itemgive();
+	} elsif ($text =~ /^#content\s+/i) {
 		plugin::update_spawn_content_flags($client, $text);
-	}
-
-	# Handle #model command
-	if ($text =~ /#model/i) {
+	} elsif ($text =~ /#model/i) {
 		plugin::model_change($text);
-	}
-
-	if ($text =~ /^#hotzones\b/i) {
+	} elsif ($text =~ /^#hotzones\b/i) {
 		plugin::hotzones_popup($client);
-	}
-
-	# Handle #logtargets on/off and status
-	if ($text =~ /#logtargets\s+(on|off)/i) {
+	} if ($text =~ /#logtargets\s+(on|off)/i) {
 		plugin::logtargets_toggle($client, $1);
-	}
-	elsif ($text =~ /#logtargets$/i) {
+	} elsif ($text =~ /#logtargets$/i) {
 		plugin::logtargets_toggle($client, "");  # status check
-	}
-
-	# Handle #augment command
-	if ($text =~ /^#?augment$/i) {
+	} elsif ($text =~ /^#?augment$/i) {
 		plugin::FindAndUseAugmentSealer($client);
 		return;
+	} elsif ($text =~ /\broles\b/i) {
+		plugin::group_roles_check($client);
+		return;
 	}
-
-	if ($text =~ /\broles\b/i) {
-	plugin::group_roles_check($client);
-	return;
-}
 
 	# Handle checkpoint and boss teleports
 	return if plugin::handle_checkpoint_and_boss($client, $text, $zoneid);
 }
-
-
 
 sub EVENT_DISCOVER_ITEM {
 	my $item_link = quest::varlink($itemid);
@@ -108,16 +83,16 @@ sub EVENT_LEVEL_UP {
 
 
 sub EVENT_EQUIP_ITEM_CLIENT {
-    # Check for Draco Malfoy's Mask in slot 3
-    if ($slot_id == 3 && $item_id == 649) {
-        quest::settimer("malfoy_insult", 30);
-        $client->Message(15, "Draco Malfoy's Mask shivers in your hands... something feels wrong.");
-    }
+	# Check for Draco Malfoy's Mask in slot 3
+	if ($slot_id == 3 && $item_id == 649) {
+		quest::settimer("malfoy_insult", 30);
+		$client->Message(15, "Draco Malfoy's Mask shivers in your hands... something feels wrong.");
+	}
 
-    # Check for item ID 12345 and play MP3
-    if ($item_id == 50259) {
-        $client->PlayMP3("rr.mp3");
-    }
+	# Check for item ID 12345 and play MP3
+	if ($item_id == 50259) {
+		$client->PlayMP3("rr.mp3");
+	}
 }
 
 sub EVENT_TIMER {
@@ -204,8 +179,8 @@ sub EVENT_DAMAGE_TAKEN {
 
 
 sub EVENT_GROUP_CHANGE {
-    # Handle autoloot group functionality
-    plugin::handle_group_change($client);
+	# Handle autoloot group functionality
+	plugin::handle_group_change($client);
 }
 
 

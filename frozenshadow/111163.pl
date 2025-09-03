@@ -53,13 +53,13 @@ sub EVENT_TIMER {
 
         if ($hp_percent <= 0.75 && $crabbe_summoned == 0) {
             $crabbe_summoned = 1;
-            quest::shout("Draco yells: 'Crabbe! Get over here and deal with these losers!'");
+            quest::shout("'Crabbe! Get over here and deal with these losers!'");
             quest::spawn2(1736, 0, 0, $npc->GetX() + 5, $npc->GetY() + 5, $npc->GetZ(), $npc->GetHeading()); # Spawns Crabbe
         }
 
         if ($hp_percent <= 0.35 && $goyle_summoned == 0) {
             $goyle_summoned = 1;
-            quest::shout("Draco yells: 'Goyle, you idiot! Help me out here!'");
+            quest::shout("'Goyle, you idiot! Help me out here!'");
             quest::spawn2(1737, 0, 0, $npc->GetX() - 5, $npc->GetY() - 5, $npc->GetZ(), $npc->GetHeading()); # Spawns Goyle
         }
     }

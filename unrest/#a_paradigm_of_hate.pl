@@ -24,7 +24,7 @@ sub EVENT_SAY {
 	} elsif ($text =~ /Tyranthrax/i) {
 		if (quest::get_data($tyranthrax_hand_in) == 1) {
 			if (!$tyranthrax_lock) {
-				$client->SetBucket("-tyranthrax_lockout", 1, 30);
+				$client->SetBucket("-tyranthrax_lockout", 1, 1);
 				quest::depop(1203);
 				quest::spawn2($tyranthrax_id, 0, 0, $tyranthrax_x, $tyranthrax_y, $tyranthrax_z, $tyranthrax_h);
 			} else {

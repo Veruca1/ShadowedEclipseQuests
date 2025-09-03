@@ -76,12 +76,22 @@ sub EVENT_ITEM {
     # Checks if they hand in is correct
     if (plugin::check_handin(\%itemcount, 9544 => 1) && $ulevel >= 30) {
         
-        quest::whisper("Thanks for your service, this necromancer has caused enough troubles. As promised here is your extra companion.");
-        # Increases the bot spawn limit to 3
-        $client->SetBotSpawnLimit(3);
-        # Sends a message to the zone
-        quest::we(7, "Help me congratulate $name! They have assisted Elondra Aradune in defeating The Thaumaturgist and received an additional companion!");
-        # Sets flag for later use to check if they have handed in the head
+        my $current_limit = $client->GetBotSpawnLimit(); # Get current bot spawn limit
+        my $new_limit = 3;
+
+        # Only upgrade if current limit is less than the new limit
+        if ($current_limit < $new_limit) {
+            quest::whisper("Thanks for your service, this necromancer has caused enough troubles. As promised here is your extra companion.");
+            # Increases the bot spawn limit to 3
+            $client->SetBotSpawnLimit($new_limit);
+            # Sends a message to the zone
+            quest::we(7, "Help me congratulate $name! They have assisted Elondra Aradune in defeating The Thaumaturgist and received an additional companion!");
+        } else {
+            # Player already has this limit or higher
+            quest::whisper("Thanks for your service defeating The Thaumaturgist, but you already have a bot spawn limit of $current_limit, which is equal to or higher than what I can offer ($new_limit). Your limit remains unchanged.");
+        }
+
+        # Sets flag for later use to check if they have handed in the head (regardless of upgrade)
         quest::set_data($thaum_flag, 1);
 
     } else {

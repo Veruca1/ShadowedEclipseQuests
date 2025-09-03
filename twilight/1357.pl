@@ -25,7 +25,7 @@ sub EVENT_SAY {
             foreach my $mob (@npcs) {
                 next unless $mob;
                 next if $mob->GetNPCTypeID() == 1357; # Replace with your actual NPC ID
-                $mob->Depop();
+                #$mob->Depop();
             }
         }
     }

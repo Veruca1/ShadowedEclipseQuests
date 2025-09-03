@@ -1,7 +1,9 @@
+my $depop_timer_paused = 0;
+
 sub EVENT_SPAWN {
     return unless $npc;
 
-    quest::zone_emote(15, "A roar fills the lower temple halls! The smell of burning ozone and decay fills the air!");
+    quest::shout("A roar fills the lower temple halls! The smell of burning ozone and decay fills the air!");
     quest::settimer("depop", 30 * 60); # timer in seconds
 
     my $raw_name = $npc->GetName() || '';
@@ -61,11 +63,11 @@ sub EVENT_SPAWN {
 
 sub EVENT_COMBAT {
     if ($combat_state == 1) {
-        if (!quest::istimerpaused("depop")) {
-            quest::pause_timer("depop");
-        }
+        quest::pause_timer("depop");
+        $depop_timer_paused = 1;
     } else {
         quest::resume_timer("depop");
+        $depop_timer_paused = 0;
         $npc->SaveGuardSpot($npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
     }
 }

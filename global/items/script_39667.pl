@@ -1,43 +1,42 @@
 my $last_use_time = 0;  # Track last use time
 
 sub EVENT_ITEM_CLICK {
-    if ($itemid == 54268) {
+    quest::debug("Item clicked: $itemid");
+    if ($itemid == 39667) {
         my $current_time = time();
         if ($current_time - $last_use_time < 120) {
-            $client->Message(remaining_time, "The item is recharging. Please wait before using it again.");
+            $client->Message(15, "The item is recharging. Please wait before using it again.");
             return;
         }
         $last_use_time = $current_time;
         
-        # Define allowed Luclin zones
+        # Define allowed Velious zones
         my %allowed_zones = (
-            165 => 1,  # Shadeweaver's Thicket
-            156 => 1,  # Paludal Caverns
-            153 => 1,  # Echo Caverns
-            164 => 1,  # The Deep
-            173 => 1,  # Maiden's Eye
-            179 => 1,  # Akheva Ruins
-            172 => 1,  # Tenebrous Mountains
-            160 => 1,  # Katta
-            170 => 1,  # Twilight Sea
-            157 => 1,  # Fungus Grove
-            167 => 1,  # Grimling Forest
-            175 => 1,  # Scarlet Desert
-            169 => 1,  # Mons Letalis
-            171 => 1,  # The Grey
-            162 => 1   # Ssraeshza Temple
+            117 => 1,  # Cobalt Scar
+            123 => 1,  # Dragon Necropolis
+            116 => 1,  # Eastern Wastes
+            113 => 1,  # Kael Drakkel
+            125 => 1,  # Siren's Grotto
+            121 => 1,  # Crystal Caverns
+            127 => 1,  # Plane of Growth
+            128 => 1,  # Sleeper's Tomb
+            124 => 1,  # Temple of Veeshan
+            111 => 1,  # Tower of Frozen Shadow
+            119 => 1,  # Wakening Land
+            120 => 1,  # Western Wastes
+            112 => 1   # Velketor's Labyrinth
         );
 
         # Check if the current zone is allowed
         if (!exists $allowed_zones{$zoneid}) {
-            $client->Message(remaining_time, "The Harbinger of Luclin resonates faintly but nothing happens here.");
+            $client->Message(15, "The Harbinger of Velious resonates faintly but nothing happens here.");
         } else {
             my $radius = 400;  # Radius in which mobs will agro
             my $x = $client->GetX();
             my $y = $client->GetY();
             my $z = $client->GetZ();
 
-            $client->Message(remaining_time, "A chilling gust sweeps the land as nearby creatures sense your presence!");
+            $client->Message(15, "A chilling gust sweeps the land as nearby creatures sense your presence!");
 
             # Get all NPCs in the zone
             my @npcs = $entity_list->GetNPCList();

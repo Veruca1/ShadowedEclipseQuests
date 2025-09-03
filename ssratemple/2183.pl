@@ -5,37 +5,73 @@ my $wrath_triggered = 0;
 
 sub EVENT_SPAWN {
     return unless $npc;
+    return if $npc->IsPet();
 
     quest::settimer("init_effects", 1);
     quest::settimer("lunar_nimbus_buff", 8);
 
     my $raw_name = $npc->GetName() || '';
     my $npc_id   = $npc->GetNPCTypeID() || 0;
-    return if $npc->IsPet();
 
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
-    # Base stats
+    # --- Player count detection (clients only) ---
+    my $client_count = 0;
+    foreach my $c ($entity_list->GetClientList()) {
+        $client_count++ if $c && $c->GetHP() > 0;
+    }
+
+    # --- Scaling multiplier ---
+    my $scale = 1.0;
+    if ($client_count >= 5) {
+        $scale = 1.0 + 0.25 * ($client_count - 4);  # 5=1.25, 6=1.5, 7=1.75...
+    }
+
+    # === Base stats ===
+    my $base_level    = 75;
+    my $base_ac       = 20000;
+    my $base_hp       = 100000000;
+    my $base_regen    = 800;
+    my $base_min_hit  = 32000;
+    my $base_max_hit  = 77000;
+    my $base_atk      = 1600;
+    my $base_accuracy = 1800;
+    my $base_delay    = 6;
+    my $base_hs       = 35;   # keep base
+
+    # === Apply scaled stats ===
     $npc->SetNPCFactionID(623);
-    $npc->ModifyNPCStat("level", 75);
-    $npc->ModifyNPCStat("ac", 20000);
-    $npc->ModifyNPCStat("max_hp", 100000000); 
-    $npc->ModifyNPCStat("hp_regen", 800);
-    $npc->ModifyNPCStat("mana_regen", 10000);
-    $npc->ModifyNPCStat("min_hit", 32000);
-    $npc->ModifyNPCStat("max_hit", 77000);
-    $npc->ModifyNPCStat("atk", 1600);
-    $npc->ModifyNPCStat("accuracy", 1800);
-    $npc->ModifyNPCStat("avoidance", 100);
-    $npc->ModifyNPCStat("attack_delay", 5);
+    $npc->ModifyNPCStat("level", $base_level);
+    $npc->ModifyNPCStat("ac",          int($base_ac       * $scale));
+    $npc->ModifyNPCStat("max_hp",      int($base_hp       * $scale));
+    $npc->ModifyNPCStat("hp_regen",    int($base_regen    * $scale));
+    $npc->ModifyNPCStat("mana_regen",  10000);
+    $npc->ModifyNPCStat("min_hit",     int($base_min_hit  * $scale));
+    $npc->ModifyNPCStat("max_hit",     int($base_max_hit  * $scale));
+    $npc->ModifyNPCStat("atk",         int($base_atk      * $scale));
+    $npc->ModifyNPCStat("accuracy",    int($base_accuracy * $scale));
+    $npc->ModifyNPCStat("avoidance",   100);
+
+    # Attack delay (capped at 4)
+    my $new_delay = $base_delay - ($client_count - 4);
+    $new_delay = 4 if $new_delay < 4;
+    $npc->ModifyNPCStat("attack_delay", $new_delay);
+
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
-    $npc->ModifyNPCStat("heroic_strikethrough", 37);
+
+    # Heroic strikethrough scaling (35 base, +1 per client > 4, capped at 38)
+    my $new_hs = $base_hs + ($client_count - 4);
+    $new_hs = 35 if $new_hs < 35;
+    $new_hs = 38 if $new_hs > 38;
+    $npc->ModifyNPCStat("heroic_strikethrough", $new_hs);
+
     $npc->ModifyNPCStat("aggro", 55);
     $npc->ModifyNPCStat("assist", 1);
 
+    # === Attributes ===
     $npc->ModifyNPCStat("str", 1000);
     $npc->ModifyNPCStat("sta", 1000);
     $npc->ModifyNPCStat("agi", 1000);
@@ -44,6 +80,7 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("int", 1000);
     $npc->ModifyNPCStat("cha", 800);
 
+    # === Resistances ===
     $npc->ModifyNPCStat("mr", 2000);
     $npc->ModifyNPCStat("fr", 2000);
     $npc->ModifyNPCStat("cr", 2000);
@@ -52,6 +89,7 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("corruption_resist", 300);
     $npc->ModifyNPCStat("physical_resist", 800);
 
+    # === Traits ===
     $npc->ModifyNPCStat("runspeed", 2);
     $npc->ModifyNPCStat("trackable", 1);
     $npc->ModifyNPCStat("see_invis", 1);
@@ -77,7 +115,9 @@ sub EVENT_SPAWN {
         $npc->AddItem($cred_ids[0]);
     }
 
+    # Finalize HP after scaling
     $npc->SetHP($npc->GetMaxHP());
+
     $checked_mirror = 0;
     $wrath_triggered = 0;
     quest::setnexthpevent(80);
@@ -86,7 +126,7 @@ sub EVENT_SPAWN {
 sub EVENT_COMBAT {
     if ($combat_state == 1) {
         quest::settimer("cryptic_shout", 60);
-        quest::settimer("moonrock_summon", 15);
+        quest::settimer("moonrock_summon", 25);
     } else {
         quest::stoptimer("cryptic_shout");
         quest::stoptimer("moonrock_summon");
@@ -275,5 +315,5 @@ sub EVENT_TIMER {
 }
 
 sub EVENT_DEATH_COMPLETE {
-    quest::spawn2(2184, 0, 0, -175.25, -917.95, -255.94, 290);
+    quest::spawn2(1742, 0, 0, -176.97, -947.92, -251.41, 230.75);
 }

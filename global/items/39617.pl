@@ -48,8 +48,7 @@ sub EVENT_ITEM_CLICK {
 
         $client->SetBucket("voida_click_cd", 1, 60);  # 60-second cooldown
     } else {
-        quest::message(315, "The shard hums, but remains inert. Wait ["
-            . quest::secondstotime($client->GetBucketRemaining("voida_click_cd"))
-            . "] before using it again.");
+        my $remaining_time = quest::secondstotime($client->GetBucketRemaining("voida_click_cd"));
+        quest::message(315, "The shard hums, but remains inert. Wait $remaining_time before using it again.");
     }
 }

@@ -1,3 +1,5 @@
+#Hollen_Shadowstalker_1286.pl
+
 my %zone_data = (
 	"Tutorial Mines" => [189, 18.00, -136.32, 16.66],
 	"Befallen" => [36, 26.32, -77.27, 2.50],
@@ -81,10 +83,33 @@ sub EVENT_SAY {
 			}
 		}
 	} else {
+        #Checks to see if a Player is in a Raid or a Group or Solo and teleports the whole Raid/Group if they are apart of one.
 		foreach my $zone (sort {$a cmp $b} keys %zone_data) {
 			if ($text=~/$zone/i) {
 				my ($zone_id, $x, $y, $z) = @{$zone_data{$zone}};
-				quest::movepc($zone_id, $x, $y, $z);
+				if ($client->IsRaidGrouped()) {
+					my $raid = $client->GetRaid();
+					if ($raid) {
+						for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+							my $member = $raid->GetMember($i);
+							if ($member && $member->IsClient()) {
+								$member->MovePC($zone_id, $x, $y, $z, 0);
+							}
+						}
+					} else {
+						quest::whisper("Error retrieving raid information.");
+					}
+				} elsif ($client->IsGrouped()) {
+					my $group = $client->GetGroup();
+					if ($group) {
+						$group->TeleportGroup($client, $zone_id, $x, $y, $z, 0);
+						$client->MovePC($zone_id, $x, $y, $z, 0); # Teleport the hailer
+					} else {
+						quest::whisper("Error retrieving group information.");
+					}
+				} else {
+					quest::movepc($zone_id, $x, $y, $z);
+				}
 			}
 		}
 	}

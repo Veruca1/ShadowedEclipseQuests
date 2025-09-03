@@ -1,13 +1,17 @@
 sub EVENT_ITEM_CLICK {
-    my $aa_id = 122;  # Combat Stability AA ID (Combat Stability Rank 5)
+    my $aa_id = 122;  # Combat Stability AA ID
+    my $max_rank = 5;
 
     if ($client) {
-        # Increment the AA (grants the AA and increases its rank by 1)
-        $client->IncrementAA($aa_id);  # Increments the AA
+        my $current_rank = $client->GetAA($aa_id);
 
-        $client->Message(13, "You have gained Combat Stability Rank 5!");  # Message for the player
+        if ($current_rank < $max_rank) {
+            $client->IncrementAA($aa_id);  # Increment AA by 1
+            $client->Message(13, "You have gained Combat Stability Rank " . ($current_rank + 1) . "!");
+        } else {
+            $client->Message(13, "You already have Combat Stability Rank $current_rank or higher.");
+        }
 
-        # Remove the item from inventory after use
-        $client->RemoveItem(693);
+        $client->RemoveItem(693);  # Always remove the item after use
     }
 }

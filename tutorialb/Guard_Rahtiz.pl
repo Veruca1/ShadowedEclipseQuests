@@ -56,7 +56,7 @@ sub EVENT_SAY {
 			return;
 		}
 
-		my $help_link = quest::silent_saylink("help");
+		my $help_link = quest::silent_saylink("I will help");
 		quest::whisper("You feel it too, don't you? The echoes of rebellion still linger in these tunnels. The Gloomingdeep revolt was more than a prison break... it was a spark of something greater.");
 		quest::whisper("Relics from that uprising are still scattered across the mines — left behind in haste, hidden in defiance. Find them, and we might uncover the full story.");
 		quest::whisper("If you're ready to begin the search, just tell me you want to $help_link.");

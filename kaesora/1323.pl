@@ -13,7 +13,7 @@ sub EVENT_ITEM {
     my $flag = "$char_id-bones_31710_flag";  # Unique flag for this NPC and item
     my $cooldown_key = "$char_id-bones_31710_hail_cd";  # A unique cooldown key
     my $trigger_item = 31710;
-    my $cooldown_time = 300;  # 5-minute cooldown in seconds
+    my $cooldown_time = 60;  # 1-minute cooldown in seconds
     my $current_time = time();  # Current time in seconds
 
     if (plugin::check_handin(\%itemcount, $trigger_item => 1)) {
@@ -37,7 +37,7 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();
     my $flag = "$char_id-bones_31710_flag";
     my $cooldown_key = "$char_id-bones_31710_hail_cd";
-    my $cooldown_time = 300;  # 10-minute hail cooldown
+    my $cooldown_time = 60;  # 1-minute hail cooldown
     my $current_time = time();
 
     if ($text =~ /hail/i) {

@@ -1,37 +1,74 @@
 my $minions_spawned = 0;
-my $checked_mirror = 0;
+my $checked_mirror  = 0;
 
 sub EVENT_SPAWN {
     return unless $npc;
+    return if $npc->IsPet();
+
     my $raw_name = $npc->GetName() || '';
     my $npc_id   = $npc->GetNPCTypeID() || 0;
-    return if $npc->IsPet();
 
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
     quest::shout("Hahhahaha! Well well well, my old friend. Still at it are you? She will consume you in the planes, you know this right?");
 
-    # Base stats
+    # --- Player count detection (clients only) ---
+    my $client_count = 0;
+    foreach my $c ($entity_list->GetClientList()) {
+        $client_count++ if $c && $c->GetHP() > 0;
+    }
+
+    # --- Scaling multiplier ---
+    my $scale = 1.0;
+    if ($client_count >= 5) {
+        $scale = 1.0 + 0.25 * ($client_count - 4);  # 5=1.25, 6=1.5, 7=1.75, etc.
+    }
+
+    # === Base stats ===
+    my $base_level    = 75;
+    my $base_ac       = 29000;
+    my $base_hp       = 145000000;
+    my $base_regen    = 1700;
+    my $base_min_hit  = 42000;
+    my $base_max_hit  = 82000;
+    my $base_atk      = 1700;
+    my $base_accuracy = 1800;
+    my $base_delay    = 6;
+    my $base_hs       = 34;
+
+    # === Apply scaled stats ===
     $npc->SetNPCFactionID(623);
-    $npc->ModifyNPCStat("level", 75);
-    $npc->ModifyNPCStat("ac", 29000);
-    $npc->ModifyNPCStat("max_hp", 145000000);
-    $npc->ModifyNPCStat("hp_regen", 1700);
-    $npc->ModifyNPCStat("mana_regen", 10000);
-    $npc->ModifyNPCStat("min_hit", 42000);
-    $npc->ModifyNPCStat("max_hit", 82000);
-    $npc->ModifyNPCStat("atk", 1700);
-    $npc->ModifyNPCStat("accuracy", 1800);
-    $npc->ModifyNPCStat("avoidance", 100);
-    $npc->ModifyNPCStat("attack_delay", 4);
-    $npc->ModifyNPCStat("attack_speed", 100);
-    $npc->ModifyNPCStat("slow_mitigation", 80);
-    $npc->ModifyNPCStat("attack_count", 100);
-    $npc->ModifyNPCStat("heroic_strikethrough", 35);
-    $npc->ModifyNPCStat("aggro", 55);
+    $npc->ModifyNPCStat("level",        $base_level);
+    $npc->ModifyNPCStat("ac",           int($base_ac       * $scale));
+    $npc->ModifyNPCStat("max_hp",       int($base_hp       * $scale));
+    $npc->ModifyNPCStat("hp_regen",     int($base_regen    * $scale));
+    $npc->ModifyNPCStat("mana_regen",   10000);
+    $npc->ModifyNPCStat("min_hit",      int($base_min_hit  * $scale));
+    $npc->ModifyNPCStat("max_hit",      int($base_max_hit  * $scale));
+    $npc->ModifyNPCStat("atk",          int($base_atk      * $scale));
+    $npc->ModifyNPCStat("accuracy",     int($base_accuracy * $scale));
+    $npc->ModifyNPCStat("avoidance",    100);
+
+    # Attack delay (capped at 4)
+    my $new_delay = $base_delay - ($client_count - 4);
+    $new_delay = 4 if $new_delay < 4;
+    $npc->ModifyNPCStat("attack_delay", $new_delay);
+
+    $npc->ModifyNPCStat("attack_speed",     100);
+    $npc->ModifyNPCStat("slow_mitigation",  80);
+    $npc->ModifyNPCStat("attack_count",     100);
+
+    # Heroic strikethrough scaling (34 base, +1 per client > 4, capped at 38)
+    my $new_hs = $base_hs + ($client_count - 4);
+    $new_hs = 34 if $new_hs < 34;
+    $new_hs = 38 if $new_hs > 38;
+    $npc->ModifyNPCStat("heroic_strikethrough", $new_hs);
+
+    $npc->ModifyNPCStat("aggro",  55);
     $npc->ModifyNPCStat("assist", 1);
 
+    # === Attributes ===
     $npc->ModifyNPCStat("str", 1000);
     $npc->ModifyNPCStat("sta", 1000);
     $npc->ModifyNPCStat("agi", 1000);
@@ -40,14 +77,16 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("int", 1000);
     $npc->ModifyNPCStat("cha", 800);
 
+    # === Resistances ===
     $npc->ModifyNPCStat("mr", 2000);
     $npc->ModifyNPCStat("fr", 2000);
     $npc->ModifyNPCStat("cr", 2000);
     $npc->ModifyNPCStat("pr", 2000);
     $npc->ModifyNPCStat("dr", 2000);
     $npc->ModifyNPCStat("corruption_resist", 300);
-    $npc->ModifyNPCStat("physical_resist", 800);
+    $npc->ModifyNPCStat("physical_resist",   800);
 
+    # === Traits ===
     $npc->ModifyNPCStat("runspeed", 2);
     $npc->ModifyNPCStat("trackable", 1);
     $npc->ModifyNPCStat("see_invis", 1);
@@ -73,10 +112,11 @@ sub EVENT_SPAWN {
         $npc->AddItem($cred_ids[0]);
     }
 
+    # Finalize HP after scaling
     $npc->SetHP($npc->GetMaxHP());
 
     $minions_spawned = 0;
-    $checked_mirror = 0;
+    $checked_mirror  = 0;
 
     quest::setnexthpevent(75);
     quest::settimer("init_effects", 1);
@@ -99,18 +139,18 @@ sub EVENT_COMBAT {
 
 sub EVENT_HP {
     if ($hpevent == 75 && $minions_spawned < 1) {
-        Call_For_Help();
-        $minions_spawned = 4;
+        Call_For_Help(3);
+        $minions_spawned = 1;
         quest::setnexthpevent(50);
     }
     elsif ($hpevent == 50 && $minions_spawned < 2) {
-        Call_For_Help();
-        $minions_spawned = 5;
+        Call_For_Help(3);
+        $minions_spawned = 2;
         quest::setnexthpevent(25);
     }
     elsif ($hpevent == 25 && $minions_spawned < 3) {
-        Call_For_Help();
-        $minions_spawned = 6;
+        Call_For_Help(4);
+        $minions_spawned = 3;
     }
 }
 
@@ -183,8 +223,8 @@ sub EVENT_TIMER {
                 $npc->ModifyNPCStat("min_hit", int($npc->GetMinDMG() * 1.5));
                 $npc->ModifyNPCStat("max_hit", int($npc->GetMaxDMG() * 1.5));
                 $npc->ModifyNPCStat("atk", int($npc->GetATK() * 1.5));
-                $npc->ModifyNPCStat("attack_delay", 3);
-                $npc->ModifyNPCStat("heroic_strikethrough", 24);
+                $npc->ModifyNPCStat("attack_delay", 5);
+                $npc->ModifyNPCStat("heroic_strikethrough", 35);
                 $npc->SetHP($npc->GetMaxHP());
                 $npc->CastSpell(21388, $npc->GetID()) if !$npc->FindBuff(21388);
                 $npc->SetNPCTintIndex(30);
@@ -207,6 +247,9 @@ sub EVENT_TIMER {
 }
 
 sub Call_For_Help {
+    my ($num_adds) = @_;
+    $num_adds ||= 6;  # Fallback to 6 if somehow called without parameter
+
     quest::shout("Minions of darkness, lend me your strength!");
     my $top = $npc->GetHateTop();
     return unless $top;
@@ -217,9 +260,8 @@ sub Call_For_Help {
         $mob->AddToHateList($top, 1) if defined $dist && $dist <= 300;
     }
 
-    # Randomly spawn 3 adds from 2179 and 2180
     my @add_npcs = (2179, 2180);
-    for (1..6) {
+    for (1..$num_adds) {
         my $chosen = $add_npcs[int(rand(@add_npcs))];
         quest::spawn2($chosen, 0, 0, $npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
     }

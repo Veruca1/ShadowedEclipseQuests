@@ -4,7 +4,7 @@ sub EVENT_SPAWN {
 
 sub EVENT_AGGRO {
     quest::shout("We have intruders! Prepare the cells!"); # Zone shout on engage
-    quest::debug("EVENT_AGGRO fired for NPC ID: $npc->GetID()"); # Debug message
+    #quest::debug("EVENT_AGGRO fired for NPC ID: $npc->GetID()"); # Debug message
 }
 
 sub EVENT_HP {

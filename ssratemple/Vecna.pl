@@ -18,9 +18,10 @@ my $mirror_h = 384;
 
 sub EVENT_SPAWN {
     return unless $npc;
+    return if $npc->IsPet();
+
     my $raw_name = $npc->GetName() || '';
     my $npc_id   = $npc->GetNPCTypeID() || 0;
-    return if $npc->IsPet();
 
     # Exclusion list check
     my $exclusion_list = plugin::GetExclusionList();
@@ -30,26 +31,62 @@ sub EVENT_SPAWN {
     $npc->CameraEffect(1000, 3);
     quest::shout("I see you... from the other side of the mirror.");
 
-    # Apply base stats
+    # --- Player count detection (clients only) ---
+    my $client_count = 0;
+    foreach my $c ($entity_list->GetClientList()) {
+        $client_count++ if $c && $c->GetHP() > 0;
+    }
+
+    # --- Scaling multiplier ---
+    my $scale = 1.0;
+    if ($client_count >= 5) {
+        $scale = 1.0 + 0.25 * ($client_count - 4);  # 5=1.25, 6=1.5, etc.
+    }
+
+    # === Base stats ===
+    my $base_level    = 75;
+    my $base_ac       = 29000;
+    my $base_hp       = 300000000;
+    my $base_regen    = 1700;
+    my $base_min_hit  = 40000;
+    my $base_max_hit  = 90000;
+    my $base_atk      = 1800;
+    my $base_accuracy = 1800;
+    my $base_delay    = 5;
+    my $base_hs       = 35;
+
+    # === Apply scaled stats ===
     $npc->SetNPCFactionID(623);
-    $npc->ModifyNPCStat("level", 75);
-    $npc->ModifyNPCStat("ac", 29000);
-    $npc->ModifyNPCStat("max_hp", 300000000);
-    $npc->ModifyNPCStat("hp_regen", 1700);
-    $npc->ModifyNPCStat("mana_regen", 10000);
-    $npc->ModifyNPCStat("min_hit", 40000);
-    $npc->ModifyNPCStat("max_hit", 90000);
-    $npc->ModifyNPCStat("atk", 1800);
-    $npc->ModifyNPCStat("accuracy", 1800);
-    $npc->ModifyNPCStat("avoidance", 100);
-    $npc->ModifyNPCStat("attack_delay", 5);
-    $npc->ModifyNPCStat("attack_speed", 100);
+    $npc->ModifyNPCStat("level",         $base_level);
+    $npc->ModifyNPCStat("ac",            int($base_ac       * $scale));
+    $npc->ModifyNPCStat("max_hp",        int($base_hp       * $scale));
+    $npc->ModifyNPCStat("hp_regen",      int($base_regen    * $scale));
+    $npc->ModifyNPCStat("mana_regen",    10000);
+    $npc->ModifyNPCStat("min_hit",       int($base_min_hit  * $scale));
+    $npc->ModifyNPCStat("max_hit",       int($base_max_hit  * $scale));
+    $npc->ModifyNPCStat("atk",           int($base_atk      * $scale));
+    $npc->ModifyNPCStat("accuracy",      int($base_accuracy * $scale));
+    $npc->ModifyNPCStat("avoidance",     100);
+
+    # Attack delay (floors at 4)
+    my $new_delay = $base_delay - ($client_count - 4);
+    $new_delay = 4 if $new_delay < 4;
+    $npc->ModifyNPCStat("attack_delay", $new_delay);
+
+    $npc->ModifyNPCStat("attack_speed",    100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
-    $npc->ModifyNPCStat("attack_count", 100);
-    $npc->ModifyNPCStat("heroic_strikethrough", 25);
-    $npc->ModifyNPCStat("aggro", 55);
+    $npc->ModifyNPCStat("attack_count",    100);
+
+    # Heroic strikethrough scaling (35 base, +1 per client >4, cap 38)
+    my $new_hs = $base_hs + ($client_count - 4);
+    $new_hs = 35 if $new_hs < 35;
+    $new_hs = 38 if $new_hs > 38;
+    $npc->ModifyNPCStat("heroic_strikethrough", $new_hs);
+
+    $npc->ModifyNPCStat("aggro",  55);
     $npc->ModifyNPCStat("assist", 1);
 
+    # === Attributes ===
     $npc->ModifyNPCStat("str", 1000);
     $npc->ModifyNPCStat("sta", 1000);
     $npc->ModifyNPCStat("agi", 1000);
@@ -58,24 +95,25 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("int", 1000);
     $npc->ModifyNPCStat("cha", 800);
 
+    # === Resistances ===
     $npc->ModifyNPCStat("mr", 2000);
     $npc->ModifyNPCStat("fr", 2000);
     $npc->ModifyNPCStat("cr", 2000);
     $npc->ModifyNPCStat("pr", 2000);
     $npc->ModifyNPCStat("dr", 2000);
     $npc->ModifyNPCStat("corruption_resist", 300);
-    $npc->ModifyNPCStat("physical_resist", 800);
+    $npc->ModifyNPCStat("physical_resist",   800);
 
+    # === Traits ===
     $npc->ModifyNPCStat("runspeed", 2);
     $npc->ModifyNPCStat("trackable", 1);
     $npc->ModifyNPCStat("see_invis", 1);
     $npc->ModifyNPCStat("see_invis_undead", 1);
     $npc->ModifyNPCStat("see_hide", 1);
     $npc->ModifyNPCStat("see_improved_hide", 1);
-
     $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1^31,1");
 
-    # Heal to full HP
+    # Heal to scaled max HP
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
 
