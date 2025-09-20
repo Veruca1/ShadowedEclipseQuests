@@ -1,10 +1,14 @@
 my $depop_timer_paused = 0;
+my $depop_timer_start = 0;
+my $depop_timer_duration = 30 * 60; # 30 minutes in seconds
 
 sub EVENT_SPAWN {
     return unless $npc;
 
     quest::shout("A roar fills the lower temple halls! The smell of burning ozone and decay fills the air!");
-    quest::settimer("depop", 30 * 60); # timer in seconds
+    $depop_timer_start = time;
+    $depop_timer_duration = 30 * 60;
+    quest::settimer("depop", $depop_timer_duration);
 
     my $raw_name = $npc->GetName() || '';
     my $npc_id   = $npc->GetNPCTypeID() || 0;
@@ -62,12 +66,17 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_COMBAT {
-    if ($combat_state == 1) {
-        quest::pause_timer("depop");
+    if ($combat_state == 1 && !$depop_timer_paused) {
+        my $elapsed = time - $depop_timer_start;
+        quest::stoptimer("depop");
+        $depop_timer_duration -= $elapsed;
+        $depop_timer_duration = 1 if $depop_timer_duration < 1;
         $depop_timer_paused = 1;
-    } else {
-        quest::resume_timer("depop");
+    } elsif ($combat_state == 0 && $depop_timer_paused) {
+        $depop_timer_start = time;
+        quest::settimer("depop", $depop_timer_duration);
         $depop_timer_paused = 0;
+
         $npc->SaveGuardSpot($npc->GetX(), $npc->GetY(), $npc->GetZ(), $npc->GetHeading());
     }
 }
@@ -81,4 +90,9 @@ sub EVENT_TIMER {
 sub EVENT_DEATH_COMPLETE {
     quest::signal(162255, 1); # #cursed_controller
     quest::setglobal("glyphed_dead", "1", 3, "D3");
+
+    # Reset timer state
+    $depop_timer_paused = 0;
+    $depop_timer_start = 0;
+    $depop_timer_duration = 0;
 }

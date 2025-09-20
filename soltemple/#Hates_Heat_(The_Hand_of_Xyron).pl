@@ -7,58 +7,37 @@ sub EVENT_SPAWN {
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
-    # === Player count detection ===
-    my $client_count = 0;
-    foreach my $c ($entity_list->GetClientList()) {
-        $client_count++ if $c && $c->GetHP() > 0;
-    }
-
-    # === Scaling multiplier (5 = 1.25x, 6 = 1.5x, etc.) ===
-    my $scale = 1.0;
-    if ($client_count >= 5) {
-        $scale = 1.0 + 0.25 * ($client_count - 4);
-    }
-
-    # === Base stats ===
+    # === Base stats (no multipliers here) ===
     my $base_level    = 75;
     my $base_ac       = 20000;
     my $base_hp       = 90000000;
     my $base_regen    = 500;
-    my $base_min_hit  = 25000;
-    my $base_max_hit  = 70000;
+    my $base_min_hit  = 55000;
+    my $base_max_hit  = 80000;
     my $base_atk      = 1500;
     my $base_accuracy = 1800;
     my $base_delay    = 6;
-    my $base_hs       = 35;   # base heroic strikethrough
+    my $base_hs       = 32;   # base heroic strikethrough
 
-    # === Apply scaled stats ===
+    # === Apply raw baseline stats ===
     $npc->SetNPCFactionID(623);
-    $npc->ModifyNPCStat("level", $base_level);
-    $npc->ModifyNPCStat("ac",          int($base_ac       * $scale));
-    $npc->ModifyNPCStat("max_hp",      int($base_hp       * $scale));
-    $npc->ModifyNPCStat("hp_regen",    int($base_regen    * $scale));
-    $npc->ModifyNPCStat("mana_regen",  10000);
-    $npc->ModifyNPCStat("min_hit",     int($base_min_hit  * $scale));
-    $npc->ModifyNPCStat("max_hit",     int($base_max_hit  * $scale));
-    $npc->ModifyNPCStat("atk",         int($base_atk      * $scale));
-    $npc->ModifyNPCStat("accuracy",    int($base_accuracy * $scale));
-    $npc->ModifyNPCStat("avoidance",   100);
+    $npc->ModifyNPCStat("level",    $base_level);
+    $npc->ModifyNPCStat("ac",       $base_ac);
+    $npc->ModifyNPCStat("max_hp",   $base_hp);
+    $npc->ModifyNPCStat("hp_regen", $base_regen);
+    $npc->ModifyNPCStat("mana_regen", 10000);
+    $npc->ModifyNPCStat("min_hit",  $base_min_hit);
+    $npc->ModifyNPCStat("max_hit",  $base_max_hit);
+    $npc->ModifyNPCStat("atk",      $base_atk);
+    $npc->ModifyNPCStat("accuracy", $base_accuracy);
+    $npc->ModifyNPCStat("avoidance", 100);
 
-    # Attack delay (capped min 4, reduces after 4 players)
-    my $new_delay = $base_delay - ($client_count - 4);
-    $new_delay = 4 if $new_delay < 4;
-    $npc->ModifyNPCStat("attack_delay", $new_delay);
+    $npc->ModifyNPCStat("attack_delay", $base_delay);
+    $npc->ModifyNPCStat("heroic_strikethrough", $base_hs);
 
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
-
-    # Heroic strikethrough (base 35, +1 per client above 4, cap 38)
-    my $new_hs = $base_hs + ($client_count - 4);
-    $new_hs = 35 if $new_hs < 35;  # don’t go below base
-    $new_hs = 38 if $new_hs > 38;  # cap at 38
-    $npc->ModifyNPCStat("heroic_strikethrough", $new_hs);
-
     $npc->ModifyNPCStat("aggro", 55);
     $npc->ModifyNPCStat("assist", 1);
 
@@ -101,12 +80,19 @@ sub EVENT_SPAWN {
     quest::set_data("mirror_spellset", "40784,40785");
     quest::settimer("cast_cycle", 60);
 
-    ## --- Title Add ---
+    ## --- Reflected Title ---
     my $base_name = $npc->GetCleanName();
     my $title_tag = "the Reflected";
     my $new_name  = ($base_name =~ /\bReflected\b/i) ? $base_name : "$base_name $title_tag";
     $npc->TempName($new_name);
     $npc->ModifyNPCStat("lastname", "Reflected");
+
+    # === Apply raid scaling now ===
+    plugin::RaidScaling($entity_list, $npc);
+
+     # Full heal
+    my $max_hp = $npc->GetMaxHP();
+    $npc->SetHP($max_hp) if $max_hp > 0;
 
     # --- HP event and depop timers ---
     quest::setnexthpevent(70);
@@ -228,7 +214,5 @@ sub EVENT_DEATH_COMPLETE {
     quest::shout("I shall return!");
     quest::depop(502004);
     quest::stopalltimers();
-
-    # Send the 2-minute warning signal to Yorkie
     quest::signalwith(2193, 87);
 }

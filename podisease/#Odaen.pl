@@ -10,24 +10,24 @@ sub EVENT_SPAWN {
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
-    # Treat Aramin (boss) as boss
-    $is_boss = ($raw_name =~ /^#/ || $raw_name =~ /Aramin/i) ? 1 : 0;
+    # Treat Odaen (boss) as boss
+    $is_boss = ($raw_name =~ /^#/ || $raw_name =~ /Odaen/i) ? 1 : 0;
     $npc->SetNPCFactionID(623);
 
     if ($is_boss) {
         # === Base stats (raw) ===
         $npc->ModifyNPCStat("level", 65);
         $npc->ModifyNPCStat("ac", 30000);
-        $npc->ModifyNPCStat("max_hp", 30000000);
+        $npc->ModifyNPCStat("max_hp", 50000000);
         $npc->ModifyNPCStat("hp_regen", 3000);
         $npc->ModifyNPCStat("mana_regen", 10000);
-        $npc->ModifyNPCStat("min_hit", 50000);
-        $npc->ModifyNPCStat("max_hit", 75000);
+        $npc->ModifyNPCStat("min_hit", 60000);
+        $npc->ModifyNPCStat("max_hit", 85000);
         $npc->ModifyNPCStat("atk", 2500);
         $npc->ModifyNPCStat("accuracy", 2000);
         $npc->ModifyNPCStat("avoidance", 50);
-        $npc->ModifyNPCStat("attack_delay", 9);
-        $npc->ModifyNPCStat("heroic_strikethrough", 33);
+        $npc->ModifyNPCStat("attack_delay", 8);
+        $npc->ModifyNPCStat("heroic_strikethrough", 34);
         $npc->ModifyNPCStat("attack_speed", 100);
         $npc->ModifyNPCStat("slow_mitigation", 90);
         $npc->ModifyNPCStat("attack_count", 100);
@@ -61,7 +61,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_improved_hide", 1);
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15^17,1^21,1");
 
-        # Apply raid scaling (includes tank check inside plugin)
+        # Apply raid scaling (plugin handles tank checks, etc.)
         plugin::RaidScaling($entity_list, $npc);
     }
 
@@ -71,37 +71,25 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_COMBAT {
-    if ($combat_state == 1) {
-        quest::settimer("plague_silk", 30);
+    my ($combat_state) = @_;
+
+    if ($combat_state == 1 && $is_boss) {
+        # Start casting loop when engaged (10s interval)
+        quest::settimer("boss_cast", 10);
     } else {
-        quest::stoptimer("plague_silk");
+        # Stop casting when disengaged
+        quest::stoptimer("boss_cast");
     }
 }
 
 sub EVENT_TIMER {
-    if ($timer eq "plague_silk") {
-        # Only cast if still in combat to avoid edge cases
-        if ($npc->IsEngaged()) {
-            my $target = $npc->GetTarget();
-            if ($target) {
-                $npc->CastSpell(41213, $target->GetID());
-            }
+    my ($timer) = @_;
+
+    if ($timer eq "boss_cast" && $is_boss) {
+        my $target = $npc->GetTarget();
+        if ($target) {
+            # Cast spell 40786 on current target
+            $npc->CastSpell(40786, $target->GetID());
         }
     }
-}
-
-sub EVENT_DEATH_COMPLETE {
-    my $x = $npc->GetX();
-    my $y = $npc->GetY();
-    my $z = $npc->GetZ();
-    my $h = $npc->GetHeading();
-
-    quest::spawn2(205154,0,0,$x + 15,$y,$z,$h);
-    quest::spawn2(205154,0,0,$x - 15,$y,$z,$h); 
-    quest::spawn2(205154,0,0,$x,$y + 15,$z,$h); 
-    quest::spawn2(205154,0,0,$x + 15,$y + 15,$z,$h); 
-    quest::spawn2(205154,0,0,$x - 15,$y + 15,$z,$h); 
-    quest::spawn2(205154,0,0,$x,$y,$z,$h); 
-    quest::spawn2(205154,0,0,$x,$y,$z,$h); 
-    quest::spawn2(205154,0,0,$x,$y,$z,$h); 
 }

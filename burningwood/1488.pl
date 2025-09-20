@@ -3,7 +3,7 @@ sub EVENT_ITEM {
     my $item_id = 370;  # Burning Portal Stone
     my $flag = "${char_id}-burningwoodflag";
     my $cooldown_key = "${char_id}-burningwood_item_cooldown";
-    my $cooldown_time = 1200;  # 20 minutes
+    my $cooldown_time = 60;  # 1 minutes
 
     if (plugin::check_handin(\%itemcount, $item_id => 1)) {
         my $last_handin_time = quest::get_data($cooldown_key);
@@ -27,7 +27,7 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();
     my $flag = "${char_id}-burningwoodflag";
     my $cooldown_key = "${char_id}-burningwood_hail_cooldown";
-    my $cooldown_time = 600;  # 10 minutes
+    my $cooldown_time = 60;  # 1 minutes
 
     if ($text =~ /hail/i) {
         if (quest::get_data($flag)) {

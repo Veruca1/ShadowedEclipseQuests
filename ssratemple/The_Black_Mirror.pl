@@ -6,6 +6,7 @@
 # - "ready" moves player into their active DZ
 # - Will not respond at all unless player has item 49764 in slot 22 and buff 40778 active
 # - First qualifying hail grants permanent access to soltemple via zone flag 80
+# - Flags entire group/raid if they share same IP
 
 my $expedition_name_prefix = "DZ - ";
 my $min_players = 1;
@@ -25,14 +26,17 @@ my %zone_versions = (
 
 sub EVENT_SPAWN {
     return unless $npc;
-    quest::settimer("depop", 600);      # Depop after 10 mins if not used
-    quest::settimer("init_tint", 1);    # Apply tint after 1s for visual consistency
+    quest::settimer("depop", 600);   # Depop after 10 mins if not used
+    quest::settimer("init_tint", 1); # Apply tint after 1s for visual consistency
 
     # Send marquee ONLY to clients meeting Black Mirror conditions
     my @clients = $entity_list->GetClientList();
     my $text = "You have summoned The Black Mirror, hurry before it fades!.";
     foreach my $c (@clients) {
-        next unless $c->GetItemIDAt(22) == $item_id && $c->FindBuff($buff_id);
+        my $slot_item = $c->GetItemAt(22);
+        my $has_item  = ($slot_item && $slot_item->GetID() == $item_id);
+        my $has_buff  = ($c->FindBuff($buff_id) != -1);
+        next unless $has_item && $has_buff;
         $c->SendMarqueeMessage(15, 510, 1, 1, 8000, $text);
     }
 }
@@ -52,11 +56,11 @@ sub EVENT_SAY {
     return unless $client;
 
     # Check Black Mirror conditions before interacting
-    my $has_item = ($client->GetItemIDAt(22) == $item_id) ? 1 : 0;
-    my $has_buff = $client->FindBuff($buff_id) ? 1 : 0;
-    unless ($has_item && $has_buff) {
-        return; # Ignore player entirely if they don't meet requirements
-    }
+    my $slot_item = $client->GetItemAt(22);
+    my $has_item  = ($slot_item && $slot_item->GetID() == $item_id);
+    my $has_buff  = ($client->FindBuff($buff_id) != -1);
+
+    return unless $has_item && $has_buff; # Ignore player if unqualified
 
     if ($text =~ /ready/i) {
         my $dz = $client->GetExpedition();
@@ -73,10 +77,43 @@ sub EVENT_SAY {
     if ($text =~ /hail/i) {
         # First time flagging for San Junipero access
         if (!$client->HasZoneFlag($zone_flag_id)) {
-            quest::set_zone_flag($zone_flag_id);
-            quest::we(14, $client->GetCleanName() . " has earned access to San Junipero!");
+            my $clicker_ip = $client->GetIP();
+            my $flagged = 0;
+
+            if (my $group = $client->GetGroup()) {
+                for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                    my $member = $group->GetMember($i);
+                    next unless $member;
+                    if ($member->GetIP() == $clicker_ip && !$member->HasZoneFlag($zone_flag_id)) {
+                        $member->SetZoneFlag($zone_flag_id);
+                        $flagged = 1;
+                    }
+                }
+                if ($flagged) {
+                    quest::we(14, $client->GetCleanName() . " and their group members on the same IP have earned access to San Junipero!");
+                }
+            }
+            elsif (my $raid = $client->GetRaid()) {
+                for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                    my $member = $raid->GetMember($i);
+                    next unless $member;
+                    if ($member->GetIP() == $clicker_ip && !$member->HasZoneFlag($zone_flag_id)) {
+                        $member->SetZoneFlag($zone_flag_id);
+                        $flagged = 1;
+                    }
+                }
+                if ($flagged) {
+                    quest::we(14, $client->GetCleanName() . " and their raid members on the same IP have earned access to San Junipero!");
+                }
+            }
+            else {
+                $client->SetZoneFlag($zone_flag_id);
+                quest::we(14, $client->GetCleanName() . " has earned access to San Junipero!");
+            }
+
             $client->Message(15, "Somewhere, a door opens where there was never a wall.");
         }
+
         # Ask the question (always shown if qualified)
         plugin::Whisper("Where can you go if you die, to live forever... should you choose to upload your consciousness?");
         plugin::Whisper("If you know the answer, speak it aloud.");
@@ -91,6 +128,7 @@ sub EVENT_SAY {
 
         if ($dz) {
             plugin::Whisper("The portal to '$zone_name' begins to form. Tell me when you are [" . quest::saylink("ready", 1, "ready") . "] to enter.");
+            quest::depop(); # Depop after successful DZ creation
         } else {
             plugin::Whisper("Something interfered with the portal creation. Try again.");
         }

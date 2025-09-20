@@ -18,7 +18,7 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();  # Get the character's unique ID
     my $flag = "$char_id-zarrinspirit_flag";  # The flag for this NPC
     my $cooldown_key = "$char_id-zarrinspirit_hail_cd";  # A unique cooldown key
-    my $cooldown_time = 600;  # 10-minute cooldown in seconds
+    my $cooldown_time = 60;  # 1-minute cooldown in seconds
     my $current_time = time();  # Current time in seconds
 
     # Check if the flag for the item hand-in is set

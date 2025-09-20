@@ -30,12 +30,12 @@ sub EVENT_SPAWN {
     my $base_ac       = 29000;
     my $base_hp       = 145000000;
     my $base_regen    = 1700;
-    my $base_min_hit  = 42000;
-    my $base_max_hit  = 82000;
-    my $base_atk      = 1700;
+    my $base_min_hit  = 32000;
+    my $base_max_hit  = 77000;
+    my $base_atk      = 1600;
     my $base_accuracy = 1800;
-    my $base_delay    = 6;
-    my $base_hs       = 34;
+    my $base_delay    = 9;
+    my $base_hs       = 26;
 
     # === Apply scaled stats ===
     $npc->SetNPCFactionID(623);
@@ -157,10 +157,7 @@ sub EVENT_HP {
 sub EVENT_TIMER {
     if ($timer eq "init_effects") {
         quest::stoptimer("init_effects");
-        my @buffs = (
-            5278, 5297, 5488, 10028, 10031,
-            10013, 10664, 9414, 300, 15031, 2530
-        );
+        my @buffs = (10031, 10013, 10664, 9414, 300, 15031, 2530);
         foreach my $spell_id (@buffs) {
             $npc->SpellFinished($spell_id, $npc);
         }

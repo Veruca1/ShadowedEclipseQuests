@@ -32,7 +32,7 @@ sub TossPlayer {
 
             if ($target->IsClient()) {
                 my $client = $target->CastToClient();
-                $client->Message(13, "Krenshin flails around, slamming you back against the wall!");
+                $client->Message(13, "Krenshin flails around, slamming you back against the wall!") if ($client);;
                 $npc->SpellFinished(40677, $client);
               #  quest::debug("Krenshin casts spell 40677 on client: " . $client->GetCleanName());
             }

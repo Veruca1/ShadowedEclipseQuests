@@ -7,19 +7,7 @@ sub EVENT_SPAWN {
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
-    # === Player count detection ===
-    my $client_count = 0;
-    foreach my $c ($entity_list->GetClientList()) {
-        $client_count++ if $c && $c->GetHP() > 0;
-    }
-
-    # === Scaling multiplier (raid starts at 5 clients) ===
-    my $scale = 1.0;
-    if ($client_count > 5) {
-        $scale = 1.0 + 0.1 * ($client_count - 5);  # 6=1.1x, 7=1.2x, etc.
-    }
-
-    # === Base stats ===
+    # === Base stats (no multipliers here) ===
     my $base_level    = 75;
     my $base_ac       = 20000;
     my $base_hp       = 90000000;
@@ -29,39 +17,31 @@ sub EVENT_SPAWN {
     my $base_atk      = 1500;
     my $base_accuracy = 1800;
     my $base_delay    = 5;
-    my $base_hs       = 36;
+    my $base_hs       = 33;
 
-    # === Apply scaled stats ===
+    # === Apply raw baseline stats ===
     $npc->SetNPCFactionID(623);
-    $npc->ModifyNPCStat("level", $base_level);
-    $npc->ModifyNPCStat("ac",          int($base_ac       * $scale));
-    $npc->ModifyNPCStat("max_hp",      int($base_hp       * $scale));
-    $npc->ModifyNPCStat("hp_regen",    int($base_regen    * $scale));
-    $npc->ModifyNPCStat("mana_regen",  10000);
-    $npc->ModifyNPCStat("min_hit",     int($base_min_hit  * $scale));
-    $npc->ModifyNPCStat("max_hit",     int($base_max_hit  * $scale));
-    $npc->ModifyNPCStat("atk",         int($base_atk      * $scale));
-    $npc->ModifyNPCStat("accuracy",    int($base_accuracy * $scale));
-    $npc->ModifyNPCStat("avoidance",   100);
+    $npc->ModifyNPCStat("level",    $base_level);
+    $npc->ModifyNPCStat("ac",       $base_ac);
+    $npc->ModifyNPCStat("max_hp",   $base_hp);
+    $npc->ModifyNPCStat("hp_regen", $base_regen);
+    $npc->ModifyNPCStat("mana_regen", 10000);
+    $npc->ModifyNPCStat("min_hit",  $base_min_hit);
+    $npc->ModifyNPCStat("max_hit",  $base_max_hit);
+    $npc->ModifyNPCStat("atk",      $base_atk);
+    $npc->ModifyNPCStat("accuracy", $base_accuracy);
+    $npc->ModifyNPCStat("avoidance", 100);
 
-    # Attack delay (capped min 4)
-    my $new_delay = $base_delay - ($client_count - 5);
-    $new_delay = 4 if $new_delay < 4;
-    $npc->ModifyNPCStat("attack_delay", $new_delay);
+    $npc->ModifyNPCStat("attack_delay", $base_delay);
+    $npc->ModifyNPCStat("heroic_strikethrough", $base_hs);
 
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
-
-    # Heroic strikethrough (capped 38)
-    my $new_hs = int($base_hs * $scale);
-    $new_hs = 38 if $new_hs > 38;
-    $npc->ModifyNPCStat("heroic_strikethrough", $new_hs);
-
     $npc->ModifyNPCStat("aggro", 55);
     $npc->ModifyNPCStat("assist", 1);
 
-    # === Stat attributes ===
+    # === Attributes ===
     $npc->ModifyNPCStat("str", 1000);
     $npc->ModifyNPCStat("sta", 1000);
     $npc->ModifyNPCStat("agi", 1000);
@@ -106,6 +86,13 @@ sub EVENT_SPAWN {
     my $new_name  = ($base_name =~ /\bReflected\b/i) ? $base_name : "$base_name $title_tag";
     $npc->TempName($new_name);
     $npc->ModifyNPCStat("lastname", "Reflected");
+
+    # === Call plugin scaling last ===
+    plugin::RaidScaling($entity_list, $npc);
+
+     # Full heal
+    my $max_hp = $npc->GetMaxHP();
+    $npc->SetHP($max_hp) if $max_hp > 0;
 
     # === HP events ===
     quest::setnexthpevent(80);
@@ -154,4 +141,8 @@ sub EVENT_HP {
             last;
         }
     }
+}
+
+sub EVENT_DEATH_COMPLETE {
+    #quest::signalwith(2193, 87);
 }

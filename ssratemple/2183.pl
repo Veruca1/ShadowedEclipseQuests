@@ -1,4 +1,4 @@
-# Global flags for mirror logic
+# Global flags for mirror logic 
 my $checked_mirror = 0;
 my $mirror_trigger_hp = 0;
 my $wrath_triggered = 0;
@@ -213,7 +213,7 @@ sub EVENT_TIMER {
     if ($timer eq "init_effects") {
         quest::stoptimer("init_effects");
 
-        my @buffs = (5278, 5297, 5488, 10028, 10031, 10013, 10664, 9414, 300, 15031, 2530);
+        my @buffs = (10031, 10013, 10664, 9414, 300, 15031, 2530);
         foreach my $spell_id (@buffs) {
             $npc->SpellFinished($spell_id, $npc);
         }

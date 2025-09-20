@@ -276,5 +276,5 @@ sub EVENT_TIMER {
 }
 
 sub EVENT_DEATH_COMPLETE {
-    quest::spawn2(2183, 0, 0, -96.36, -1036.57, -255.94, 271.00);
+    quest::spawn2(2183, 0, 0, 94.11, -1056.49, -255.94, 263.25);
 }

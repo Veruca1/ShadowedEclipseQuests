@@ -32,7 +32,7 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();
     my $flag = "${char_id}_veeshan_secret_boss_flag";
     my $cooldown_key = "${char_id}_veeshan_hail_cd";
-    my $cooldown_time = 420;  # 7 minutes
+    my $cooldown_time = 60;  # 1 minutes
     my $current_time = time();
 
     if ($text =~ /hail/i) {

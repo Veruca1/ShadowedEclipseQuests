@@ -31,7 +31,7 @@ sub EVENT_HP {
 sub EVENT_COMBAT {
     if ($combat_state == 1) {
         # Ensure an elemental attacks the player throughout the fight, but only spawn one
-        my $elemental_id = quest::ChooseRandom(170210, 170229, 170225); # New elemental IDs
+        my $elemental_id = quest::ChooseRandom(2206, 2205, 2204); # New elemental IDs
         quest::spawn2($elemental_id, 0, 0, $x + 10, $y + 10, $z, $h);
         quest::shout("Behold my magical prowess!");
     } elsif ($combat_state == 0) {
@@ -48,7 +48,7 @@ sub EVENT_TIMER {
 
             if ($random_ability == 1) {
                 # Spawn a random elemental
-                my $elemental_id = quest::ChooseRandom(170210, 170229); # New elemental IDs
+                my $elemental_id = quest::ChooseRandom(2206, 2205, 2204); # New elemental IDs
                 quest::shout("Feel the might of my elementals!");
                 quest::spawn2($elemental_id, 0, 0, $x + 10, $y + 10, $z, $h);
             } elsif ($random_ability == 2) {

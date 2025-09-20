@@ -7,63 +7,36 @@ sub EVENT_SPAWN {
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
-    # --- Count players in raid or nearby ---
-    my $client_count = 0;
-    my $raid = $npc->GetRaid();
-    if ($raid) {
-        $client_count = $raid->RaidCount();
-    } else {
-        foreach my $client ($entity_list->GetClientList()) {
-            ++$client_count if $client->IsClient() && $npc->CalculateDistance($client->GetX(), $client->GetY(), $client->GetZ()) <= 200;
-        }
-    }
-
-    # --- Scaling multiplier ---
-    my $scale = 1.0;
-    if ($client_count >= 5) {
-        $scale = 1.0 + 0.25 * ($client_count - 4); # 5=1.25, 6=1.5, etc.
-    }
-
     # --- Base stats ---
     my $base_level    = 75;
     my $base_ac       = 20000;
-    my $base_hp       = 10000000;
-    my $base_min_hit  = 5000;
-    my $base_max_hit  = 10000;
-    my $base_atk      = 1000;
-    my $base_accuracy = 1000;
+    my $base_hp       = 100000000;
+    my $base_min_hit  = 55000;
+    my $base_max_hit  = 95000;
+    my $base_atk      = 1700;
+    my $base_accuracy = 1900;
     my $base_regen    = 250;
-    my $base_delay    = 6;
-    my $base_hs       = 35; # HS starts at 35
+    my $base_delay    = 5;
+    my $base_hs       = 34;
 
-    # --- Apply scaled stats ---
+    # --- Apply baseline ---
     $npc->SetNPCFactionID(623);
     $npc->ModifyNPCStat("level", $base_level);
-    $npc->ModifyNPCStat("ac",          int($base_ac       * $scale));
-    $npc->ModifyNPCStat("max_hp",      int($base_hp       * $scale));
-    $npc->ModifyNPCStat("hp_regen",    int($base_regen    * $scale));
+    $npc->ModifyNPCStat("ac",          $base_ac);
+    $npc->ModifyNPCStat("max_hp",      $base_hp);
+    $npc->ModifyNPCStat("hp_regen",    $base_regen);
     $npc->ModifyNPCStat("mana_regen",  10000);
-    $npc->ModifyNPCStat("min_hit",     int($base_min_hit  * $scale));
-    $npc->ModifyNPCStat("max_hit",     int($base_max_hit  * $scale));
-    $npc->ModifyNPCStat("atk",         int($base_atk      * $scale));
-    $npc->ModifyNPCStat("accuracy",    int($base_accuracy * $scale));
+    $npc->ModifyNPCStat("min_hit",     $base_min_hit);
+    $npc->ModifyNPCStat("max_hit",     $base_max_hit);
+    $npc->ModifyNPCStat("atk",         $base_atk);
+    $npc->ModifyNPCStat("accuracy",    $base_accuracy);
     $npc->ModifyNPCStat("avoidance",   100);
-
-    # Attack delay (reduces after 4 players, floor at 4)
-    my $new_delay = $base_delay - ($client_count - 4);
-    $new_delay = 4 if $new_delay < 4;
-    $npc->ModifyNPCStat("attack_delay", $new_delay);
+    $npc->ModifyNPCStat("attack_delay", $base_delay);
+    $npc->ModifyNPCStat("heroic_strikethrough", $base_hs);
 
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
-
-    # Heroic strikethrough: 35 + (clients-4), cap 38
-    my $new_hs = $base_hs + ($client_count - 4);
-    $new_hs = 35 if $new_hs < 35;
-    $new_hs = 38 if $new_hs > 38;
-    $npc->ModifyNPCStat("heroic_strikethrough", $new_hs);
-
     $npc->ModifyNPCStat("aggro", 55);
     $npc->ModifyNPCStat("assist", 1);
 
@@ -94,7 +67,7 @@ sub EVENT_SPAWN {
     $npc->ModifyNPCStat("see_improved_hide", 1);
     $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1^31,1");
 
-    # Heal to full scaled HP
+    # --- Heal up ---
     $npc->SetHP($npc->GetMaxHP());
 
     # --- Tint & Nimbus ---
@@ -103,6 +76,17 @@ sub EVENT_SPAWN {
 
     # --- Spellset ---
     quest::set_data("mirror_spellset", "40786,40787");
+
+    # --- Chappell Roanish-style random shout ---
+    my @chappell_lines = (
+        "You want the reflection? You’ll get the whole mirror.",
+        "Hope you brought a therapist, darling. I *am* the breakthrough.",
+        "No one survives loving me.",
+        "You’re not fighting a boss. You’re confronting your decisions.",
+        "Let’s see what you *really* look like under pressure."
+    );
+    quest::shout($chappell_lines[int(rand(@chappell_lines))]);
+
     quest::settimer("cast_cycle", 20);
 
     # --- Title ---
@@ -111,6 +95,12 @@ sub EVENT_SPAWN {
     my $new_name  = ($base_name =~ /\bReflected\b/i) ? $base_name : "$base_name $title_tag";
     $npc->TempName($new_name);
     $npc->ModifyNPCStat("lastname", "Reflected");
+
+    # --- Finally, scale it ---
+    plugin::RaidScaling($entity_list, $npc);
+    # Heal up to the new max after scaling
+my $scaled_hp = $npc->GetMaxHP();
+$npc->SetHP($scaled_hp) if $scaled_hp > 0;
 }
 
 sub EVENT_COMBAT {
@@ -230,5 +220,6 @@ sub EVENT_TIMER {
 }
 
 sub EVENT_DEATH_COMPLETE {
+    quest::signalwith(2193, 87);
     quest::shout("Hahahaha! She got, she got away, she got away, she got away!");
 }

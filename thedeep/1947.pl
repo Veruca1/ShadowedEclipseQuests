@@ -123,7 +123,7 @@ sub EVENT_TIMER {
         my $tho_pct = $tho_hp / $tho_max * 100;
         my $host_pct = $host_hp / $host_max * 100;
 
-        if (abs($tho_pct - $host_pct) > 8) {
+        if (abs($tho_pct - $host_pct) > 14) {
             quest::shout("The balance has failed. The entities retreat!");
             $host->Depop();                    # Depop clone
             quest::depopall(1948);            # Depop adds

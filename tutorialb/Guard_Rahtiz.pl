@@ -3,7 +3,7 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_ENTER {
-	$client->Message(15, "Did you remember to make your bot? You'll need them!");
+	$client->Message(15, "Did you remember to make your bot? You'll need them!") if ($client);;
 }
 
 sub EVENT_SAY {

@@ -223,6 +223,8 @@ sub EVENT_TIMER {
         foreach my $client (@clients) {
             next unless $client && $client->GetHP() > 0;
 
+            my $name = $client->GetCleanName();
+
             my $item = $client->GetItemAt(22);  # Ammo slot
             my $item_id = $item ? $item->GetID() : 0;
             my $has_mirror = ($item_id == 49764);
@@ -230,11 +232,16 @@ sub EVENT_TIMER {
             my $buff_slot = $client->FindBuff(40778);
             my $has_buff = ($buff_slot != -1);
 
+            quest::shout("Mirror Check => [$name] | Item: $item_id | Has Mirror: $has_mirror | Has Buff: $has_buff");
+
             next unless $has_mirror && $has_buff;
+
             $found_client = 1;
 
-            my $roll = int(rand(100));
-            if ($roll < 25) {
+            # 100% chance to trigger for testing
+            my $roll = 0;
+
+            if ($roll < 100) {
                 quest::shout("The mirror cracks... and something darker stirs.");
                 quest::settimer("mirror_tint", 1);
 
@@ -262,17 +269,14 @@ sub EVENT_TIMER {
 
                 my @reflected_loot = (51987, 54945, 54946);
                 $npc->AddItem($reflected_loot[int(rand(@reflected_loot))]);
+
+                $checked_mirror = 1;
+                quest::stoptimer("mirror_check");
+                last;
             }
-
-            $checked_mirror = 1;
-            quest::stoptimer("mirror_check");
-            last;
         }
 
-        if (!$found_client) {
-            $checked_mirror = 1;
-            quest::stoptimer("mirror_check");
-        }
+        # If no client qualified, do not stop the timer or set $checked_mirror
     }
 
     elsif ($timer eq "mirror_tint") {

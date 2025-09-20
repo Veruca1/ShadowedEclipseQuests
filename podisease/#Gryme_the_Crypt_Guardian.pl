@@ -18,16 +18,16 @@ sub EVENT_SPAWN {
         # === Base stats (raw) ===
         $npc->ModifyNPCStat("level", 65);
         $npc->ModifyNPCStat("ac", 30000);
-        $npc->ModifyNPCStat("max_hp", 30000000);
+        $npc->ModifyNPCStat("max_hp", 50000000);
         $npc->ModifyNPCStat("hp_regen", 3000);
         $npc->ModifyNPCStat("mana_regen", 10000);
-        $npc->ModifyNPCStat("min_hit", 50000);
-        $npc->ModifyNPCStat("max_hit", 75000);
+        $npc->ModifyNPCStat("min_hit", 60000);
+        $npc->ModifyNPCStat("max_hit", 85000);
         $npc->ModifyNPCStat("atk", 2500);
         $npc->ModifyNPCStat("accuracy", 2000);
         $npc->ModifyNPCStat("avoidance", 50);
-        $npc->ModifyNPCStat("attack_delay", 9);
-        $npc->ModifyNPCStat("heroic_strikethrough", 33);
+        $npc->ModifyNPCStat("attack_delay", 8);
+        $npc->ModifyNPCStat("heroic_strikethrough", 34);
         $npc->ModifyNPCStat("attack_speed", 100);
         $npc->ModifyNPCStat("slow_mitigation", 90);
         $npc->ModifyNPCStat("attack_count", 100);
@@ -71,37 +71,18 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_COMBAT {
-    if ($combat_state == 1) {
-        quest::settimer("plague_silk", 30);
+    if ($combat_state == 1 && $npc->GetCleanName() eq "Gryme the Crypt Guardian") {
+        quest::settimer("stench_of_decay", 30);
     } else {
-        quest::stoptimer("plague_silk");
+        quest::stoptimer("stench_of_decay");
     }
 }
 
 sub EVENT_TIMER {
-    if ($timer eq "plague_silk") {
-        # Only cast if still in combat to avoid edge cases
+    if ($timer eq "stench_of_decay") {
         if ($npc->IsEngaged()) {
             my $target = $npc->GetTarget();
-            if ($target) {
-                $npc->CastSpell(41213, $target->GetID());
-            }
+            $npc->CastSpell(1113, $target->GetID()) if $target;
         }
     }
-}
-
-sub EVENT_DEATH_COMPLETE {
-    my $x = $npc->GetX();
-    my $y = $npc->GetY();
-    my $z = $npc->GetZ();
-    my $h = $npc->GetHeading();
-
-    quest::spawn2(205154,0,0,$x + 15,$y,$z,$h);
-    quest::spawn2(205154,0,0,$x - 15,$y,$z,$h); 
-    quest::spawn2(205154,0,0,$x,$y + 15,$z,$h); 
-    quest::spawn2(205154,0,0,$x + 15,$y + 15,$z,$h); 
-    quest::spawn2(205154,0,0,$x - 15,$y + 15,$z,$h); 
-    quest::spawn2(205154,0,0,$x,$y,$z,$h); 
-    quest::spawn2(205154,0,0,$x,$y,$z,$h); 
-    quest::spawn2(205154,0,0,$x,$y,$z,$h); 
 }

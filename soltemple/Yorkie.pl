@@ -48,8 +48,9 @@ sub EVENT_SAY {
         # Boss list
         my @bosses = (
             2194, # Hates Heat 3.0
-            2195, # Second boss
-            2196, # Third boss
+            2195, # Noryx
+            2196, # Glitch
+            2197, # Goo
         );
 
         # Random pick with debug
@@ -59,6 +60,9 @@ sub EVENT_SAY {
 
         # Spawn the selected boss
         quest::spawn2($random_boss, 0, 0, 4.66, 461.52, 4.06, 262.00);
+
+        # Depop herself (Yorkie)
+        quest::depop();
     }
 }
 

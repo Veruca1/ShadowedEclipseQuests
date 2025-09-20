@@ -52,17 +52,17 @@ sub EVENT_TASK_COMPLETE {
 			#quest::debug("Post-award EXP: $new_exp");
 			#quest::debug("Actual EXP gained: $exp_gained");
 
-			$client->Message(15, "You feel yourself grow stronger from completing the task!");
+			$client->Message(15, "You feel yourself grow stronger from completing the task!") if ($client);;
 			#quest::debug("Task 35 complete: Level $level - granted $exp_reward EXP (adjusted).");
 		} else {
-			$client->Message(13, "You're too powerful to gain experience from this task.");
+			$client->Message(13, "You're too powerful to gain experience from this task.") if ($client);;
 			#quest::debug("No EXP awarded due to level: $level");
 		}
 	} elsif ($task_id == 36) { # Task 36 completion: remove scavenger relics
 		foreach my $item_id (976, 977, 978, 979, 980) {
 			$client->RemoveItem($item_id);
 		}
-		$client->Message(15, "The ancient relics dissolve as their essence flows into the newly awakened ring.");
+		$client->Message(15, "The ancient relics dissolve as their essence flows into the newly awakened ring.") if ($client);;
 		#quest::debug("Removed all scavenger relic items after task 36 completed.");
 	}
 }
@@ -98,6 +98,6 @@ sub EVENT_PLAYER_PICKUP {
 		#quest::debug("Scavenger Hunt: Picked up item $picked_up_id → Activity $activity_id");
 
 		my $hint = $next_hints{$activity_id} || "Keep searching...";
-		$client->Message(15, "You feel one step closer to understanding... $hint");
+		$client->Message(15, "You feel one step closer to understanding... $hint") if ($client);;
 	}
 }

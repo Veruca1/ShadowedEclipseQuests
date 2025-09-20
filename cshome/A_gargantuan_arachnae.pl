@@ -1,5 +1,3 @@
-my $is_boss = 0;
-
 sub EVENT_SPAWN {
     return unless $npc;
 
@@ -8,37 +6,45 @@ sub EVENT_SPAWN {
     my $npc_id = $npc->GetNPCTypeID() || 0;
     return if exists $exclusion_list->{$npc_id};
 
-    # Count real clients
-    my $client_count = 0;
-    foreach my $c ($entity_list->GetClientList()) {
-        $client_count++ if $c && $c->GetHP() > 0;
-    }
-    my $is_raid = ($client_count >= 2) ? 1 : 0;
+    # Get scaling from plugin (pass $entity_list)
+    my ($multiplier, $hst_increase, $delay_reduction, $client_count) = plugin::RaidScaling($entity_list);
 
-    # --- Trash mob stats ---
-    my $ac        = $is_raid ? 20000 * 1.5 : 20000;
-    my $hp        = $is_raid ? 3000000 * 1.5 : 3000000;
-    my $regen     = $is_raid ? 800 * 1.5 : 800;
-    my $min_hit   = $is_raid ? 44000 * 1.5 : 44000;
-    my $max_hit   = $is_raid ? 55000 * 1.5 : 55000;
-    my $atk       = $is_raid ? 2500 * 1.5 : 2500;
-    my $accuracy  = $is_raid ? 1800 * 1.5 : 1800;
+    # --- Trash mob baseline stats ---
+    my $base_ac       = 20000;
+    my $base_hp       = 3000000;
+    my $base_regen    = 800;
+    my $base_min_hit  = 44000;
+    my $base_max_hit  = 55000;
+    my $base_atk      = 2500;
+    my $base_accuracy = 1800;
+    my $base_hst      = 28;
+    my $base_delay    = 10;
 
+    # Apply scaling
     $npc->ModifyNPCStat("level", 62);
-    $npc->ModifyNPCStat("ac", int($ac));
-    $npc->ModifyNPCStat("max_hp", int($hp));
-    $npc->ModifyNPCStat("hp_regen", int($regen));
+    $npc->ModifyNPCStat("ac", int($base_ac * $multiplier));
+    $npc->ModifyNPCStat("max_hp", int($base_hp * $multiplier));
+    $npc->ModifyNPCStat("hp_regen", int($base_regen * $multiplier));
     $npc->ModifyNPCStat("mana_regen", 10000);
-    $npc->ModifyNPCStat("min_hit", int($min_hit));
-    $npc->ModifyNPCStat("max_hit", int($max_hit));
-    $npc->ModifyNPCStat("atk", int($atk));
-    $npc->ModifyNPCStat("accuracy", int($accuracy));
+    $npc->ModifyNPCStat("min_hit", int($base_min_hit * $multiplier));
+    $npc->ModifyNPCStat("max_hit", int($base_max_hit * $multiplier));
+    $npc->ModifyNPCStat("atk", int($base_atk * $multiplier));
+    $npc->ModifyNPCStat("accuracy", int($base_accuracy * $multiplier));
     $npc->ModifyNPCStat("avoidance", 50);
-    $npc->ModifyNPCStat("attack_delay", $is_raid ? 8 : 10);
+
+    # Adjusted values from plugin
+    my $hst   = $base_hst + $hst_increase;
+    $hst = 40 if $hst > 40;
+
+    my $delay = $base_delay - $delay_reduction;
+    $delay = 4 if $delay < 4;
+
+    $npc->ModifyNPCStat("attack_delay", $delay);
+    $npc->ModifyNPCStat("heroic_strikethrough", $hst);
+
     $npc->ModifyNPCStat("attack_speed", 100);
     $npc->ModifyNPCStat("slow_mitigation", 80);
     $npc->ModifyNPCStat("attack_count", 100);
-    $npc->ModifyNPCStat("heroic_strikethrough", $is_raid ? 30 : 28);
     $npc->ModifyNPCStat("aggro", 55);
     $npc->ModifyNPCStat("assist", 1);
 
@@ -71,17 +77,18 @@ sub EVENT_SPAWN {
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
 
-    # Start depop timer (10 min)
-    quest::settimer("depop", 600);
-}
-
-sub EVENT_DEATH_COMPLETE {
-    quest::stoptimer("depop");
+    # Start the adds timer
+    quest::settimer("adds", 10);  # 10 seconds
 }
 
 sub EVENT_TIMER {
-    if ($timer eq "depop") {
-        quest::stoptimer("depop");
-        quest::depop();
+    if ($timer eq "adds") {
+        my $x = $npc->GetX();
+        my $y = $npc->GetY();
+        my $z = $npc->GetZ();
+        my $h = $npc->GetHeading();
+
+        quest::spawn2(205162, 0, 0, $x, $y, $z, $h); # NPC: a_bubonian_cronie
+        quest::stoptimer("adds");
     }
 }

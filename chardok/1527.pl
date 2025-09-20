@@ -17,7 +17,7 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();  # Get the character's unique ID
     my $flag = "$char_id-chardok_access_flag";  # Flag for the hand-in
     my $cooldown_key = "$char_id-chardok_hail_cooldown";  # Hail cooldown key
-    my $cooldown_time = 600;  # 10-minute cooldown for hailing
+    my $cooldown_time = 60;  # 1-minute cooldown for hailing
     my $npc_id = 1523;  # NPC ID to spawn
 
     # Check if the player attempts to hail the NPC

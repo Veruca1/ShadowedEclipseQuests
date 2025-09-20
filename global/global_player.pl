@@ -35,6 +35,18 @@ sub EVENT_SAY {
 	return if plugin::handle_checkpoint_and_boss($client, $text, $zoneid);
 }
 
+sub EVENT_CLICKDOOR {
+    if ($zoneid == 200 && $doorid == 7) {  # CoDecay, chair to Bertox event
+        my $qglobals = plugin::var("qglobals");
+
+        if ($qglobals{"pop_cod_preflag"} eq "1" || $client->GetGM()) {
+            $client->MovePC(200, 0, -16, -289, 256);  # Move to Bertox event
+        } else {
+            $client->Message(15, "There is still more work to be done.");
+        }
+    }
+}
+
 sub EVENT_DISCOVER_ITEM {
 	my $item_link = quest::varlink($itemid);
 	my $item_name = quest::getitemname($itemid);
@@ -48,17 +60,30 @@ sub EVENT_DISCOVER_ITEM {
 }
 
 sub EVENT_ENTERZONE {
-	# Delay pet scaling slightly so zone flags are available
-	quest::settimer("delayed_pet_scale", 3);  # 3 seconds should be safe
+    # Delay pet scaling slightly so zone flags are available
+    quest::settimer("delayed_pet_scale", 3);  # 3 seconds should be safe
 
-	if ($zoneid == 36) {
-		quest::whisper("Upon entering this dungeon, you get a sense that, although it is already an undesirable place, it has somehow been disturbed even more and unsettled its undead inhabitants.");
-	}
+    if ($zoneid == 36) {
+        quest::whisper("Upon entering this dungeon, you get a sense that, although it is already an undesirable place, it has somehow been disturbed even more and unsettled its undead inhabitants.");
+    }
 
-	 if ($client->GetItemIDAt(3) == 649) {  # Check if mask is still equipped
-		quest::settimer("malfoy_insult", 30);  # Restart insult timer on zoning in
-		$client->Message(15, "Draco Malfoy's Mask shivers... the presence is still with you.");
-	}
+    if ($client->GetItemIDAt(3) == 649) {  # Check if mask is still equipped
+        quest::settimer("malfoy_insult", 30);  # Restart insult timer on zoning in
+        $client->Message(15, "Draco Malfoy's Mask shivers... the presence is still with you.");
+    }
+
+    if ($zoneid == 205) {  # PoDisease
+        my @messages = (
+            "The wind carries whispers... your presence is felt by her.",
+            "You feel her gaze — distant, but deliberate.",
+            "The air is thick with anger — the sting of your rejection still lingers.",
+            "Shadows coil at the edges of your thoughts. She remembers.",
+            "Old magic stirs — twisted, patient, and still bound to her will."
+        );
+
+        my $text = $messages[int(rand(@messages))];
+        $client->SendMarqueeMessage(15, 510, 1, 1, 8000, $text);
+    }
 }
 
 sub EVENT_LEVEL_UP {
