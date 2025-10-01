@@ -1,5 +1,4 @@
-my $is_boss         = 0;
-my $checked_mirror  = 0;
+my $is_boss = 0;
 
 sub EVENT_SPAWN {
     return unless $npc;
@@ -79,13 +78,9 @@ sub EVENT_COMBAT {
     if ($combat_state == 1) {
         # Engage: start OOB check timer (6 sec)
         quest::settimer("OOBcheck", 6000);
-        quest::settimer("mirror_check", 5);
-        $checked_mirror = 0;
     } else {
-        # Disengage: stop OOB + mirror check
+        # Disengage: stop OOB check
         quest::stoptimer("OOBcheck");
-        quest::stoptimer("mirror_check");
-        $checked_mirror = 0;
     }
 }
 
@@ -103,52 +98,6 @@ sub EVENT_TIMER {
         } else {
             # Still in-bounds: restart OOB check
             quest::settimer("OOBcheck", 6000);
-        }
-    }
-    elsif ($timer eq "mirror_check") {
-        return if $checked_mirror;
-
-        my $hp_pct = int($npc->GetHPRatio());
-        return if $hp_pct > 80 || $hp_pct < 10;
-
-        foreach my $client ($entity_list->GetClientList()) {
-            next unless $client;
-            next if $client->GetHP() <= 0;
-
-            my $item     = $client->GetItemAt(22);
-            my $item_id  = $item ? $item->GetID() : 0;
-            my $has_mirror = ($item_id == 56498);
-            my $has_buff   = $client->FindBuff(41227);
-
-            next unless $has_mirror && $has_buff;
-
-            my $roll = int(rand(100));
-            if ($roll < 25) {
-                quest::shout("The mirror cracks... and something darker stirs.");
-
-                $npc->ModifyNPCStat("max_hp", int($npc->GetMaxHP() * 1.5));
-                $npc->ModifyNPCStat("min_hit", int($npc->GetMinDMG() * 1.5));
-                $npc->ModifyNPCStat("max_hit", int($npc->GetMaxDMG() * 1.5));
-                $npc->ModifyNPCStat("atk", int($npc->GetATK() * 1.5));
-                $npc->ModifyNPCStat("attack_delay", 4);
-                $npc->ModifyNPCStat("heroic_strikethrough", 35);
-                $npc->SetHP($npc->GetMaxHP());
-                $npc->CastSpell(21388, $npc->GetID()) if !$npc->FindBuff(21388);
-                $npc->SetNPCTintIndex(30);
-
-                my $base_name = $npc->GetCleanName();
-                my $title_tag = "the Reflected";
-                my $new_name  = ($base_name =~ /\bReflected\b/i) ? $base_name : "$base_name $title_tag";
-                $npc->TempName($new_name);
-                $npc->ModifyNPCStat("lastname", "Reflected");
-
-                #my @reflected_loot = (54951, 54952, 54953, 54960, 51989);
-                $npc->AddItem($reflected_loot[int(rand(@reflected_loot))]);
-            }
-
-            $checked_mirror = 1;
-            quest::stoptimer("mirror_check");
-            last;
         }
     }
 }

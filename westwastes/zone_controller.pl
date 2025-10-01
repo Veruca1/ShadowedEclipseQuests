@@ -1,15 +1,15 @@
 sub EVENT_SIGNAL {
     if ($signal == 1) {
-        quest::shout("Zone Controller received SIGNAL 1! Processing...");
+        #quest::shout("Zone Controller received SIGNAL 1! Processing...");
 
         my $remaining_dragons = quest::get_data("remaining_dragons");
 
         if (!$remaining_dragons || $remaining_dragons <= 0) {
             $remaining_dragons = plugin::RandomRange(5, 9);
             quest::set_data("remaining_dragons", $remaining_dragons);
-            quest::shout("New wave size set: $remaining_dragons dragons!");
+            #quest::shout("New wave size set: $remaining_dragons dragons!");
         } else {
-            quest::shout("Continuing wave, $remaining_dragons dragons left.");
+            #quest::shout("Continuing wave, $remaining_dragons dragons left.");
         }
 
         # Define fixed spawn coordinates
@@ -27,7 +27,7 @@ sub EVENT_SIGNAL {
                            120117, 120135, 120042, 120008, 120025);
 
             my $dragon_id = $dragons[int(rand(@dragons))];
-            quest::shout("Spawning regular dragon ID: $dragon_id");
+            #quest::shout("Spawning regular dragon ID: $dragon_id");
 
             quest::spawn2($dragon_id, 0, 0, $spawn_x, $spawn_y, $spawn_z, $spawn_h);
         } elsif ($remaining_dragons == 1) {
@@ -35,7 +35,7 @@ sub EVENT_SIGNAL {
             my @boss_dragons = (120086, 120084, 120005);
             my $boss_id = $boss_dragons[int(rand(@boss_dragons))];
 
-            quest::shout("Final spawn! Boss dragon ID: $boss_id");
+            #quest::shout("Final spawn! Boss dragon ID: $boss_id");
 
             quest::spawn2($boss_id, 0, 0, $spawn_x, $spawn_y, $spawn_z, $spawn_h);
         }
@@ -43,6 +43,6 @@ sub EVENT_SIGNAL {
         # Decrease count and store it
         $remaining_dragons--;
         quest::set_data("remaining_dragons", $remaining_dragons);
-        quest::shout("Remaining dragons after spawn: $remaining_dragons");
+        #quest::shout("Remaining dragons after spawn: $remaining_dragons");
     }
 }

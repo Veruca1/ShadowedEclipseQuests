@@ -282,7 +282,7 @@ sub EVENT_DEATH_COMPLETE {
                 my $y = $client->GetY();
                 my $z = $client->GetZ();
                 my $h = $client->GetHeading();
-                quest::spawn2(123456, 0, 0, $x, $y, $z, $h);
+                quest::spawn2(2207, 0, 0, $x, $y, $z, $h);
             }
 
             quest::set_data($essence_key, 0);

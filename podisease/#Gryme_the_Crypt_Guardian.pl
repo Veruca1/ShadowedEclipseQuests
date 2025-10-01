@@ -11,7 +11,7 @@ sub EVENT_SPAWN {
     return if exists $exclusion_list->{$npc_id};
 
     # Treat Aramin (boss) as boss
-    $is_boss = ($raw_name =~ /^#/ || $raw_name =~ /Aramin/i) ? 1 : 0;
+    $is_boss = ($raw_name =~ /Gryme/i) ? 1 : 0;
     $npc->SetNPCFactionID(623);
 
     if ($is_boss) {

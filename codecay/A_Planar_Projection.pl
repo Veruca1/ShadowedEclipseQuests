@@ -1,51 +1,94 @@
+# Planar Projection after Bertoxxulous
+# Grants Plane of Nightmares (204) access + DZ creation (ponightmare, version 0)
+
+my $expedition_name_prefix = "DZ - ";
+my $min_players = 1;
+my $max_players = 12;
+my $dz_duration = 21600; # 6 hours
+
+my %zone_versions = (
+    "ponightmare" => {
+        0 => "Plane of Nightmares",  # base version
+    },
+);
+
 sub EVENT_SPAWN {
-    quest::settimer(1, 600);  # Depop after 10 minutes
+    quest::settimer(1, 600); # Despawn after 10 minutes
 }
 
 sub EVENT_SAY {
     if ($text =~ /hail/i) {
-        quest::setglobal("pop_cod_bertox", 1, 5, "F");  # Flag for killing Bertox
-        $client->Message(4, "You receive a character flag!");
+        # === Flagging logic (only if not already flagged) ===
+        unless ($client->HasZoneFlag(204)) {
+            quest::setglobal("pop_cod_bertox", 1, 5, "F");  # Bertox kill flag
+            $client->Message(4, "You receive a character flag!");
 
-        # --- Begin group/raid zone flag propagation ---
-        my $clicker_ip = $client->GetIP();
-        my $group = $client->GetGroup();
-        my $raid = $client->GetRaid();
-        my $flagged = 0;
+            # Group/raid propagation
+            my $clicker_ip = $client->GetIP();
+            my $group = $client->GetGroup();
+            my $raid  = $client->GetRaid();
+            my $flagged = 0;
 
-        if ($group) {
-            for (my $i = 0; $i < $group->GroupCount(); $i++) {
-                my $member = $group->GetMember($i);
-                next unless $member;
-                if ($member->GetIP() == $clicker_ip) {
-                    $member->SetZoneFlag(204);  # PoN zone flag
-                    $flagged = 1;
+            if ($group) {
+                for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                    my $member = $group->GetMember($i);
+                    next unless $member;
+                    if ($member->GetIP() == $clicker_ip && !$member->HasZoneFlag(204)) {
+                        $member->SetZoneFlag(204);  # PoN flag
+                        $flagged = 1;
+                    }
                 }
-            }
-            if ($flagged) {
-                quest::we(14, "$name and group members on the same IP have earned access to the Plane of Nightmares.");
-            }
-        } elsif ($raid) {
-            for (my $i = 0; $i < $raid->RaidCount(); $i++) {
-                my $member = $raid->GetMember($i);
-                next unless $member;
-                if ($member->GetIP() == $clicker_ip) {
-                    $member->SetZoneFlag(204);
-                    $flagged = 1;
+                if ($flagged) {
+                    quest::we(14, "$name and group members on the same IP have earned access to the Plane of Nightmares.");
                 }
+            } elsif ($raid) {
+                for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                    my $member = $raid->GetMember($i);
+                    next unless $member;
+                    if ($member->GetIP() == $clicker_ip && !$member->HasZoneFlag(204)) {
+                        $member->SetZoneFlag(204);
+                        $flagged = 1;
+                    }
+                }
+                if ($flagged) {
+                    quest::we(14, "$name and raid members on the same IP have earned access to the Plane of Nightmares.");
+                }
+            } else {
+                $client->SetZoneFlag(204);
+                quest::we(14, "$name has earned access to the Plane of Nightmares.");
             }
-            if ($flagged) {
-                quest::we(14, "$name and raid members on the same IP have earned access to the Plane of Nightmares.");
-            }
-        } else {
-            $client->SetZoneFlag(204);
-            quest::we(14, "$name has earned access to the Plane of Nightmares.");
         }
-        # --- End group/raid zone flag propagation ---
+
+        # === DZ Prompt (always shown) ===
+        plugin::Whisper("You hold access to the [" . quest::saylink("Plane of Nightmares DZ", 1, "Plane of Nightmares DZ") . "]. Say it if you wish me to spin a dynamic zone.");
     }
 
-    {
-        $pop_cod_bertox = undef;
+    elsif ($text =~ /Plane of Nightmares DZ/i) {
+        my $zone_name = "Plane of Nightmares";
+        foreach my $version (keys %{$zone_versions{"ponightmare"}}) {
+            if ($zone_versions{"ponightmare"}->{$version} eq $zone_name) {
+                my $expedition_name = $expedition_name_prefix . "ponightmare";
+                my $dz = $client->CreateExpedition("ponightmare", $version, $dz_duration, $expedition_name, $min_players, $max_players);
+                if ($dz) {
+                    plugin::Whisper("Dynamic zone for '$zone_name' created successfully. Tell me when you're [" . quest::saylink("ready", 1, "ready") . "] to enter.");
+                } else {
+                    plugin::Whisper("There was an issue creating your dynamic zone. Please try again.");
+                }
+                return;
+            }
+        }
+        plugin::Whisper("That is not a valid choice. Please try again.");
+    }
+
+    elsif ($text =~ /ready/i) {
+        my $dz = $client->GetExpedition();
+        if ($dz) {
+            my $zone_short_name = $dz->GetZoneName();
+            plugin::Whisper("Teleporting you to your dynamic zone: $zone_short_name.");
+            $client->MovePCDynamicZone($zone_short_name);
+        } else {
+            plugin::Whisper("You don't have an active dynamic zone. Please create one first.");
+        }
     }
 }
 

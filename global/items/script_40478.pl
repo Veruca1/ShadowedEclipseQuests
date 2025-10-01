@@ -1,6 +1,6 @@
 sub EVENT_ITEM_CLICK {
     return unless $client && $client->IsClient();
-
+    quest::debug("40478 script running");
     my $zone_id = $zoneid;
     my $zone_name = $zonesn;
     my $account_id = $client->AccountID();
