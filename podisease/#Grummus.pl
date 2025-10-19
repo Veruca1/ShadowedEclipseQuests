@@ -1,6 +1,8 @@
 my $is_boss         = 0;
 my $checked_mirror  = 0;
 
+my @reflected_loot = ();
+
 sub EVENT_SPAWN {
     return unless $npc;
 
@@ -11,19 +13,17 @@ sub EVENT_SPAWN {
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
-    # Treat Grummice (boss) as boss
     $is_boss = ($raw_name =~ /^#/ || $raw_name =~ /Grummice/i) ? 1 : 0;
     $npc->SetNPCFactionID(623);
 
     if ($is_boss) {
-        # === Base stats (raw) ===
         $npc->ModifyNPCStat("level", 65);
         $npc->ModifyNPCStat("ac", 30000);
-        $npc->ModifyNPCStat("max_hp", 100000000);
+        $npc->ModifyNPCStat("max_hp", 150000000);
         $npc->ModifyNPCStat("hp_regen", 3000);
         $npc->ModifyNPCStat("mana_regen", 10000);
         $npc->ModifyNPCStat("min_hit", 60000);
-        $npc->ModifyNPCStat("max_hit", 75000);
+        $npc->ModifyNPCStat("max_hit", 110000);
         $npc->ModifyNPCStat("atk", 2500);
         $npc->ModifyNPCStat("accuracy", 2000);
         $npc->ModifyNPCStat("avoidance", 70);
@@ -35,7 +35,6 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("aggro", 60);
         $npc->ModifyNPCStat("assist", 1);
 
-        # Attributes
         $npc->ModifyNPCStat("str", 1200);
         $npc->ModifyNPCStat("sta", 1200);
         $npc->ModifyNPCStat("agi", 1200);
@@ -44,7 +43,6 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("int", 1200);
         $npc->ModifyNPCStat("cha", 1000);
 
-        # Resists
         $npc->ModifyNPCStat("mr", 400);
         $npc->ModifyNPCStat("fr", 400);
         $npc->ModifyNPCStat("cr", 400);
@@ -53,38 +51,31 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("corruption_resist", 500);
         $npc->ModifyNPCStat("physical_resist", 1000);
 
-        # Traits
         $npc->ModifyNPCStat("runspeed", 2);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
         $npc->ModifyNPCStat("see_invis_undead", 1);
         $npc->ModifyNPCStat("see_hide", 1);
         $npc->ModifyNPCStat("see_improved_hide", 1);
-        $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15^17,1^21,1");
+        $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1");
 
-        # Apply raid scaling (plugin includes tank logic)
         plugin::RaidScaling($entity_list, $npc);
     }
 
-    # Full heal
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if $max_hp > 0;
-}
 
-# POD Boss Grummice - Out of Bounds Check + Death Spawn
+    quest::setnexthpevent(35);
+}
 
 sub EVENT_COMBAT {
     my ($combat_state) = @_;
 
     if ($combat_state == 1) {
-        # Engage: start OOB check timer (6 sec)
         quest::settimer("OOBcheck", 6000);
-        quest::settimer("mirror_check", 5);
         $checked_mirror = 0;
     } else {
-        # Disengage: stop OOB + mirror check
         quest::stoptimer("OOBcheck");
-        quest::stoptimer("mirror_check");
         $checked_mirror = 0;
     }
 }
@@ -95,60 +86,17 @@ sub EVENT_TIMER {
     if ($timer eq "OOBcheck") {
         quest::stoptimer("OOBcheck");
 
-        # Check NPC X coordinate
         if ($npc->GetX() < 1800) {
-            # Out of bounds: reset to bind + wipe hate
             $npc->GotoBind();
             $npc->WipeHateList();
         } else {
-            # Still in-bounds: restart OOB check
             quest::settimer("OOBcheck", 6000);
         }
     }
-    elsif ($timer eq "mirror_check") {
-        return if $checked_mirror;
+}
 
-        my $hp_pct = int($npc->GetHPRatio());
-        return if $hp_pct > 80 || $hp_pct < 10;
-
-        foreach my $client ($entity_list->GetClientList()) {
-            next unless $client;
-            next if $client->GetHP() <= 0;
-
-            my $item     = $client->GetItemAt(22);
-            my $item_id  = $item ? $item->GetID() : 0;
-            my $has_mirror = ($item_id == 56498);
-            my $has_buff   = $client->FindBuff(41227);
-
-            next unless $has_mirror && $has_buff;
-
-            my $roll = int(rand(100));
-            if ($roll < 25) {
-                quest::shout("The mirror cracks... and something darker stirs.");
-
-                $npc->ModifyNPCStat("max_hp", int($npc->GetMaxHP() * 1.5));
-                $npc->ModifyNPCStat("min_hit", int($npc->GetMinDMG() * 1.5));
-                $npc->ModifyNPCStat("max_hit", int($npc->GetMaxDMG() * 1.5));
-                $npc->ModifyNPCStat("atk", int($npc->GetATK() * 1.5));
-                $npc->ModifyNPCStat("attack_delay", 4);
-                $npc->ModifyNPCStat("heroic_strikethrough", 35);
-                $npc->SetHP($npc->GetMaxHP());
-                $npc->CastSpell(21388, $npc->GetID()) if !$npc->FindBuff(21388);
-                $npc->SetNPCTintIndex(30);
-
-                my $base_name = $npc->GetCleanName();
-                my $title_tag = "the Reflected";
-                my $new_name  = ($base_name =~ /\bReflected\b/i) ? $base_name : "$base_name $title_tag";
-                $npc->TempName($new_name);
-                $npc->ModifyNPCStat("lastname", "Reflected");
-
-                #my @reflected_loot = (54951, 54952, 54953, 54960, 51989);
-                $npc->AddItem($reflected_loot[int(rand(@reflected_loot))]);
-            }
-
-            $checked_mirror = 1;
-            quest::stoptimer("mirror_check");
-            last;
-        }
+sub EVENT_HP {
+    if ($hpevent == 35 && !$checked_mirror) {
+        plugin::TryPoPCh1ReflectTransformation($npc, $entity_list, \@reflected_loot, 40, \$checked_mirror);
     }
 }

@@ -209,7 +209,8 @@ sub EVENT_TIMER {
             my $item = $client->GetItemAt(22);
             my $item_id = $item ? $item->GetID() : 0;
             my $has_mirror = ($item_id == 49764);
-            my $has_buff   = $client->FindBuff(40778);
+            my $buff = $client->FindBuff(40778);
+            my $has_buff = defined $buff && $buff;
 
             next unless $has_mirror && $has_buff;
 

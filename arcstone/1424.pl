@@ -1,13 +1,10 @@
 # Halloween Event DZ Controller - Tower of Shattered Lanterns
-use strict;
-use warnings;
 
 my $expedition_name_prefix = "DZ - ";
 my $min_players = 1;
 my $max_players = 6;
 my $dz_duration = 28800;   # 8 hours
 
-# Define zone and version mapping
 my %zone_versions = (
     "convorteum" => {
         1 => "Tower of Shattered Lanterns",
@@ -15,8 +12,10 @@ my %zone_versions = (
 );
 
 sub EVENT_SAY {
-    my $client = plugin::val('$client');
-    my $text   = plugin::val('$text');
+    my $client      = plugin::val('$client');
+    my $text        = plugin::val('$text');
+    my $npc         = plugin::val('$npc');
+    my $entity_list = plugin::val('$entity_list');
     return unless $client;
 
     if ($text =~ /hail/i) {
@@ -26,16 +25,24 @@ sub EVENT_SAY {
     }
 
     elsif ($text =~ /^Tower of Shattered Lanterns$/i) {
-        my $zone = "convorteum";
+        my $zone    = "convorteum";
         my $version = 1;
         my $expedition_name = $expedition_name_prefix . $zone_versions{$zone}{$version};
 
         my $dz = $client->CreateExpedition($zone, $version, $dz_duration, $expedition_name, $min_players, $max_players);
         if ($dz) {
+            my $era = plugin::DetermineEra($npc, $entity_list);
+
+            # ✅ use quest::GetInstanceID(zone, version) here
+            my $inst_id = quest::GetInstanceID("convorteum", 1);
+            quest::setglobal("era_" . $inst_id, $era, 7, "H6");
+
+            quest::whisper("🎃 The Tower awaits. A dark expedition has been forged in the $era era: '$zone_versions{$zone}{$version}'.");
+
             my $ready_link = quest::saylink("ready", 1, "ready");
-            quest::whisper("🎃 The Tower awaits. A dark expedition has been forged: '$zone_versions{$zone}{$version}'.");
             quest::whisper("When your party is gathered, whisper [$ready_link] and I will guide you inside...");
-        } else {
+        } 
+        else {
             quest::whisper("Something wicked has gone wrong... the lanterns refuse to shatter this time.");
         }
     }
@@ -44,9 +51,14 @@ sub EVENT_SAY {
         my $dz = $client->GetExpedition();
         if ($dz) {
             my $zone_short_name = $dz->GetZoneName();
-            quest::whisper("The lanterns crack, shadows spill forth... You are drawn into your expedition: $zone_short_name!");
+
+            my $inst_id = quest::GetInstanceID("convorteum", 1);
+            my $era = $qglobals{"era_" . $inst_id} || "unknown";
+
+            quest::whisper("The lanterns crack, shadows spill forth... You are drawn into your expedition: $zone_short_name! (Era: $era)");
             $client->MovePCDynamicZone($zone_short_name);
-        } else {
+        } 
+        else {
             quest::whisper("The lanterns remain still... you have no expedition to enter.");
         }
     }

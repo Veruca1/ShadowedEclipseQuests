@@ -10,6 +10,7 @@ sub EVENT_SAY {
 sub EVENT_ITEM {
   if (plugin::check_handin(\%itemcount, 510 => 1)) {
     # Expedition Orders
+    quest::summonitem(510); # Ensures item 510 is returned to the player.
     quest::say("The final orders, follow me closely! I pray that the Kromrif have not learned of our plans to align with the gnomes.");
     my $x = $npc->GetX();
     my $y = $npc->GetY();

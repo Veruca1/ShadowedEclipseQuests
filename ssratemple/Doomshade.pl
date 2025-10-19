@@ -229,10 +229,10 @@ sub EVENT_TIMER {
             my $item_id = $item ? $item->GetID() : 0;
             my $has_mirror = ($item_id == 49764);
 
-            my $buff_slot = $client->FindBuff(40778);
-            my $has_buff = ($buff_slot != -1);
+            my $buff = $client->FindBuff(40778);
+            my $has_buff = defined $buff && $buff;
 
-            quest::shout("Mirror Check => [$name] | Item: $item_id | Has Mirror: $has_mirror | Has Buff: $has_buff");
+            #quest::shout("Mirror Check => [$name] | Item: $item_id | Has Mirror: $has_mirror | Has Buff: $has_buff");
 
             next unless $has_mirror && $has_buff;
 

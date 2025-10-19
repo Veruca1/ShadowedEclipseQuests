@@ -48,7 +48,7 @@ my @kunark_zones = (
 	{ shortname => "warslikswood", name => "Warsliks Woods" },
 	{ shortname => "overthere", name => "The Overthere" },
 	{ shortname => "emeraldjungle", name => "The Emerald Jungle" },
-	{ shortname => "fironiavie", name => "Firiona Vie" }
+	{ shortname => "firiona", name => "Firiona Vie" }
 );
 
 my @velious_zones = (

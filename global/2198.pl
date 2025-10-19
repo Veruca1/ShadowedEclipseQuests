@@ -1,34 +1,43 @@
 # Luclin DZ Configuration
+
 my $expedition_name_prefix = "DZ - ";
 my $min_players = 1;
 my $max_players = 6;
 my $dz_duration = 82800;
 
-my @luclin_zones = (
-    { shortname => "shadeweaver", name => "Shadeweaver's Thicket" },
-    { shortname => "paludal", name => "Paludal Caverns" },
-    { shortname => "echo", name => "Echo Caverns" },
-    { shortname => "deep", name => "The Deep" },
-    { shortname => "maiden", name => "Maiden's Eye" },
-    { shortname => "akheva", name => "Akheva Ruins" },
-    { shortname => "tenebrous", name => "Tenebrous Mountains" },
-    { shortname => "katta", name => "Katta Castellum" },
-    { shortname => "twilight", name => "The Twilight Sea" },
-    { shortname => "fungusgrove", name => "Fungus Grove" },
-    { shortname => "grimling", name => "Grimling Forest" },
-    { shortname => "scarlet", name => "Scarlet Desert" },
-    { shortname => "letalis", name => "Mons Letalis" },
-    { shortname => "thegrey", name => "The Grey" },
-    { shortname => "ssratemple", name => "Ssraeshza Temple" },
+# Define zones and versions
+my %zone_versions = (
+    "shadeweaver" => { 0 => "Shadeweaver's Thicket" },
+    "paludal"     => { 0 => "Paludal Caverns" },
+    "echo"        => { 0 => "Echo Caverns" },
+    "thedeep"        => { 0 => "The Deep" },
+    "maiden"      => { 1 => "Maiden's Eye" },   # 👈 Explicitly version 1
+    "akheva"      => { 0 => "Akheva Ruins" },
+    "tenebrous"   => { 0 => "Tenebrous Mountains" },
+    "katta"       => { 0 => "Katta Castellum" },
+    "twilight"    => { 0 => "The Twilight Sea" },
+    "fungusgrove" => { 0 => "Fungus Grove" },
+    "grimling"    => { 0 => "Grimling Forest" },
+    "scarlet"     => { 0 => "Scarlet Desert" },
+    "letalis"     => { 0 => "Mons Letalis" },
+    "thegrey"     => { 0 => "The Grey" },
+    "ssratemple"  => { 0 => "Ssraeshza Temple" },
 );
 
-# Build lookup hash
-my %zones;
-foreach my $zone (@luclin_zones) {
-    $zones{ $zone->{shortname} } = $zone->{name };
+sub ShowLuclinLinks {
+    my @zone_links;
+    foreach my $short (keys %zone_versions) {
+        foreach my $ver (keys %{ $zone_versions{$short} }) {
+            push @zone_links, quest::silent_saylink($zone_versions{$short}{$ver});
+        }
+    }
+    my $line = join(", ", @zone_links);
+    quest::message(315, "Speak the name, and the path shall open: $line");
 }
 
 sub EVENT_SAY {
+    return unless $client;
+
     if ($text =~ /hail/i) {
         quest::whisper("Ahh, a curious spark kindles in thine eyes. You stand before the conduit to Luclin's riddled veil. Speak a name, and I shall part the mist.");
         ShowLuclinLinks();
@@ -42,27 +51,29 @@ sub EVENT_SAY {
         } else {
             quest::whisper("You don't have an active dynamic zone. Please speak the name of a place first.");
         }
-        return;
     }
     elsif ($text =~ /^(.*)$/i) {
         my $input = $1;
-        my $zone_short;
-        my $zone_name;
+        my ($zone_short, $version, $zone_name);
 
-        foreach my $zone (@luclin_zones) {
-            if ($input =~ /\Q$zone->{name}\E/i || $input =~ /^$zone->{shortname}$/i) {
-                $zone_short = $zone->{shortname};
-                $zone_name = $zone->{name};
-                last;
+        foreach my $short (keys %zone_versions) {
+            foreach my $ver (keys %{ $zone_versions{$short} }) {
+                my $name = $zone_versions{$short}{$ver};
+                if ($input =~ /\Q$name\E/i || $input =~ /^$short$/i) {
+                    $zone_short = $short;
+                    $version    = $ver;
+                    $zone_name  = $name;
+                    last;
+                }
             }
         }
 
         if ($zone_short) {
-            my $expedition_name = $expedition_name_prefix . $zone_short;
-            my $dz = $client->CreateExpedition($zone_short, 0, $dz_duration, $expedition_name, $min_players, $max_players);
+            my $expedition_name = $expedition_name_prefix . $zone_name;
+            my $dz = $client->CreateExpedition($zone_short, $version, $dz_duration, $expedition_name, $min_players, $max_players);
             if ($dz) {
                 my $ready_link = quest::silent_saylink("ready");
-                quest::whisper("To $zone_name you shall go. May the light of Sel`Rheaza guide your path. Say [$ready_link] when you are prepared.");
+                quest::whisper("To $zone_name you shall go (version $version). May the light of Sel`Rheaza guide your path. Say [$ready_link] when you are prepared.");
             } else {
                 quest::whisper("Something has hindered the creation of your path to $zone_name. Try once more.");
             }
@@ -79,13 +90,4 @@ sub EVENT_TIMER {
 
 sub EVENT_SPAWN {
     quest::settimer("depop", 10);
-}
-
-sub ShowLuclinLinks {
-    my @zone_links;
-    foreach my $zone (@luclin_zones) {
-        push @zone_links, quest::silent_saylink($zone->{name});
-    }
-    my $line = join(", ", @zone_links);
-    quest::message(315, "Speak the name, and the path shall open: $line");
 }

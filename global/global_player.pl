@@ -80,9 +80,13 @@ sub EVENT_ENTERZONE {
             "Shadows coil at the edges of your thoughts. She remembers.",
             "Old magic stirs — twisted, patient, and still bound to her will."
         );
-
         my $text = $messages[int(rand(@messages))];
         $client->SendMarqueeMessage(15, 510, 1, 1, 8000, $text);
+    }
+
+    if ($zoneid == 491) {  # Convorteum - Tower of Shattered Lanterns
+        my $text = "Lanterns burn with fractured light — extinguish their guardians to ascend the Tower.";
+        $client->SendMarqueeMessage(15, 510, 1, 1, 9000, $text);
     }
 }
 
@@ -325,6 +329,20 @@ sub EVENT_WARP {
 		veeshan        => 1,
 	};
 
+	# Define legitimate teleporter destinations by zone
+	my $teleporter_destinations = {
+		frozenshadow => [
+			{x => 660, y => 100, z => 40, radius => 30},   # Level 2 - Crystal Key
+			{x => 670, y => 750, z => 75, radius => 30},   # Level 3 - Three Toothed Key
+			{x => 170, y => 755, z => 175, radius => 30},  # Level 4 - Frosty Key
+			{x => -150, y => 160, z => 217, radius => 30}, # Level 5 - Small Rusty Key
+			{x => -320, y => 725, z => 12, radius => 30},  # Level 6 - Bone Finger Key
+			{x => -490, y => 175, z => 2, radius => 30},   # Level 7 - Bone Finger Key
+			{x => 10, y => 65, z => 310, radius => 30},    # Level 8 - Large Metal Key
+		],
+		# Add other zones with legitimate teleporters as needed
+	};
+
 	return if $client->GetGM();
 
 	my $char_id = $client->CharacterID();
@@ -334,10 +352,24 @@ sub EVENT_WARP {
 	my $zone_name = $zone->GetShortName();
 	return unless exists $zone_blocklist->{$zone_name};
 
-	# TEMPORARY OVERRIDE: Block warping in ssratemple even for donators
-	if ($zone_name eq "ssratemple" && defined $donator_flag && $donator_flag == 1) {
-		$client->Message(15, "Even as a donator, warping is currently disabled in Ssra Temple, this will unlock in 1 week.");
-		$donator_flag = 0; # force enforcement
+	# Check if this warp destination is a legitimate teleporter
+	if (exists $teleporter_destinations->{$zone_name}) {
+		my $current_x = $client->GetX();
+		my $current_y = $client->GetY();
+		my $current_z = $client->GetZ();
+		
+		foreach my $teleporter (@{$teleporter_destinations->{$zone_name}}) {
+			my $distance = sqrt(
+				($current_x - $teleporter->{x})**2 + 
+				($current_y - $teleporter->{y})**2 + 
+				($current_z - $teleporter->{z})**2
+			);
+			
+			if ($distance <= $teleporter->{radius}) {
+				# Allow legitimate teleporter usage - no logging needed for normal gameplay
+				return;
+			}
+		}
 	}
 
 	# Allow donators to skip enforcement (except ssratemple override above)

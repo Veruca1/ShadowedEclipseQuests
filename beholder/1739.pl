@@ -31,11 +31,12 @@ sub EVENT_COMBAT {
 }
 
 sub EVENT_TIMER {
-    if ($timer eq "check_engagement") {
-        if ($npc->GetHateList()->IsEmpty()) {
-            quest::depop();
-        }
+if ($timer eq "check_engagement") {
+    my $hate_list = $npc->GetHateList();
+    if (!defined($hate_list)) {
+        quest::depop();
     }
+}
 
     if ($timer eq "check_buffs") {
         quest::stoptimer("check_buffs");

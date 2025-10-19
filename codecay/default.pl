@@ -17,36 +17,38 @@ sub EVENT_SPAWN {
 
     # === Baseline stats ===
     my $base_stats = $is_boss ? {
-        level     => 65,
-        ac        => 30000,
-        max_hp    => 30000000,
-        hp_regen  => 3000,
-        min_hit   => 50000,
-        max_hit   => 75000,
-        atk       => 2500,
-        accuracy  => 2000,
-        hst       => 33,  # Boss baseline
-        slow_mit  => 90,
-        aggro     => 60,
-        assist    => 1,
+        level       => 65,
+        ac          => 30000,
+        max_hp      => 125000000,
+        hp_regen    => 3000,
+        min_hit     => 50000,
+        max_hit     => 100000,
+        atk         => 2500,
+        accuracy    => 2000,
+        hst         => 38,
+        slow_mit    => 90,
+        aggro       => 60,
+        assist      => 1,
+        # attack_delay => 6,  # handled separately
         str       => 1200, sta => 1200, agi => 1200, dex => 1200,
         wis       => 1200, int => 1200, cha => 1000,
         mr        => 400, fr => 400, cr => 400, pr => 400, dr => 400,
         corr      => 500, phys => 1000,
         sa        => "2,1^3,1^5,1^7,1^8^13,1^14,1^15,1^17,1^21,1",
     } : {
-        level     => 62,
-        ac        => 20000,
-        max_hp    => 3000000,
-        hp_regen  => 800,
-        min_hit   => 44000,
-        max_hit   => 55000,
-        atk       => 2500,
-        accuracy  => 1800,
-        hst       => 28,  # Trash baseline
-        slow_mit  => 80,
-        aggro     => 55,
-        assist    => 1,
+        level       => 62,
+        ac          => 20000,
+        max_hp      => 10000000,
+        hp_regen    => 800,
+        min_hit     => 44000,
+        max_hit     => 55000,
+        atk         => 2500,
+        accuracy    => 1800,
+        hst         => 30,
+        slow_mit    => 80,
+        aggro       => 55,
+        assist      => 1,
+        # attack_delay => 7,  # handled separately
         str       => 1000, sta => 1000, agi => 1000, dex => 1000,
         wis       => 1000, int => 1000, cha => 800,
         mr        => 300, fr => 300, cr => 300, pr => 300, dr => 300,
@@ -55,6 +57,9 @@ sub EVENT_SPAWN {
     };
 
     _apply_baseline($base_stats);
+
+    # Explicitly set attack_delay based on boss flag
+    $npc->ModifyNPCStat("attack_delay", $is_boss ? 6 : 7);
 
     plugin::RaidScaling($entity_list, $npc);
     $scaled_spawn = 1;

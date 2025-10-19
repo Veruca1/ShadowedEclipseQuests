@@ -11,8 +11,8 @@ sub EVENT_TIMER {
 
 my $expedition_name_prefix = "DZ - ";
 my $min_players = 1;
-my $max_players = 12;
-my $dz_duration = 21600;
+my $max_players = 6;
+my $dz_duration = 86400;  # 24 hours in seconds
 
 my %zones = (
     "templeveeshan" => "The Temple of Veeshan Upside Down",  # Updated zone long name

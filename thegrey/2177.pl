@@ -61,38 +61,35 @@ sub EVENT_SPAWN {
     $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
 
     # ✅ Guaranteed loot
-my $veru = plugin::verugems();
-my @veru_ids = keys %$veru;
-$npc->AddItem($veru_ids[int(rand(@veru_ids))]);
+    my $veru = plugin::verugems();
+    my @veru_ids = keys %$veru;
+    $npc->AddItem($veru_ids[int(rand(@veru_ids))]);
 
-my $grey = plugin::botthegrey();
-my @grey_ids = keys %$grey;
-$npc->AddItem($grey_ids[int(rand(@grey_ids))]);
+    my $grey = plugin::botthegrey();
+    my @grey_ids = keys %$grey;
+    $npc->AddItem($grey_ids[int(rand(@grey_ids))]);
 
-my $gear = plugin::ch6classgear();
-my @gear_ids = map { @{$gear->{$_}} } keys %$gear;
-$npc->AddItem($gear_ids[int(rand(@gear_ids))]);
+    my $gear = plugin::ch6classgear();
+    my @gear_ids = map { @{$gear->{$_}} } keys %$gear;
+    $npc->AddItem($gear_ids[int(rand(@gear_ids))]);
 
-# 🎲 50% chance at one of 45479, 45480, 45481, 45482, 45483, 45484
-if (int(rand(100)) < 50) {
-    my @bonus_ids = (45479, 45480, 45481, 45482, 45483, 45484);
-    $npc->AddItem($bonus_ids[int(rand(@bonus_ids))]);
-}
+    if (int(rand(100)) < 50) {
+        my @bonus_ids = (45479, 45480, 45481, 45482, 45483, 45484);
+        $npc->AddItem($bonus_ids[int(rand(@bonus_ids))]);
+    }
 
-# 🏹 Guaranteed drop of 5 huntercred items (33208)
-my $cred = plugin::huntercred();
-my @cred_ids = keys %$cred;
-for (1..5) {
-    $npc->AddItem($cred_ids[0]);
-}
+    my $cred = plugin::huntercred();
+    my @cred_ids = keys %$cred;
+    for (1..5) {
+        $npc->AddItem($cred_ids[0]);
+    }
 
-# 25% chance to add item ID 45478
-if (int(rand(100)) < 25) {
-    $npc->AddItem(45478);
-}
+    if (int(rand(100)) < 25) {
+        $npc->AddItem(45478);
+    }
 
-quest::settimer("phase_check", 1);
-quest::settimer("check_combat", 2);
+    quest::settimer("phase_check", 1);
+    quest::settimer("engage_grace_period", 300);  # 5 minutes to engage
 }
 
 sub EVENT_COMBAT {
@@ -103,6 +100,8 @@ sub EVENT_COMBAT {
         my $target = $npc->GetHateTop();
         my $pet = $entity_list->GetNPCByID($pet_npc_id);
         $pet->AddToHateList($target, 1) if $pet && $target;
+
+        quest::stoptimer("engage_grace_period");
 
         if (!$totem_timer_active) {
             quest::settimer("totem_summon", 30);
@@ -140,6 +139,15 @@ sub EVENT_COMBAT {
 sub EVENT_TIMER {
     return unless $npc;
 
+    if ($timer eq "engage_grace_period") {
+        quest::stoptimer("engage_grace_period");
+        if (!$npc->IsEngaged()) {
+            quest::shout("The Revenant grows still as it senses no challengers.");
+            quest::depop();
+        }
+        return;
+    }
+
     if ($timer eq "phase_check") {
         if ($npc->GetHPRatio() > 75) {
             Phase1_Mechanics();
@@ -158,30 +166,6 @@ sub EVENT_TIMER {
         Summon_Skeletons();
     }
 
-    if ($timer eq "check_combat") {
-        if (!$npc->IsEngaged()) {
-            quest::stoptimer("totem_summon");
-            quest::stoptimer("skeleton_summon");
-            $totem_timer_active = 0;
-            $skeleton_timer_active = 0;
-
-            if (!$no_challengers_message_sent) {
-                quest::shout("The Revenant grows still as it senses no challengers.");
-                $no_challengers_message_sent = 1;
-            }
-        } else {
-            if (!$totem_timer_active) {
-                quest::settimer("totem_summon", 30);
-                $totem_timer_active = 1;
-            }
-            if (!$skeleton_timer_active) {
-                quest::settimer("skeleton_summon", 37);
-                $skeleton_timer_active = 1;
-            }
-            $no_challengers_message_sent = 0;
-        }
-    }
-
     if ($timer eq "life_drain") {
         my ($x, $y, $z) = ($npc->GetX(), $npc->GetY(), $npc->GetZ());
         foreach my $e ($entity_list->GetClientList(), $entity_list->GetBotList()) {
@@ -190,23 +174,19 @@ sub EVENT_TIMER {
     }
 
     if ($timer =~ /^call_for_help_/) {
-    quest::stoptimer($timer);
-    return unless $npc->IsEngaged();
+        quest::stoptimer($timer);
+        return unless $npc->IsEngaged();
+        return if $npc->FindBuff(40745);  # Silence check
 
-    # Silence if debuffed with Mark of Silence
-    if ($npc->FindBuff(40745)) {
-        return;
+        quest::shout("Children of the Grey, attack the intruders!");
+        my $top = $npc->GetHateTop();
+        return unless $top;
+
+        foreach my $mob ($entity_list->GetNPCList()) {
+            next if $mob->GetID() == $npc->GetID();
+            $mob->AddToHateList($top, 1) if $npc->CalculateDistance($mob) <= 500;
+        }
     }
-
-    quest::shout("Children of the Grey, attack the intruders!");
-    my $top = $npc->GetHateTop();
-    return unless $top;
-
-    foreach my $mob ($entity_list->GetNPCList()) {
-        next if $mob->GetID() == $npc->GetID();
-        $mob->AddToHateList($top, 1) if $npc->CalculateDistance($mob) <= 500;
-    }
-}
 
     if ($timer =~ /^cleanse_debuff_/) {
         quest::stoptimer($timer);
@@ -245,25 +225,25 @@ sub EVENT_DEATH_COMPLETE {
     quest::stoptimer("phase_check");
     quest::stoptimer("totem_summon");
     quest::stoptimer("skeleton_summon");
-    quest::stoptimer("check_combat");
     quest::stoptimer("life_drain");
+    quest::stoptimer("engage_grace_period");
     $totem_timer_active = 0;
     $skeleton_timer_active = 0;
     quest::depop();
 }
 
 sub Phase1_Mechanics {
-    quest::castspell(40768, $npc->GetID());  # Bone Shield II
+    quest::castspell(40768, $npc->GetID());
 }
 
 sub Phase2_Mechanics {
-    quest::castspell(40769, $npc->GetID());  # Cursed Aura II
-    quest::castspell(40770, $npc->GetID());  # Shadow Vortex II
+    quest::castspell(40769, $npc->GetID());
+    quest::castspell(40770, $npc->GetID());
 }
 
 sub Phase3_Mechanics {
-    quest::castspell(40771, $npc->GetID());  # Blood Sacrifice
-    quest::castspell(40772, $npc->GetID());  # Death's Grasp
+    quest::castspell(40771, $npc->GetID());
+    quest::castspell(40772, $npc->GetID());
 }
 
 sub Summon_Totems {

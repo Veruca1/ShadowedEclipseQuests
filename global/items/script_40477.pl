@@ -7,7 +7,7 @@ sub EVENT_ITEM_CLICK {
     my $zone_name = $zonesn;
 
     # Array of forbidden zone IDs
-    my @forbidden_zones = (138); # Add more zone IDs to this array as needed
+    my @forbidden_zones = (138, 491); # Add more zone IDs to this array as needed
 
     # Check if this is one of our repop items
     if ($itemid == 40477 || $itemid == 40834) {

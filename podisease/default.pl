@@ -1,70 +1,87 @@
-my $is_boss      = 0;
-my $scaled_spawn = 0;  # block double scaling
+my $is_boss = 0;
+my $scaled_spawn = 0;
 
 sub EVENT_SPAWN {
     return unless $npc;
-
     my $raw_name = $npc->GetName() || '';
-    my $npc_id   = $npc->GetNPCTypeID() || 0;
+    my $npc_id = $npc->GetNPCTypeID() || 0;
+
     return if $npc->IsPet();
 
-    # Exclusion list
     my $exclusion_list = plugin::GetExclusionList();
     return if exists $exclusion_list->{$npc_id};
 
     $is_boss = ($raw_name =~ /^#/) ? 1 : 0;
     $npc->SetNPCFactionID(623);
 
-    # === Baseline stats ===
     my $base_stats = $is_boss ? {
-        level     => 65,
-        ac        => 30000,
-        max_hp    => 30000000,
-        hp_regen  => 3000,
-        min_hit   => 50000,
-        max_hit   => 75000,
-        atk       => 2500,
-        accuracy  => 2000,
-        hst       => 33,  # Boss baseline
-        slow_mit  => 90,
-        aggro     => 60,
-        assist    => 1,
-        str       => 1200, sta => 1200, agi => 1200, dex => 1200,
-        wis       => 1200, int => 1200, cha => 1000,
-        mr        => 400, fr => 400, cr => 400, pr => 400, dr => 400,
-        corr      => 500, phys => 1000,
-        sa        => "2,1^3,1^5,1^7,1^8^13,1^14,1^15,1^17,1^21,1",
+        level       => 65,
+        ac          => 30000,
+        max_hp      => 125000000,
+        hp_regen    => 3000,
+        min_hit     => 50000,
+        max_hit     => 100000,
+        atk         => 2500,
+        accuracy    => 2000,
+        hst         => 38,
+        slow_mit    => 90,
+        aggro       => 60,
+        assist      => 1,
+        str         => 1200,
+        sta         => 1200,
+        agi         => 1200,
+        dex         => 1200,
+        wis         => 1200,
+        int         => 1200,
+        cha         => 1000,
+        mr          => 400,
+        fr          => 400,
+        cr          => 400,
+        pr          => 400,
+        dr          => 400,
+        corr        => 500,
+        phys        => 1000,
+        sa          => "2,1^3,1^5,1^7,1^8^13,1^14,1^15,1^17,1^21,1",
     } : {
-        level     => 62,
-        ac        => 20000,
-        max_hp    => 3000000,
-        hp_regen  => 800,
-        min_hit   => 44000,
-        max_hit   => 55000,
-        atk       => 2500,
-        accuracy  => 1800,
-        hst       => 28,  # Trash baseline
-        slow_mit  => 80,
-        aggro     => 55,
-        assist    => 1,
-        str       => 1000, sta => 1000, agi => 1000, dex => 1000,
-        wis       => 1000, int => 1000, cha => 800,
-        mr        => 300, fr => 300, cr => 300, pr => 300, dr => 300,
-        corr      => 300, phys => 800,
-        sa        => "3,1^5,1^7,1^8,1^9,1^10,1^14,1",
+        level       => 62,
+        ac          => 20000,
+        max_hp      => 10000000,
+        hp_regen    => 800,
+        min_hit     => 44000,
+        max_hit     => 55000,
+        atk         => 2500,
+        accuracy    => 1800,
+        hst         => 30,
+        slow_mit    => 80,
+        aggro       => 55,
+        assist      => 1,
+        str         => 1000,
+        sta         => 1000,
+        agi         => 1000,
+        dex         => 1000,
+        wis         => 1000,
+        int         => 1000,
+        cha         => 800,
+        mr          => 300,
+        fr          => 300,
+        cr          => 300,
+        pr          => 300,
+        dr          => 300,
+        corr        => 300,
+        phys        => 800,
+        sa          => "3,1^5,1^7,1^8,1^9,1^10,1^14,1",
     };
 
-    # Apply baseline
     _apply_baseline($base_stats);
 
-    # Initial raid scaling
-    plugin::RaidScaling($entity_list, $npc);
-    $scaled_spawn = 1;  # mark scaled
+    # Explicitly set attack_delay based on boss flag
+    $npc->ModifyNPCStat("attack_delay", $is_boss ? 6 : 7);
 
-    # Re-apply baseline HST (33 for boss, 28 for trash)
+    plugin::RaidScaling($entity_list, $npc);
+    $scaled_spawn = 1;
+
     $npc->ModifyNPCStat("heroic_strikethrough", $base_stats->{hst});
 
-    # Heal to scaled max
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if $max_hp > 0;
 
@@ -74,45 +91,13 @@ sub EVENT_SPAWN {
 sub _apply_baseline {
     my ($s) = @_;
 
-    # Core
-    $npc->ModifyNPCStat("level",     $s->{level});
-    $npc->ModifyNPCStat("ac",        $s->{ac});
-    $npc->ModifyNPCStat("max_hp",    $s->{max_hp});
-    $npc->ModifyNPCStat("hp_regen",  $s->{hp_regen});
+    $npc->ModifyNPCStat($_, $s->{$_}) for qw(level ac max_hp hp_regen min_hit max_hit atk accuracy hst slow_mit aggro assist str sta agi dex wis int cha mr fr cr pr dr);
     $npc->ModifyNPCStat("mana_regen", 10000);
-    $npc->ModifyNPCStat("min_hit",   $s->{min_hit});
-    $npc->ModifyNPCStat("max_hit",   $s->{max_hit});
-    $npc->ModifyNPCStat("atk",       $s->{atk});
-    $npc->ModifyNPCStat("accuracy",  $s->{accuracy});
     $npc->ModifyNPCStat("avoidance", 50);
-    $npc->ModifyNPCStat("heroic_strikethrough", $s->{hst});
-
-    # Other combat traits
     $npc->ModifyNPCStat("attack_speed", 100);
-    $npc->ModifyNPCStat("slow_mitigation", $s->{slow_mit});
     $npc->ModifyNPCStat("attack_count", 100);
-    $npc->ModifyNPCStat("aggro", $s->{aggro});
-    $npc->ModifyNPCStat("assist", $s->{assist});
-
-    # Attributes
-    $npc->ModifyNPCStat("str", $s->{str});
-    $npc->ModifyNPCStat("sta", $s->{sta});
-    $npc->ModifyNPCStat("agi", $s->{agi});
-    $npc->ModifyNPCStat("dex", $s->{dex});
-    $npc->ModifyNPCStat("wis", $s->{wis});
-    $npc->ModifyNPCStat("int", $s->{int});
-    $npc->ModifyNPCStat("cha", $s->{cha});
-
-    # Resists
-    $npc->ModifyNPCStat("mr", $s->{mr});
-    $npc->ModifyNPCStat("fr", $s->{fr});
-    $npc->ModifyNPCStat("cr", $s->{cr});
-    $npc->ModifyNPCStat("pr", $s->{pr});
-    $npc->ModifyNPCStat("dr", $s->{dr});
     $npc->ModifyNPCStat("corruption_resist", $s->{corr});
-    $npc->ModifyNPCStat("physical_resist",   $s->{phys});
-
-    # Traits
+    $npc->ModifyNPCStat("physical_resist", $s->{phys});
     $npc->ModifyNPCStat("runspeed", 2);
     $npc->ModifyNPCStat("trackable", 1);
     $npc->ModifyNPCStat("see_invis", 1);
@@ -120,8 +105,6 @@ sub _apply_baseline {
     $npc->ModifyNPCStat("see_hide", 1);
     $npc->ModifyNPCStat("see_improved_hide", 1);
     $npc->ModifyNPCStat("special_abilities", $s->{sa});
-
-    # Heal to baseline max
     my $max_hp = $npc->GetMaxHP();
     $npc->SetHP($max_hp) if $max_hp > 0;
 }
@@ -130,23 +113,15 @@ sub EVENT_COMBAT {
     return unless $npc;
 
     if ($combat_state == 1) {
-        # Only scale if not already scaled at spawn
         if (!$scaled_spawn) {
             plugin::RaidScaling($entity_list, $npc);
             $scaled_spawn = 1;
-            #quest::debug("[Scaling] Applied at combat (was skipped at spawn)");
-        } else {
-            #quest::debug("[Scaling] Skipped at combat (already applied at spawn)");
         }
 
-        # Re-apply baseline HST (boss = 33, trash = 28)
         my $hst = $is_boss ? 33 : 28;
         $npc->ModifyNPCStat("heroic_strikethrough", $hst);
-
-        # Heal to baseline max
-    my $max_hp = $npc->GetMaxHP();
-    $npc->SetHP($max_hp) if $max_hp > 0;
-
+        my $max_hp = $npc->GetMaxHP();
+        $npc->SetHP($max_hp) if $max_hp > 0;
         quest::settimer("life_drain", 5) if $is_boss;
     } else {
         quest::stoptimer("life_drain") if $is_boss;
@@ -180,74 +155,46 @@ sub EVENT_TIMER {
     }
 }
 
-# === Plane of Disease - Trash Kill -> Essence Tracking ===
-# - Every trash mob kill gives 1 essence (no RNG).
-# - Bosses (names starting with # or excluded NPCIDs) do not count.
-# - After 1000 essences -> Completion flag + spawn chest (NPCID 123456).
-# - Counter resets after chest spawns so it can repeat again.
-# - Keys are zone-specific (POD_*).
-
 sub EVENT_DEATH_COMPLETE {
     return unless $npc;
     return if $npc->IsPet();
 
-    my $npc_id   = $npc->GetNPCTypeID() || 0;
+    my $npc_id = $npc->GetNPCTypeID() || 0;
     my $raw_name = $npc->GetName() || '';
-
-    # === Exclude bosses (prefixed # or exclusion list) ===
     my $exclusion_list = plugin::GetExclusionList();
-    if ($raw_name =~ /^#/) {
-        return;
-    }
-    if (exists $exclusion_list->{$npc_id}) {
-        return;
-    }
 
-    # === Resolve killer to client ===
+    return if $raw_name =~ /^#/;
+    return if exists $exclusion_list->{$npc_id};
+
     my $client;
     my $ent = $entity_list->GetMobID($killer_id);
-
     if ($ent) {
         if ($ent->IsClient()) {
             $client = $ent->CastToClient();
         } elsif ($ent->IsPet()) {
             my $owner = $ent->GetOwner();
-            if ($owner && $owner->IsClient()) {
-                $client = $owner->CastToClient();
-            } elsif ($owner && $owner->IsBot()) {
-                my $bot_owner = $owner->CastToBot()->GetOwner();
-                if ($bot_owner && $bot_owner->IsClient()) {
-                    $client = $bot_owner->CastToClient();
-                }
-            }
+            $client = $owner->IsClient() ? $owner->CastToClient() : $owner->CastToBot()->GetOwner()->CastToClient() if $owner;
         } elsif ($ent->IsBot()) {
             my $owner = $ent->CastToBot()->GetOwner();
-            if ($owner && $owner->IsClient()) {
-                $client = $owner->CastToClient();
-            }
+            $client = $owner->CastToClient() if $owner && $owner->IsClient();
         }
     }
 
-    # Fallback: HateTop (covers cases where killer_id = 0)
     unless ($client) {
         my $hate = $npc->GetHateTop();
         if ($hate) {
-            if    ($hate->IsClient()) { $client = $hate->CastToClient(); }
-            elsif ($hate->IsPet()) {
+            if ($hate->IsClient()) {
+                $client = $hate->CastToClient();
+            } elsif ($hate->IsPet()) {
                 my $owner = $hate->GetOwner();
-                if ($owner && $owner->IsClient()) { $client = $owner->CastToClient(); }
-                elsif ($owner && $owner->IsBot()) {
-                    my $bot_owner = $owner->CastToBot()->GetOwner();
-                    if ($bot_owner && $bot_owner->IsClient()) { $client = $bot_owner->CastToClient(); }
-                }
+                $client = $owner->IsClient() ? $owner->CastToClient() : $owner->CastToBot()->GetOwner()->CastToClient() if $owner;
             } elsif ($hate->IsBot()) {
                 my $owner = $hate->CastToBot()->GetOwner();
-                if ($owner && $owner->IsClient()) { $client = $owner->CastToClient(); }
+                $client = $owner->CastToClient() if $owner && $owner->IsClient();
             }
         }
     }
 
-    # GM fallback: award nearest GM if no client found (useful for #kill testing)
     unless ($client) {
         foreach my $c ($entity_list->GetClientList()) {
             next unless $c && $c->GetGM();
@@ -256,11 +203,8 @@ sub EVENT_DEATH_COMPLETE {
         }
     }
 
-    unless ($client) {
-        return;
-    }
+    return unless $client;
 
-    # === Collect all group/raid members with same IP ===
     my $base_ip = $client->GetIP();
     my @ip_clients;
 
@@ -268,51 +212,40 @@ sub EVENT_DEATH_COMPLETE {
         my $raid = $client->GetRaid();
         for (my $i = 0; $i < $raid->RaidCount(); $i++) {
             my $m = $raid->GetMember($i);
-            if ($m && $m->IsClient() && $m->GetIP() == $base_ip) {
-                push @ip_clients, $m;
-            }
+            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() == $base_ip;
         }
     } elsif ($client->GetGroup()) {
         my $group = $client->GetGroup();
         for (my $i = 0; $i < $group->GroupCount(); $i++) {
             my $m = $group->GetMember($i);
-            if ($m && $m->IsClient() && $m->GetIP() == $base_ip) {
-                push @ip_clients, $m;
-            }
+            push @ip_clients, $m if $m && $m->IsClient() && $m->GetIP() == $base_ip;
         }
     } else {
         push @ip_clients, $client;
     }
 
-    # === Process each qualifying player ===
     foreach my $pc (@ip_clients) {
         next unless $pc && $pc->IsClient();
         $pc = $pc->CastToClient();
+
         my $cid = $pc->CharacterID();
-
-        my $essence_key    = "POD_EssenceCount_${cid}";
+        my $essence_key = "POD_EssenceCount_${cid}";
         my $completion_key = "POD_EssenceComplete_${cid}";
-
         my $count = quest::get_data($essence_key) || 0;
         $count++;
-        quest::set_data($essence_key, $count);
 
+        quest::set_data($essence_key, $count);
         $pc->Message(15, "You have gathered an essence from PoDisease [$count / 1000]");
 
         if ($count >= 1000) {
             quest::set_data($completion_key, 1);
             $pc->Message(13, "You have gathered 1000 essences from PoDisease! A reward chest appears!");
 
-            # Spawn chest at killer’s location (only once)
             if ($pc->CharacterID() == $client->CharacterID()) {
-                my $x = $client->GetX();
-                my $y = $client->GetY();
-                my $z = $client->GetZ();
-                my $h = $client->GetHeading();
+                my ($x, $y, $z, $h) = ($client->GetX(), $client->GetY(), $client->GetZ(), $client->GetHeading());
                 quest::spawn2(2203, 0, 0, $x, $y, $z, $h);
             }
 
-            # Reset counter so cycle can repeat
             quest::set_data($essence_key, 0);
         }
     }
