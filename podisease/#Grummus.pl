@@ -1,7 +1,8 @@
-my $is_boss         = 0;
-my $checked_mirror  = 0;
+my $is_boss        = 0;
+my $checked_mirror = 0;
 
-my @reflected_loot = ();
+# Reflected loot table — one random item from these will be added when reflection occurs
+my @reflected_loot = (60463, 60466); # Reflected Diseased Relic | Pus Covered Beetle Carapace of Reflection
 
 sub EVENT_SPAWN {
     return unless $npc;
@@ -17,6 +18,7 @@ sub EVENT_SPAWN {
     $npc->SetNPCFactionID(623);
 
     if ($is_boss) {
+        # === Core Stats ===
         $npc->ModifyNPCStat("level", 65);
         $npc->ModifyNPCStat("ac", 30000);
         $npc->ModifyNPCStat("max_hp", 150000000);
@@ -35,6 +37,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("aggro", 60);
         $npc->ModifyNPCStat("assist", 1);
 
+        # === Attributes ===
         $npc->ModifyNPCStat("str", 1200);
         $npc->ModifyNPCStat("sta", 1200);
         $npc->ModifyNPCStat("agi", 1200);
@@ -43,6 +46,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("int", 1200);
         $npc->ModifyNPCStat("cha", 1000);
 
+        # === Resists ===
         $npc->ModifyNPCStat("mr", 400);
         $npc->ModifyNPCStat("fr", 400);
         $npc->ModifyNPCStat("cr", 400);
@@ -51,6 +55,7 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("corruption_resist", 500);
         $npc->ModifyNPCStat("physical_resist", 1000);
 
+        # === Traits & Abilities ===
         $npc->ModifyNPCStat("runspeed", 2);
         $npc->ModifyNPCStat("trackable", 1);
         $npc->ModifyNPCStat("see_invis", 1);
@@ -59,18 +64,20 @@ sub EVENT_SPAWN {
         $npc->ModifyNPCStat("see_improved_hide", 1);
         $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1");
 
+        # === Raid Scaling ===
         plugin::RaidScaling($entity_list, $npc);
     }
 
-    my $max_hp = $npc->GetMaxHP();
-    $npc->SetHP($max_hp) if $max_hp > 0;
+    # === Reset & HP Sync ===
+    $npc->SetHP($npc->GetMaxHP());
+    $checked_mirror = 0;
 
+    # === HP trigger for reflection ===
     quest::setnexthpevent(35);
 }
 
 sub EVENT_COMBAT {
     my ($combat_state) = @_;
-
     if ($combat_state == 1) {
         quest::settimer("OOBcheck", 6000);
         $checked_mirror = 0;
@@ -81,8 +88,6 @@ sub EVENT_COMBAT {
 }
 
 sub EVENT_TIMER {
-    my ($timer) = @_;
-
     if ($timer eq "OOBcheck") {
         quest::stoptimer("OOBcheck");
 
@@ -96,6 +101,7 @@ sub EVENT_TIMER {
 }
 
 sub EVENT_HP {
+    # === Mirror reflection trigger at 35% ===
     if ($hpevent == 35 && !$checked_mirror) {
         plugin::TryPoPCh1ReflectTransformation($npc, $entity_list, \@reflected_loot, 40, \$checked_mirror);
     }

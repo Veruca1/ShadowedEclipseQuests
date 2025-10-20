@@ -94,7 +94,7 @@ sub EVENT_SPAWN {
     # === HP event progression (bucket controlled) ===
     my $hp_key = $npc_id . "-60-hp";
     if (defined(quest::get_data($hp_key)) && quest::get_data($hp_key) == 1) {
-        quest::setnexthpevent(30);  # skip 60% phase
+        quest::setnexthpevent(30);
     } else {
         quest::setnexthpevent(60);
     }
@@ -112,7 +112,7 @@ sub EVENT_SPAWN {
 sub EVENT_HP {
     if ($hpevent == 60) {
         my $hp_key = $npc->GetNPCTypeID() . "-60-hp";
-        quest::set_data($hp_key, 1);  # mark phase complete
+        quest::set_data($hp_key, 1);
 
         my $current_hp = $npc->GetHP();
         my $max_hp = $npc->GetMaxHP();
@@ -166,12 +166,72 @@ sub EVENT_TIMER {
 
 sub EVENT_DEATH_COMPLETE {
     my $hp_key = $npc->GetNPCTypeID() . "-60-hp";
-    quest::delete_data($hp_key);  # reset for next fight
+    quest::delete_data($hp_key);
     quest::signalwith(2193, 87);
-    quest::shout("Th3 C0v3n... N¥s3r1a 1s 1nn3v1t\@bl3... y0u b3l0ng t0 h3r w3b 0f sh\@d0ws...");
+    quest::shout("Th3 C0v3n... N¥s3r1a 1s 1nn3v1t\\\@bl3... y0u b3l0ng t0 h3r w3b 0f sh\\\@d0ws...");
+
+    # my @boss_ids = (2194, 2195, 2196, 2197);
+    # my $zone_to_unlock = "arcstone";
+    # my $unlocked_status = 0;
+    # my $npc_id = $npc->GetNPCTypeID();
+    # if (grep { $_ == $npc_id } @boss_ids) {
+    #     quest::set_data("arcstone_boss_killed_" . $npc_id, 1);
+    #     my $boss_name = $npc->GetCleanName();
+    #     quest::debug("Arcstone Guardian $boss_name ($npc_id) has been defeated!");
+    #     my $all_killed = 1;
+    #     my $killed_count = 0;
+    #     foreach my $boss_id (@boss_ids) {
+    #         my $killed = quest::get_data("arcstone_boss_killed_" . $boss_id);
+    #         if ($killed) {
+    #             $killed_count++;
+    #         } else {
+    #             $all_killed = 0;
+    #         }
+    #     }
+    #     if ($all_killed) {
+    #         quest::debug("All 4 Arcstone Guardians have been defeated! Unlocking Arcstone...");
+    #         my $dbh = plugin::LoadMysql();
+    #         if ($dbh) {
+    #             my $sql = "UPDATE zone SET min_status = ? WHERE short_name = ? AND zoneidnumber = ?";
+    #             my $sth = $dbh->prepare($sql);
+    #             if ($sth->execute($unlocked_status, $zone_to_unlock, 369)) {
+    #                 quest::debug("Successfully unlocked Arcstone! Min_status changed from 80 to $unlocked_status");
+    #                 quest::ze(15, "The ancient seals have been broken! The way to Arcstone, Isle of Spirits, is now open to all!");
+    #                 quest::we(15, "The four Guardians have fallen! Arcstone, Isle of Spirits, has been unlocked!");
+    #             } else {
+    #                 quest::debug("ERROR: Failed to update Arcstone min_status: " . $DBI::errstr);
+    #             }
+    #             $sth->finish();
+    #             $dbh->disconnect();
+    #         } else {
+    #             quest::debug("ERROR: Failed to connect to database for Arcstone unlock");
+    #         }
+    #     } else {
+    #         quest::debug("Arcstone unlock progress: $killed_count of 4 guardians defeated.");
+    #         if ($killed_count == 1) {
+    #             quest::ze(14, "The first Guardian has fallen! Three more must be defeated to unlock Arcstone.");
+    #         } elsif ($killed_count == 2) {
+    #             quest::ze(14, "Two Guardians down! The seals of Arcstone are weakening...");
+    #         } elsif ($killed_count == 3) {
+    #             quest::ze(14, "Three Guardians have been defeated! Only one remains before Arcstone is unlocked!");
+    #         }
+    #         my $killer = $entity_list->GetClientByID($killer_id);
+    #         if ($killer) {
+    #             $killer->Message(15, "You have defeated $boss_name! [$killed_count/4 Guardians defeated]");
+    #         }
+    #     }
+    # }
 }
 
-# === Illusion helpers ===
+sub _shuffle_array {
+    my @array = @_;
+    for (my $i = $#array; $i > 0; $i--) {
+        my $j = int(rand($i + 1));
+        @array[$i, $j] = @array[$j, $i];
+    }
+    return @array;
+}
+
 sub _cycle_illusion {
     if ($illusion_index >= scalar(@shuffled_pool)) {
         @shuffled_pool = _shuffle_array(@illusion_pool);
@@ -180,15 +240,6 @@ sub _cycle_illusion {
     my $choice = $shuffled_pool[$illusion_index];
     $illusion_index++;
     $npc->SendIllusion($choice->{race}, $choice->{gender}, $choice->{texture}, $choice->{helm_texture});
-}
-
-sub _shuffle_array {
-    my @array = @_;
-    for (my $i = $#array; $i > 0; $i--) {
-        my $j = int(rand($i+1));
-        @array[$i, $j] = @array[$j, $i];
-    }
-    return @array;
 }
 
 sub _set_random_timer {

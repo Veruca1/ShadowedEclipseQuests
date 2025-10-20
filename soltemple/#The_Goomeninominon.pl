@@ -222,4 +222,58 @@ sub EVENT_TIMER {
 sub EVENT_DEATH_COMPLETE {
     quest::signalwith(2193, 87);
     quest::shout("Hahahaha! She got, she got away, she got away, she got away!");
+
+    # --- Arcstone unlock logic disabled ---
+    # my @boss_ids = (2194, 2195, 2196, 2197); # Replace with your actual NPC IDs
+    # my $zone_to_unlock = "arcstone"; # Arcstone, Isle of Spirits
+    # my $unlocked_status = 0; # Set to 0 for completely open, or any value lower than 80
+    # my $npc_id = $npc->GetNPCTypeID();
+    # if (grep { $_ == $npc_id } @boss_ids) {
+    #     quest::set_data("arcstone_boss_killed_" . $npc_id, 1);
+    #     my $boss_name = $npc->GetCleanName();
+    #     quest::debug("Arcstone Guardian $boss_name ($npc_id) has been defeated!");
+    #     my $all_killed = 1;
+    #     my $killed_count = 0;
+    #     foreach my $boss_id (@boss_ids) {
+    #         my $killed = quest::get_data("arcstone_boss_killed_" . $boss_id);
+    #         if ($killed) {
+    #             $killed_count++;
+    #         } else {
+    #             $all_killed = 0;
+    #         }
+    #     }
+    #     if ($all_killed) {
+    #         quest::debug("All 4 Arcstone Guardians have been defeated! Unlocking Arcstone...");
+    #         my $dbh = plugin::LoadMysql();
+    #         if ($dbh) {
+    #             my $sql = "UPDATE zone SET min_status = ? WHERE short_name = ? AND zoneidnumber = ?";
+    #             my $sth = $dbh->prepare($sql);
+    #             if ($sth->execute($unlocked_status, $zone_to_unlock, 369)) {
+    #                 quest::debug("Successfully unlocked Arcstone! Min_status changed from 80 to $unlocked_status");
+    #                 quest::ze(15, "The ancient seals have been broken! The way to Arcstone, Isle of Spirits, is now open to all!");
+    #                 quest::we(15, "The four Guardians have fallen! Arcstone, Isle of Spirits, has been unlocked!");
+    #             } else {
+    #                 quest::debug("ERROR: Failed to update Arcstone min_status: " . $DBI::errstr);
+    #             }
+    #             $sth->finish();
+    #             $dbh->disconnect();
+    #         } else {
+    #             quest::debug("ERROR: Failed to connect to database for Arcstone unlock");
+    #         }
+    #     } else {
+    #         my $remaining = 4 - $killed_count;
+    #         quest::debug("Arcstone unlock progress: $killed_count of 4 guardians defeated.");
+    #         if ($killed_count == 1) {
+    #             quest::ze(14, "The first Guardian has fallen! Three more must be defeated to unlock Arcstone.");
+    #         } elsif ($killed_count == 2) {
+    #             quest::ze(14, "Two Guardians down! The seals of Arcstone are weakening...");
+    #         } elsif ($killed_count == 3) {
+    #             quest::ze(14, "Three Guardians have been defeated! Only one remains before Arcstone is unlocked!");
+    #         }
+    #         my $killer = $entity_list->GetClientByID($killer_id);
+    #         if ($killer) {
+    #             $killer->Message(15, "You have defeated $boss_name! [$killed_count/4 Guardians defeated]");
+    #         }
+    #     }
+    # }
 }
