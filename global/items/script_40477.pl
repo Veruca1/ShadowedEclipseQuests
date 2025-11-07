@@ -1,7 +1,7 @@
 sub EVENT_ITEM_CLICK {
     #Zone Repop Item With Zone Exclusions and Cooldown Management
     return unless $client && $client->IsClient();
-    quest::debug("Zone repop script running for item: $itemid");
+    #quest::debug("Zone repop script running for item: $itemid");
     
     my $zone_id = $zoneid;
     my $zone_name = $zonesn;

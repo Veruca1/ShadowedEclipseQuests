@@ -90,3 +90,13 @@ sub EVENT_TIMER {
         }
     }
 }
+
+sub EVENT_ITEM {
+    if (plugin::check_handin(\%itemcount, 66729 => 1)) {
+        plugin::Whisper("Very well... let the flames test your memory.");
+        quest::spawn2(27119, 0, 0, -5.35, 471.86, -58.58, 111.00); # Spawn Eejag
+        # No item return — it's consumed.
+    } else {
+        plugin::return_items(\%itemcount);
+    }
+}

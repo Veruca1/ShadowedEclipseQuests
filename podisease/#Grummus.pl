@@ -106,3 +106,15 @@ sub EVENT_HP {
         plugin::TryPoPCh1ReflectTransformation($npc, $entity_list, \@reflected_loot, 40, \$checked_mirror);
     }
 }
+
+sub EVENT_DEATH_COMPLETE {
+    # Spawn Planar Projection on death
+    quest::spawn2(
+        202366,  # NPC type ID
+        0, 0,    # Grid / unused params
+        $npc->GetX(),
+        $npc->GetY(),
+        $npc->GetZ(),
+        $npc->GetHeading()
+    );
+}

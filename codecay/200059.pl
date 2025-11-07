@@ -1,0 +1,72 @@
+my $is_boss = 0;
+
+sub EVENT_SPAWN {
+    return unless $npc;
+
+    my $raw_name = $npc->GetName() || '';
+    my $npc_id   = $npc->GetNPCTypeID() || 0;
+    return if $npc->IsPet();
+
+    my $exclusion_list = plugin::GetExclusionList();
+    return if exists $exclusion_list->{$npc_id};
+
+    # Treat Aramin (boss) as boss
+    # Treat specific NPCs as bosses
+$is_boss = ($raw_name =~ /Gryme/i || $npc_id == 200059) ? 1 : 0;
+    $npc->SetNPCFactionID(623);
+
+    if ($is_boss) {
+        # === Base stats (raw) ===
+        $npc->ModifyNPCStat("level", 65);
+        $npc->ModifyNPCStat("ac", 30000);
+        $npc->ModifyNPCStat("max_hp", 120000000);
+        $npc->ModifyNPCStat("hp_regen", 3000);
+        $npc->ModifyNPCStat("mana_regen", 10000);
+        $npc->ModifyNPCStat("min_hit", 80000);
+        $npc->ModifyNPCStat("max_hit", 105000);
+        $npc->ModifyNPCStat("atk", 2500);
+        $npc->ModifyNPCStat("accuracy", 2000);
+        $npc->ModifyNPCStat("avoidance", 50);
+        $npc->ModifyNPCStat("attack_delay", 8);
+        $npc->ModifyNPCStat("heroic_strikethrough", 34);
+        $npc->ModifyNPCStat("attack_speed", 100);
+        $npc->ModifyNPCStat("slow_mitigation", 90);
+        $npc->ModifyNPCStat("attack_count", 100);
+        $npc->ModifyNPCStat("aggro", 60);
+        $npc->ModifyNPCStat("assist", 1);
+
+        # Attributes
+        $npc->ModifyNPCStat("str", 1200);
+        $npc->ModifyNPCStat("sta", 1200);
+        $npc->ModifyNPCStat("agi", 1200);
+        $npc->ModifyNPCStat("dex", 1200);
+        $npc->ModifyNPCStat("wis", 1200);
+        $npc->ModifyNPCStat("int", 1200);
+        $npc->ModifyNPCStat("cha", 1000);
+
+        # Resists
+        $npc->ModifyNPCStat("mr", 400);
+        $npc->ModifyNPCStat("fr", 400);
+        $npc->ModifyNPCStat("cr", 400);
+        $npc->ModifyNPCStat("pr", 400);
+        $npc->ModifyNPCStat("dr", 400);
+        $npc->ModifyNPCStat("corruption_resist", 500);
+        $npc->ModifyNPCStat("physical_resist", 1000);
+
+        # Traits
+        $npc->ModifyNPCStat("runspeed", 2);
+        $npc->ModifyNPCStat("trackable", 1);
+        $npc->ModifyNPCStat("see_invis", 1);
+        $npc->ModifyNPCStat("see_invis_undead", 1);
+        $npc->ModifyNPCStat("see_hide", 1);
+        $npc->ModifyNPCStat("see_improved_hide", 1);
+        $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15^17,1^21,1");
+
+        # Apply raid scaling (includes tank check inside plugin)
+        plugin::RaidScaling($entity_list, $npc);
+    }
+
+    # Full heal
+    my $max_hp = $npc->GetMaxHP();
+    $npc->SetHP($max_hp) if $max_hp > 0;
+}

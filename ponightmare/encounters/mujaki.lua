@@ -121,49 +121,58 @@ end
 
 
 function Mujaki_Signal(e)
-  if (e.signal == 1 and gotsignal==0) then
-	--event_started, 2 min timer til first wave
-	eq.set_timer('spawnwave', 120 * 1000);
-	adds_killed=0;
-	wave=1;
-	--eq.zone_emote(MT.Yellow, "got signal");
-	gotsignal=1;
-  elseif (e.signal ==2) then
+  if (e.signal == 1 and gotsignal == 0) then
+    -- Event started, 1 minute timer until first wave
+    eq.set_timer('spawnwave', 60 * 1000);
+    adds_killed = 0;
+    wave = 1;
+    gotsignal = 1;
+    -- eq.zone_emote(MT.Yellow, "Mujaki event initiated.")
+  elseif (e.signal == 2) then
+    -- Cleanup signal from boss death or timeout
     eq.depop_with_timer();
   end
 end
 
+
 function Serv_Signal(e)
   if (e.signal == 1) then
-        e.self:SetSpecialAbility(SpecialAbility.immune_melee, 0);
-        e.self:SetSpecialAbility(SpecialAbility.immune_magic, 0);
-        e.self:SetSpecialAbility(SpecialAbility.immune_aggro, 0);
-        e.self:SetSpecialAbility(SpecialAbility.no_harm_from_client, 0);
+    -- Make the Servants attackable at final phase
+    e.self:SetSpecialAbility(SpecialAbility.immune_melee, 0);
+    e.self:SetSpecialAbility(SpecialAbility.immune_magic, 0);
+    e.self:SetSpecialAbility(SpecialAbility.immune_aggro, 0);
+    e.self:SetSpecialAbility(SpecialAbility.no_harm_from_client, 0);
   end
 end
-  
+
+
 function Mujaki_Timer(e)
-	--eq.zone_emote(MT.Yellow, "in timer, wave: "..wave);
-  if (e.timer=='spawnwave') then
-	--event_started, 2 min timer til first wave
-	if (wave <= 3 or wave==8 ) then
-		eq.spawn2(eq.ChooseRandom( 204077, 204077, 204077, 204078 ), 0, 0, -1851.48, -2663.94, 172.75, 100);
-		eq.spawn2(eq.ChooseRandom( 204077, 204077, 204077, 204078 ), 0, 0, -1462.50, -2977.26, 172.69, 0);
-		eq.spawn2(eq.ChooseRandom( 204077, 204077, 204077, 204078 ), 0, 0, -1096.82, -2660.80, 175.06, 404);
-	elseif (wave >=4 and wave <= 7) then
-		eq.spawn2(eq.ChooseRandom( 204077, 204077, 204077, 204078 ), 0, 0, -1851.48, -2663.94, 172.75, 100);
-		eq.spawn2(eq.ChooseRandom( 204077, 204077, 204077, 204078 ), 0, 0, -1462.50, -2977.26, 172.69, 0);
-		eq.spawn2(eq.ChooseRandom( 204077, 204077, 204077, 204078 ), 0, 0, -1096.82, -2660.80, 175.06, 404);
-		eq.spawn2(eq.ChooseRandom( 204077, 204077, 204077, 204078 ), 0, 0, -1851.48, -2663.94, 172.75, 100);
-		eq.spawn2(eq.ChooseRandom( 204077, 204077, 204077, 204078 ), 0, 0, -1462.50, -2977.26, 172.69, 0);
-		eq.spawn2(eq.ChooseRandom( 204077, 204077, 204077, 204078 ), 0, 0, -1096.82, -2660.80, 175.06, 404);	    
-	elseif (wave==9) then
-	--muj + unkilled
-		eq.stop_all_timers();
-		eq.spawn2(204080, 0, 0, -1475, -2555, 179.38, 256); -- NPC: #Mujaki_the_Devourer
-		eq.signal(204079,1); -- NPC: #a_servant_of_Mujaki
-	end
-	wave=wave+1;
+  -- eq.zone_emote(MT.Yellow, "Wave " .. wave .. " triggered.");
+  if (e.timer == 'spawnwave') then
+    -- Waves 1–3 and 8 = 3 adds
+    if (wave <= 3 or wave == 8) then
+      eq.spawn2(eq.ChooseRandom(204077, 204077, 204077, 204078), 0, 0, -1851.48, -2663.94, 172.75, 100);
+      eq.spawn2(eq.ChooseRandom(204077, 204077, 204077, 204078), 0, 0, -1462.50, -2977.26, 172.69, 0);
+      eq.spawn2(eq.ChooseRandom(204077, 204077, 204077, 204078), 0, 0, -1096.82, -2660.80, 175.06, 404);
+
+    -- Waves 4–7 = 6 adds
+    elseif (wave >= 4 and wave <= 7) then
+      eq.spawn2(eq.ChooseRandom(204077, 204077, 204077, 204078), 0, 0, -1851.48, -2663.94, 172.75, 100);
+      eq.spawn2(eq.ChooseRandom(204077, 204077, 204077, 204078), 0, 0, -1462.50, -2977.26, 172.69, 0);
+      eq.spawn2(eq.ChooseRandom(204077, 204077, 204077, 204078), 0, 0, -1096.82, -2660.80, 175.06, 404);
+      eq.spawn2(eq.ChooseRandom(204077, 204077, 204077, 204078), 0, 0, -1851.48, -2663.94, 172.75, 100);
+      eq.spawn2(eq.ChooseRandom(204077, 204077, 204077, 204078), 0, 0, -1462.50, -2977.26, 172.69, 0);
+      eq.spawn2(eq.ChooseRandom(204077, 204077, 204077, 204078), 0, 0, -1096.82, -2660.80, 175.06, 404);
+
+    -- Wave 9 = Mujaki spawn and cleanup
+    elseif (wave == 9) then
+      eq.stop_all_timers();
+      eq.spawn2(204080, 0, 0, -1475, -2555, 179.38, 256); -- Spawn #Mujaki_the_Devourer
+      eq.signal(204079, 1); -- Make Servants attackable
+      eq.depop(); -- ✅ Despawn controller to prevent duplicates
+    end
+
+    wave = wave + 1;
   end
 end
 

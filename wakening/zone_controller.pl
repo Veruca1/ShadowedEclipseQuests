@@ -20,10 +20,6 @@ sub EVENT_TIMER {
     if ($timer eq "spawn_npc_1833") {
         quest::stoptimer("spawn_npc_1833");
         quest::spawn2(1833, 0, 0, -3048.88, -2924.00, 43.48, 68.00);
-
-        # Optional: spawn other adds here if needed
-        # quest::spawn2(1753, 0, 0, -3047.27, -2965.28, 26.30, 68.00);
-        # quest::spawn2(1753, 0, 0, -3069.02, -2887.61, 26.30, 140.75);
     }
     elsif ($timer eq "spawn_npc_1752_delay") {
         quest::stoptimer("spawn_npc_1752_delay");

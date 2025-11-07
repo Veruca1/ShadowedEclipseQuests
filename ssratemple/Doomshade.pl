@@ -238,10 +238,10 @@ sub EVENT_TIMER {
 
             $found_client = 1;
 
-            # 100% chance to trigger for testing
+            # 35% chance to trigger
             my $roll = 0;
 
-            if ($roll < 100) {
+            if ($roll < 35) {
                 quest::shout("The mirror cracks... and something darker stirs.");
                 quest::settimer("mirror_tint", 1);
 

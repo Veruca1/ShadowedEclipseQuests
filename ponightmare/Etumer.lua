@@ -5,7 +5,7 @@ function event_say(e)
   elseif (e.message:findi("brother")) then
     e.self:Say("Mujak! Haha! He.. He captured me and.. Imprisoned me here as punishment for and resentful of our fathers favor toward me. He has only further proven his weakness through trapping me with power granted to him by Terris Thule. Hmm, [ " .. eq.say_link('perhaps', false, 'perhaps') .." ]..");
   elseif (e.message:findi("perhaps")) then
-    e.self:Say("Perhaps you could find some way to overwhelm Mujaki? I might be able to work an enchantment to transport you closer to my brother. I only feel I have power to send twenty four of you, when you have formed rank please have the leaders of your groups let me know when you are ready.");
+    e.self:Say("Perhaps you could find some way to overwhelm Mujaki? I might be able to work an enchantment to transport you closer to my brother. I only feel I have power to send six of you, when you have formed rank please have the leaders of your groups let me know when you are ready.");
   elseif (e.message:findi("ready")) then
 	if not eq.get_entity_list():IsMobSpawnedByNpcTypeID(204039) then
 		 e.self:Say("Mujaki? Haven't seen him around lately");
@@ -17,7 +17,7 @@ function event_say(e)
 end
 
 function MoveGroup(trial_group, src_x, src_y, src_z, distance, tgt_x, tgt_y, tgt_z, tgt_h)
-   if ( trial_group ~= nil) then
+   if (trial_group ~= nil) then
       local trial_count = trial_group:GroupCount();
       for i = 0, trial_count - 1, 1 do
          local mob_v = trial_group:GetMember(i);
@@ -26,8 +26,14 @@ function MoveGroup(trial_group, src_x, src_y, src_z, distance, tgt_x, tgt_y, tgt
             if (client_v.valid) then
                -- check the distance and port them up if close enough
                if (client_v:CalculateDistance(src_x, src_y, src_z) <= distance) then
-                  -- port the player up
-                  client_v:MovePC(204, tgt_x, tgt_y, tgt_z, tgt_h); -- Zone: ponightmare
+                  local instance_id = eq.get_zone_instance_id();  -- ✅ Works in Lua
+                  if instance_id > 0 then
+                     client_v:MovePCInstance(204, instance_id, tgt_x, tgt_y, tgt_z, tgt_h); -- ✅ Move inside DZ
+                     eq.debug("Ported " .. client_v:GetName() .. " to instance " .. instance_id);
+                  else
+                     client_v:Message(13, "You are not in a dynamic zone. The portal fails.");
+                     eq.debug(client_v:GetName() .. " is not in a DZ instance.");
+                  end
                end
             end
          end

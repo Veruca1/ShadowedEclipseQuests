@@ -18,7 +18,7 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();  # Get the character's unique ID
     my $flag = "$char_id-polar_kraken_flag";  # The flag for this NPC
     my $cooldown_key = "$char_id-polar_kraken_hail_cd";  # A unique cooldown key
-    my $cooldown_time = 600;  # 10-minute cooldown in seconds
+    my $cooldown_time = 60;  # 1-minute cooldown in seconds
     my $current_time = time();  # Current time in seconds
     my $spawned_npc_id = 110131; # Polar Kraken NPC ID
 

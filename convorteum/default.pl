@@ -10,30 +10,35 @@ my $is_boss = 0;
 my $DBG = 1;
 
 # === KEY IDS ===
-my $TOWER_KEY_ID       = 56755;  # Floor 1 → 2
-my $OBSIDIAN_KEY_ID    = 57161;  # Floor 2 → 3
-my $PHANTASMAL_KEY_ID  = 57162;  # Floor 3 → 4
-my $EMBER_KEY_ID       = 57163;  # Floor 4 → 5
-my $UMBRAL_KEY_ID   = 57164;           # Floor 5 → 6
-my $UMBRAL_KEY_NAME = "Umbral Key";
+my $TOWER_KEY_ID      = 56755;  # Floor 1 → 2
+my $OBSIDIAN_KEY_ID   = 57161;  # Floor 2 → 3
+my $PHANTASMAL_KEY_ID = 57162;  # Floor 3 → 4
+my $EMBER_KEY_ID      = 57163;  # Floor 4 → 5
+my $UMBRAL_KEY_ID     = 57164;  # Floor 5 → 6
+my $UMBRAL_KEY_NAME   = "Umbral Key";
 
 # === FLOOR NPC GROUPS ===
-my %F1_TRASH = map { $_ => 1 } (2209,2210,2211,2212,2213,2214,2215);
-my %F2_TRASH = map { $_ => 1 } (2216,2217,2218,2219);
-my %F3_TRASH = map { $_ => 1 } (2220,2221,2222,2223,2224,2225);
-my %F4_TRASH = map { $_ => 1 } (2226,2227,2228,2229);      # Floor 4 trash
-my %F4_MINIS = map { $_ => 1 } (2230,2231,2232);           # Floor 4 minis
-
-# Floor 5:
-# 2234 = Bones (does NOT count toward essences; spawns 2235)
-# 2235 = Spawned trash that DOES count toward essences
-my %F5_TRASH = map { $_ => 1 } (2235);
-my %F5_MINIS = map { $_ => 1 } (2233);                     # The Lanternless
+my %F1_TRASH = map { $_ => 1 } (2209, 2210, 2211, 2212, 2213, 2214, 2215);
+my %F2_TRASH = map { $_ => 1 } (2216, 2217, 2218, 2219);
+my %F3_TRASH = map { $_ => 1 } (2220, 2221, 2222, 2223, 2224, 2225);
+my %F4_TRASH = map { $_ => 1 } (2226, 2227, 2228, 2229);             # Floor 4 trash
+my %F4_MINIS = map { $_ => 1 } (2230, 2231, 2232);                   # Floor 4 minis
+my %F5_TRASH = map { $_ => 1 } (2235);                               # Floor 5 trash (2234 spawns 2235)
+my %F5_MINIS = map { $_ => 1 } (2233);                               # Floor 5 mini: The Lanternless
 my $F5_ESSENCE_REQ = 30;
 
-# ------------------------------ helpers: per-entity flags
-sub _mark_scaled  { my($n)=@_; $n->SetEntityVariable("se_scaled","1"); }
-sub _was_scaled   { my($n)=@_; return ($n->GetEntityVariable("se_scaled")||"") eq "1"; }
+# ===========================================================
+# Helpers: per-entity flags
+# ===========================================================
+sub _mark_scaled {
+    my ($n) = @_;
+    $n->SetEntityVariable("se_scaled", "1");
+}
+
+sub _was_scaled {
+    my ($n) = @_;
+    return ($n->GetEntityVariable("se_scaled") || "") eq "1";
+}
 
 # ===========================================================
 # EVENT_SPAWN
@@ -45,7 +50,7 @@ sub EVENT_SPAWN {
     my $raw   = $npc->GetName() || '';
     $is_boss  = ($raw =~ /^#/) ? 1 : 0;
 
-    # Skip scaling & faction for 2234 (bones only)
+    # Skip scaling & faction for Bones (2234)
     if ($npcid == 2234) {
         quest::debug("[INIT] Skip scale/faction for Bones 2234") if $DBG;
         return;
@@ -55,10 +60,8 @@ sub EVENT_SPAWN {
     $npc->SetNPCFactionID(623);
     $npc->ModifyNPCStat("npc_faction_id", 623);
 
-    # Important: every spawn gets its own delayed init regardless of others
+    # Schedule delayed init and faction recheck
     quest::settimer("delayed_init", 3 + int(rand(2)));
-
-    # Some zonescripts flip faction; force once more shortly after
     quest::settimer("force_faction", 5);
 }
 
@@ -72,8 +75,8 @@ sub EVENT_TIMER {
     if ($timer eq "delayed_init") {
         quest::stoptimer($timer);
         _do_delayed_init();
-
-    } elsif ($timer eq "force_faction") {
+    }
+    elsif ($timer eq "force_faction") {
         $npc->SetNPCFactionID(623);
         $npc->ModifyNPCStat("npc_faction_id", 623);
         quest::stoptimer($timer);
@@ -85,30 +88,28 @@ sub EVENT_TIMER {
 # ===========================================================
 sub _do_delayed_init {
     return unless $npc;
-    return if _was_scaled($npc);   # <-- per-entity guard, not global!
+    return if _was_scaled($npc); # per-entity guard
 
     my $inst_id = quest::GetInstanceID("convorteum", 1);
 
-    # Count ANY clients (GM or not)
-    my $client_count = 0;
+    # Count clients
     my @clients;
     eval { @clients = $entity_list->GetClientList(); };
     if ($@ || !@clients) {
         my $it = $entity_list->GetClientList();
-        while (my $c = $it->Next()) { push @clients, $c; }
-    }
-    foreach my $c (@clients) {
-        next unless $c && $c->IsClient();
-        $client_count++;
+        while (my $c = $it->Next()) {
+            push @clients, $c;
+        }
     }
 
+    my $client_count = scalar(@clients);
     if ($client_count == 0) {
-        quest::settimer("delayed_init", 5);  # wait until at least one client
-        quest::debug("[SCALE] No clients yet; recheck in 5s for NPCID ".$npc->GetNPCTypeID()) if $DBG;
+        quest::settimer("delayed_init", 5);
+        quest::debug("[SCALE] No clients yet; recheck in 5s for NPCID " . $npc->GetNPCTypeID()) if $DBG;
         return;
     }
 
-    # Clear stale era cache and compute era including GMs
+    # Determine era including GMs
     eval { plugin::ResetEraCache(); };
     my $era = $qglobals{"era_" . $inst_id};
     $era = _determine_era_including_gm($entity_list) unless $era;
@@ -121,8 +122,7 @@ sub _do_delayed_init {
     $npc->ModifyNPCStat("npc_faction_id", 623);
 
     _mark_scaled($npc);
-
-    quest::debug("[SCALE] NPCID ".$npc->GetNPCTypeID()." scaled to era [$era], boss=$is_boss") if $DBG;
+    quest::debug("[SCALE] NPCID " . $npc->GetNPCTypeID() . " scaled to era [$era], boss=$is_boss") if $DBG;
 }
 
 # ===========================================================
@@ -130,6 +130,7 @@ sub _do_delayed_init {
 # ===========================================================
 sub _determine_era_including_gm {
     my ($entity_list) = @_;
+
     my %eras = (
         antonica => [18,39,59,64,66,71,72,74,101,32,73,96,91,11,17,40,41,42],
         kunark   => [97,88,92,81,107,79,104,93,105,94,90,85,87,109,84,102,95,89,103,108],
@@ -142,7 +143,9 @@ sub _determine_era_including_gm {
     eval { @clients = $entity_list->GetClientList(); };
     if ($@ || !@clients) {
         my $it = $entity_list->GetClientList();
-        while (my $c = $it->Next()) { push @clients, $c; }
+        while (my $c = $it->Next()) {
+            push @clients, $c;
+        }
     }
 
     foreach my $era (qw(pop luclin velious kunark antonica)) {
@@ -153,6 +156,7 @@ sub _determine_era_including_gm {
             }
         }
     }
+
     return "antonica";
 }
 
@@ -162,12 +166,12 @@ sub _determine_era_including_gm {
 sub EVENT_DEATH_COMPLETE {
     return unless $npc && !$npc->IsPet();
     my $id = $npc->GetNPCTypeID();
-    return if $F1_TRASH{$id};  # Floor 1 essences handled elsewhere
+    return if $F1_TRASH{$id}; # Floor 1 handled elsewhere
 
     my $client = plugin::GetKillerClient($npc, $entity_list);
     return unless $client;
 
-    # Build same-IP share list (raid/group aware)
+    # Build same-IP share list
     my $base_ip = $client->GetIP();
     my @pcs;
 
@@ -177,13 +181,15 @@ sub EVENT_DEATH_COMPLETE {
             my $m = $r->GetMember($i);
             push @pcs, $m if $m && $m->IsClient() && $m->GetIP() == $base_ip;
         }
-    } elsif ($client->GetGroup()) {
+    }
+    elsif ($client->GetGroup()) {
         my $g = $client->GetGroup();
         for (my $i = 0; $i < $g->GroupCount(); $i++) {
             my $m = $g->GetMember($i);
             push @pcs, $m if $m && $m->IsClient() && $m->GetIP() == $base_ip;
         }
-    } else {
+    }
+    else {
         push @pcs, $client;
     }
 
@@ -192,19 +198,23 @@ sub EVENT_DEATH_COMPLETE {
         $pc = $pc->CastToClient();
         my $cid = $pc->CharacterID();
 
-        # ---------------------------
+        # -------------------------------------------------------
         # Floor 2 → Obsidian Key
-        # ---------------------------
+        # -------------------------------------------------------
         if ($F2_TRASH{$id}) {
             my $ess_key = "CONV_F2_EssenceCount_${cid}";
             my $mini_key = "CONV_F2_Mini2219_${cid}";
-            my $given    = "CONV_F2_KeyGiven_${cid}";
+            my $given = "CONV_F2_KeyGiven_${cid}";
 
             my $count = quest::get_data($ess_key) || 0;
             my $mflag = quest::get_data($mini_key) || 0;
-            my $done  = quest::get_data($given)    || 0;
+            my $done  = quest::get_data($given) || 0;
 
-            if ($count < 12) { $count++; quest::set_data($ess_key, $count); }
+            if ($count < 12) {
+                $count++;
+                quest::set_data($ess_key, $count);
+            }
+
             $pc->Message(15, "You have gathered an essence of Floor 2 [$count/12]");
             quest::debug("[F2] Essence +1 (npc=$id, cid=$cid) -> $count") if $DBG;
 
@@ -219,26 +229,37 @@ sub EVENT_DEATH_COMPLETE {
             }
         }
 
-        # ---------------------------
+        # -------------------------------------------------------
         # Floor 3 → Phantasmal Key
-        # ---------------------------
+        # -------------------------------------------------------
         if ($F3_TRASH{$id}) {
             my $ess_key = "CONV_F3_EssenceCount_${cid}";
-            my $mini1   = "CONV_F3_Mini2224_${cid}";
-            my $mini2   = "CONV_F3_Mini2225_${cid}";
-            my $given   = "CONV_F3_KeyGiven_${cid}";
+            my $mini1 = "CONV_F3_Mini2224_${cid}";
+            my $mini2 = "CONV_F3_Mini2225_${cid}";
+            my $given = "CONV_F3_KeyGiven_${cid}";
 
             my $count = quest::get_data($ess_key) || 0;
-            my $m1    = quest::get_data($mini1)   || 0;
-            my $m2    = quest::get_data($mini2)   || 0;
-            my $done  = quest::get_data($given)   || 0;
+            my $m1 = quest::get_data($mini1) || 0;
+            my $m2 = quest::get_data($mini2) || 0;
+            my $done = quest::get_data($given) || 0;
 
-            if ($count < 12) { $count++; quest::set_data($ess_key, $count); }
+            if ($count < 12) {
+                $count++;
+                quest::set_data($ess_key, $count);
+            }
+
             $pc->Message(15, "You have gathered an essence of Floor 3 [$count/12]");
             quest::debug("[F3] Essence +1 (npc=$id, cid=$cid) -> $count") if $DBG;
 
-            if ($id == 2224 && !$m1) { quest::set_data($mini1, 1); $pc->Message(13, "✨ Essence of the Twilight Phantasm!"); }
-            if ($id == 2225 && !$m2) { quest::set_data($mini2, 1); $pc->Message(13, "✨ Essence of the Glasswork Duelist!"); }
+            if ($id == 2224 && !$m1) {
+                quest::set_data($mini1, 1);
+                $pc->Message(13, "✨ Essence of the Twilight Phantasm!");
+            }
+
+            if ($id == 2225 && !$m2) {
+                quest::set_data($mini2, 1);
+                $pc->Message(13, "✨ Essence of the Glasswork Duelist!");
+            }
 
             if ($count >= 12 && $m1 && $m2 && !$done) {
                 plugin::GrantKeyIfMissing($pc, $PHANTASMAL_KEY_ID, "Phantasmal Key", "Floor 4");
@@ -246,15 +267,16 @@ sub EVENT_DEATH_COMPLETE {
             }
         }
 
-        # ---------------------------
+        # -------------------------------------------------------
         # Floor 4 → Ember Key
-        # ---------------------------
+        # -------------------------------------------------------
         if ($F4_TRASH{$id} || $F4_MINIS{$id}) {
             my $ess_key = "CONV_F4_EssenceCount_${cid}";
-            my $count   = quest::get_data($ess_key) || 0;
+            my $count = quest::get_data($ess_key) || 0;
 
             if ($F4_TRASH{$id} && $count < 12) {
-                $count++; quest::set_data($ess_key, $count);
+                $count++;
+                quest::set_data($ess_key, $count);
                 $pc->Message(15, "You have gathered an essence of Floor 4 [$count/12]");
                 quest::debug("[F4] Essence +1 (npc=$id, cid=$cid) -> $count") if $DBG;
             }
@@ -270,9 +292,8 @@ sub EVENT_DEATH_COMPLETE {
             my $m1 = quest::get_data("CONV_F4_Mini2230_${cid}") || 0;
             my $m2 = quest::get_data("CONV_F4_Mini2231_${cid}") || 0;
             my $m3 = quest::get_data("CONV_F4_Mini2232_${cid}") || 0;
-
             my $given = "CONV_F4_KeyGiven_${cid}";
-            my $done  = quest::get_data($given) || 0;
+            my $done = quest::get_data($given) || 0;
 
             if ($count >= 12 && ($m1 || $m2 || $m3) && !$done) {
                 plugin::GrantKeyIfMissing($pc, $EMBER_KEY_ID, "Ember Key", "Floor 5");
@@ -281,13 +302,13 @@ sub EVENT_DEATH_COMPLETE {
             }
         }
 
-        # ---------------------------
-        # Floor 5 → Eclipse Key
-        # ---------------------------
+        # -------------------------------------------------------
+        # Floor 5 → Umbral Key
+        # -------------------------------------------------------
         if ($F5_TRASH{$id} || $F5_MINIS{$id}) {
             my $ess_key = "CONV_F5_EssenceCount_${cid}";
             my $mini_key = "CONV_F5_Mini2233_${cid}";
-            my $given    = "CONV_F5_KeyGiven_${cid}";
+            my $given = "CONV_F5_KeyGiven_${cid}";
 
             my $count = quest::get_data($ess_key) || 0;
 
@@ -306,14 +327,14 @@ sub EVENT_DEATH_COMPLETE {
             }
 
             my $mflag = quest::get_data($mini_key) || 0;
-            my $done  = quest::get_data($given)    || 0;
+            my $done = quest::get_data($given) || 0;
 
             if ($count >= $F5_ESSENCE_REQ && $mflag && !$done) {
-    plugin::GrantKeyIfMissing($pc, $UMBRAL_KEY_ID, $UMBRAL_KEY_NAME, "Floor 6");
-    quest::set_data($given, 1);
-    $pc->Message(15, "A hush falls as the $UMBRAL_KEY_NAME binds to your essence.");
-    quest::debug("[F5] Umbral Key granted (cid=$cid)") if $DBG;
-}
+                plugin::GrantKeyIfMissing($pc, $UMBRAL_KEY_ID, $UMBRAL_KEY_NAME, "Floor 6");
+                quest::set_data($given, 1);
+                $pc->Message(15, "A hush falls as the $UMBRAL_KEY_NAME binds to your essence.");
+                quest::debug("[F5] Umbral Key granted (cid=$cid)") if $DBG;
+            }
         }
     }
 }

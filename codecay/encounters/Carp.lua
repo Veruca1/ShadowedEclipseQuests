@@ -146,6 +146,14 @@ end
 function HP_Death(e)
 	eq.debug("REAL High Priest died - spawning Tarkil")
 	eq.spawn2(200040, 0, 0, 309.17, 332.99, -70.25, 265.5)
+
+	-- Flag a random client from hate list
+	local hate_top = e.self:GetHateRandom()
+	if hate_top and hate_top:IsClient() then
+		local client = hate_top:CastToClient()
+		client:Message(15, "You feel a strange presence acknowledge your actions.")
+		client:SetGlobal("pop_cod_preflag", 1, 5, "F")
+	end
 end
 
 function event_encounter_load(e)

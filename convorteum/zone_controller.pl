@@ -71,6 +71,12 @@ my @locs = (
     [396.76, -701.90, -71.69, 56.50],
 );
 
+# === CONFIG: Floor 1 Minis ===
+my @floor1_minis = (
+    [378.46, -1730.52, -65.85, 61.00],   # Ashmaw the Cinder Ghoul (2214)
+    [1481.74,  -196.03, -70.20, 333.00], # Marrowhowl the Bone Piper (2215)
+);
+
 # === CONFIG: Floor 2 Trash ===
 my @floor2_trash_pool = (2216, 2217, 2218);
 my @floor2_trash_locs = (
@@ -196,6 +202,7 @@ my %active_spawns_floor3;
 # ===========================================================
 sub EVENT_SPAWN {
     spawn_floor1();
+    spawn_floor1_minis(); # spawn fixed Floor 1 minibosses
     spawn_floor2_trash();
     spawn_floor2_boss();
     spawn_floor3_trash();
@@ -244,6 +251,21 @@ sub spawn_floor1 {
         my $npc_id = $npc_pool[int(rand(@npc_pool))];
         my $new_id = quest::spawn2($npc_id,0,0,$x,$y,$z,$h);
         $active_spawns{$i} = $new_id if $new_id;
+    }
+}
+
+sub spawn_floor1_minis {
+    my @mini_ids = (2214, 2215); # Ashmaw and Marrowhowl
+
+    for my $i (0 .. $#floor1_minis) {
+        my ($x,$y,$z,$h) = @{$floor1_minis[$i]};
+        my $npc_id = $mini_ids[$i];
+        my $new_id = quest::spawn2($npc_id, 0, 0, $x, $y, $z, $h);
+        if ($new_id) {
+            plugin::Debug("[ZoneController] F1 Mini $npc_id spawned at ($x,$y,$z,$h).");
+        } else {
+            plugin::Debug("[ZoneController] ⚠ Failed to spawn F1 Mini $npc_id at ($x,$y,$z,$h).");
+        }
     }
 }
 

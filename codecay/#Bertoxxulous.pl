@@ -106,3 +106,14 @@ sub EVENT_HP {
         plugin::TryPoPCh1ReflectTransformation($npc, $entity_list, \@reflected_loot, 40, \$checked_mirror);
     }
 }
+
+sub EVENT_DEATH_COMPLETE {
+    # Get current NPC location and heading
+    my $x = $npc->GetX();
+    my $y = $npc->GetY();
+    my $z = $npc->GetZ();
+    my $h = $npc->GetHeading();
+
+    # Spawn NPC ID 218068 at the same spot
+    quest::spawn2(218068, 0, 0, $x, $y, $z, $h);
+}

@@ -1,5 +1,6 @@
 # Configuration options
 my $enable_easter_island = 0;  # Set to 0 to disable Easter Island zones
+my $enable_convorteum_event = 0;  # ⚡ Set to 1 to enable Convorteum Halloween Event (zoneid 369, version 1)
 my $expedition_name_prefix = "DZ - ";
 my $min_players = 1;
 my $max_players = 12;
@@ -69,6 +70,11 @@ my @velious_zones = (
 	{ shortname => "templeveeshan", name => "Temple of Veeshan" }
 );
 
+# === ADDED: Planes of Power Zones ===
+my @pop_zones = (
+	{ shortname => "arcstone", name => "Arcstone, Isle of Spirits" }
+);
+
 my @event_zones = (
 	{ shortname => "brellsarena", name => "Wave Event" },
 	{ shortname => "arena", name => "The Arena" },
@@ -76,9 +82,14 @@ my @event_zones = (
 	{ shortname => "blackburrow", name => "Blackburrow" }
 );
 
+# ⚡ Add Convorteum Halloween Event if enabled
+if ($enable_convorteum_event) {
+	push @event_zones, { shortname => "convorteum", name => "Tower of Shattered Lanterns (Halloween Event)" };
+}
+
 # Build a lookup hash for quick access
 my %zones;
-foreach my $zone_list (@antonica_zones, @kunark_zones, @velious_zones, @event_zones) {
+foreach my $zone_list (@antonica_zones, @kunark_zones, @velious_zones, @pop_zones, @event_zones) {
 	$zones{$zone_list->{shortname}} = $zone_list->{name};
 }
 
@@ -88,6 +99,8 @@ my %zone_versions = (
 		1 => "Easter Island Level 60 Sebilis Era",
 		2 => "Easter Island End Game",
 	},
+	"arcstone" => 1,   # ⚡ Arcstone (PoP)
+	"convorteum" => 1, # ⚡ Convorteum Halloween version
 	"citymist" => 1,
 	"droga" => 1,
 	"nurga" => 1,
@@ -161,32 +174,46 @@ sub EVENT_SAY {
 	}
 
 	if ($text =~ /hail/i) {
-		my $list_zones_link = quest::silent_saylink("list zones");
+		my $list_zones_link = quest::saylink("list zones", 1, "list zones");
 		quest::whisper("Greetings, adventurer. Would you like to create a dynamic zone? Say [$list_zones_link] to see all available zones, or tell me the zone name you'd like to explore.");
 	} elsif ($text =~ /list zones/i) {
 		quest::message(315, "Available Dynamic Zones:");
 
 		quest::message(315, "Antonica Zones:");
 		foreach my $zone (@antonica_zones) {
-			my $version_link = quest::silent_saylink($zone->{name}, "$zone->{name} ($zone->{shortname})");
+			my $version_link = quest::saylink($zone->{shortname}, 1, "$zone->{name} ($zone->{shortname})");
 			quest::message(315, $version_link);
 		}
 
 		quest::message(315, "Kunark Zones:");
 		foreach my $zone (@kunark_zones) {
-			my $version_link = quest::silent_saylink($zone->{name}, "$zone->{name} ($zone->{shortname})");
+			my $version_link = quest::saylink($zone->{shortname}, 1, "$zone->{name} ($zone->{shortname})");
 			quest::message(315, $version_link);
 		}
 
 		quest::message(315, "Velious Zones:");
 		foreach my $zone (@velious_zones) {
-			my $version_link = quest::silent_saylink($zone->{name}, "$zone->{name} ($zone->{shortname})");
+			my $version_link = quest::saylink($zone->{shortname}, 1, "$zone->{name} ($zone->{shortname})");
+			quest::message(315, $version_link);
+		}
+
+		# === Planes of Power ===
+		quest::message(315, "Planes of Power Zones:");
+		foreach my $zone (@pop_zones) {
+			my $version_link = quest::saylink($zone->{shortname}, 1, "$zone->{name} ($zone->{shortname})");
 			quest::message(315, $version_link);
 		}
 
 		quest::message(315, "Event Zones:");
 		foreach my $zone (@event_zones) {
-			my $version_link = quest::silent_saylink($zone->{name}, "$zone->{name} ($zone->{shortname})");
+			my $version_link = quest::saylink($zone->{shortname}, 1, "$zone->{name} ($zone->{shortname})");
+			quest::message(315, $version_link);
+		}
+
+		# ⚡ Only show Convorteum event if enabled
+		if ($enable_convorteum_event) {
+			quest::message(315, "Convorteum Event:");
+			my $version_link = quest::saylink("Tower of Shattered Lanterns (Halloween Event)", 1, "Tower of Shattered Lanterns (Halloween Event)");
 			quest::message(315, $version_link);
 		}
 
@@ -198,9 +225,8 @@ sub EVENT_SAY {
 				"Easter Island Level 60 Sebilis Era",
 				"Easter Island End Game",
 			);
-
 			foreach my $version_name (@ordered_versions) {
-				my $version_link = quest::silent_saylink($version_name);
+				my $version_link = quest::saylink($version_name, 1, $version_name);
 				quest::message(315, $version_link);
 			}
 		}
@@ -211,13 +237,32 @@ sub EVENT_SAY {
 		   # "Temple of Veeshan 1",
 		);
 		foreach my $version_name (@temple_versions) {
-			my $version_link = quest::silent_saylink($version_name);
+			my $version_link = quest::saylink($version_name, 1, $version_name);
 			quest::message(315, $version_link);
 		}
 
 		quest::whisper("Click on a zone name or say its name to create a DZ.");
 	}
 
+	# ⚡ Convorteum Halloween Event activation
+	elsif ($text =~ /^Tower of Shattered Lanterns/i) {
+		if (!$enable_convorteum_event) {
+			quest::whisper("The Convorteum Halloween Event is not currently active.");
+			return;
+		}
+
+		my $expedition_name = $expedition_name_prefix . "convorteum";
+		my $dz = $client->CreateExpedition("convorteum", 1, $dz_duration, $expedition_name, $min_players, $max_players);
+		if ($dz) {
+			my $ready_link = quest::saylink("ready", 1, "ready");
+			quest::whisper("Dynamic zone for 'Tower of Shattered Lanterns (Halloween Event)' created successfully. Tell me when you're [$ready_link] to enter.");
+		} else {
+			quest::whisper("There was an issue creating your dynamic zone. Please try again.");
+		}
+		return;
+	}
+
+	# Easter Island versions
 	elsif ($text =~ /^(Easter Island .+)$/i) {
 		if (!$enable_easter_island) {
 			quest::whisper("Easter Island zones are currently disabled.");
@@ -231,7 +276,7 @@ sub EVENT_SAY {
 				my $expedition_name = $expedition_name_prefix . "oceanoftears";
 				my $dz = $client->CreateExpedition("oceanoftears", $version, $dz_duration, $expedition_name, $min_players, $max_players);
 				if ($dz) {
-					my $ready_link = quest::silent_saylink("ready");
+					my $ready_link = quest::saylink("ready", 1, "ready");
 					quest::whisper("Dynamic zone for '$zone_name' created successfully. Tell me when you're [$ready_link] to enter.");
 				} else {
 					quest::whisper("There was an issue creating your dynamic zone. Please try again.");
@@ -243,31 +288,11 @@ sub EVENT_SAY {
 		quest::whisper("I'm sorry, but '$zone_name' is not a valid choice. Please select a valid version.");
 	}
 
-	elsif ($text =~ /^(Temple of Veeshan [0-1])$/i) {
-		my $zone_name = $1;
-
-		foreach my $version (keys %{$zone_versions{"templeveeshan"}}) {
-			if ($zone_versions{"templeveeshan"}->{$version} eq $zone_name) {
-				my $expedition_name = $expedition_name_prefix . "templeveeshan";
-				my $dz = $client->CreateExpedition("templeveeshan", $version, $dz_duration, $expedition_name, $min_players, $max_players);
-				if ($dz) {
-					my $ready_link = quest::silent_saylink("ready");
-					quest::whisper("Dynamic zone for '$zone_name' created successfully. Tell me when you're $ready_link] to enter.");
-				} else {
-					quest::whisper("There was an issue creating your dynamic zone. Please try again.");
-				}
-				return;
-			}
-		}
-
-		quest::whisper("I'm sorry, but '$zone_name' is not a valid choice. Please select a valid version.");
-	}
-
+	# Generic handler: create DZ from any clicked shortname or typed zone name
 	elsif ($text =~ /^(.*)$/i) {
 		my $zone_input = $1;
 		my $zone_found = 0;
-		my $zone_shortname;
-		my $zone_name;
+		my ($zone_shortname, $zone_name);
 
 		# Check if input matches a shortname or full name
 		foreach my $shortname (keys %zones) {
@@ -285,7 +310,7 @@ sub EVENT_SAY {
 				my $expedition_name = $expedition_name_prefix . $zone_shortname;
 				my $dz = $client->CreateExpedition($zone_shortname, $version, $dz_duration, $expedition_name, $min_players, $max_players);
 				if ($dz) {
-					my $ready_link = quest::silent_saylink("ready");
+					my $ready_link = quest::saylink("ready", 1, "ready");
 					quest::whisper("Dynamic zone for '$zone_name' created successfully. Tell me when you're [$ready_link] to enter.");
 				} else {
 					quest::whisper("There was an issue creating your dynamic zone. Please try again.");
@@ -296,7 +321,7 @@ sub EVENT_SAY {
 		}
 
 		if (!$zone_found) {
-			my $list_zones_link = quest::silent_saylink("list zones");
+			my $list_zones_link = quest::saylink("list zones", 1, "list zones");
 			quest::whisper("I'm sorry, but '$zone_input' is not a valid zone name or shortname. Say [$list_zones_link] to see the available options.");
 		}
 	}

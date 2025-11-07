@@ -1,15 +1,9 @@
-# ===========================================================
 # Halloween Event DZ Controller - Tower of Shattered Lanterns
-# Restricted Access (Testing Only)
-# ===========================================================
 
 my $expedition_name_prefix = "DZ - ";
 my $min_players = 1;
 my $max_players = 6;
 my $dz_duration = 28800;   # 8 hours
-
-# ✅ Allowed testers (case-insensitive match)
-my @allowed_names = ("Milo", "Twister", "Dizix", "Sureu");  # <--- add your tester character names here
 
 my %zone_versions = (
     "convorteum" => {
@@ -24,24 +18,6 @@ sub EVENT_SAY {
     my $entity_list = plugin::val('$entity_list');
     return unless $client;
 
-    my $name = $client->GetCleanName();
-    my $allowed = 0;
-
-    # Check whitelist
-    foreach my $allowed_name (@allowed_names) {
-        if (lc($name) eq lc($allowed_name)) {
-            $allowed = 1;
-            last;
-        }
-    }
-
-    # Block anyone not in the allowed list
-    if (!$allowed) {
-        quest::whisper("The shadows pay you no heed, $name. Only chosen testers may enter.");
-        return;
-    }
-
-    # === Normal DZ logic below ===
     if ($text =~ /hail/i) {
         my $zone_link = quest::saylink("Tower of Shattered Lanterns", 1, "Tower of Shattered Lanterns");
         quest::whisper("☠️ Welcome, mortal... This is the [Halloween Event] known as the Tower of Shattered Lanterns.");
@@ -57,6 +33,7 @@ sub EVENT_SAY {
         if ($dz) {
             my $era = plugin::DetermineEraForClient($client);
 
+            # ✅ use quest::GetInstanceID(zone, version) here
             my $inst_id = quest::GetInstanceID("convorteum", 1);
             quest::setglobal("era_" . $inst_id, $era, 7, "H6");
 
@@ -76,7 +53,7 @@ sub EVENT_SAY {
             my $zone_short_name = $dz->GetZoneName();
 
             my $inst_id = quest::GetInstanceID("convorteum", 1);
-            my $era = $qglobals{"era_" . $inst_id} || "unknown";
+            my $era = $qglobals{"era_" . $inst_id} || plugin::DetermineEraForClient($client) || "unknown";
 
             quest::whisper("The lanterns crack, shadows spill forth... You are drawn into your expedition: $zone_short_name! (Era: $era)");
             $client->MovePCDynamicZone($zone_short_name);

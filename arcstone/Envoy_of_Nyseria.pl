@@ -13,21 +13,75 @@ sub EVENT_SAY {
             . "Seek and deliver twenty <c \"#E0E070\">Twilight Reliquaries</c>. Only then will your path darken... and deepen.<br><br>"
             . "<c \"#8080C0\">The Eye sleeps. But not forever.</c>"
         );
+
         plugin::Whisper("The weave changes. Speak the names of the realms you seek—if echoes still bind them, I may open the path.");
         plugin::Whisper("  - " . quest::saylink("Plane of Disease", 1, "Plane of Disease (podisease)"));
         plugin::Whisper("  - " . quest::saylink("Crypt of Decay", 1, "Crypt of Decay (codecay)"));
+        plugin::Whisper("  - " . quest::saylink("Plane of Nightmare", 1, "Plane of Nightmare (ponightmare)"));
+        plugin::Whisper("  - " . quest::saylink("Lair of Terris Thule", 1, "Lair of Terris Thule (nightmareb)"));
+
+        # Flag entire IP-matched group/raid for Plane of Disease (zone ID 205) if not already flagged
+        my $clicker_ip = $client->GetIP();
+        my $group = $client->GetGroup();
+        my $raid = $client->GetRaid();
+        my $zone_id = 205;
+        my @flagged;
+
+        if ($group) {
+            for (my $i = 0; $i < $group->GroupCount(); $i++) {
+                my $member = $group->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip && !$member->HasZoneFlag($zone_id)) {
+                    $member->SetZoneFlag($zone_id);
+                    push @flagged, $member->GetCleanName();
+                }
+            }
+        } elsif ($raid) {
+            for (my $i = 0; $i < $raid->RaidCount(); $i++) {
+                my $member = $raid->GetMember($i);
+                next unless $member;
+                if ($member->GetIP() == $clicker_ip && !$member->HasZoneFlag($zone_id)) {
+                    $member->SetZoneFlag($zone_id);
+                    push @flagged, $member->GetCleanName();
+                }
+            }
+        } else {
+            if (!$client->HasZoneFlag($zone_id)) {
+                $client->SetZoneFlag($zone_id);
+                push @flagged, $client->GetCleanName();
+            }
+        }
+
+        if (@flagged) {
+            my $names = join(", ", @flagged);
+            quest::we(14, "$names have been flagged for access to Plane of Disease.");
+        }
     }
+
     elsif ($text =~ /list zones/i) {
         plugin::Whisper("The Eclipse reveals remnants of fading worlds:");
         plugin::Whisper("  - " . quest::saylink("Plane of Disease", 1, "Plane of Disease (podisease)"));
         plugin::Whisper("  - " . quest::saylink("Crypt of Decay", 1, "Crypt of Decay (codecay)"));
+        plugin::Whisper("  - " . quest::saylink("Plane of Nightmare", 1, "Plane of Nightmare (ponightmare)"));
+        plugin::Whisper("  - " . quest::saylink("Lair of Terris Thule", 1, "Lair of Terris Thule (nightmareb)"));
     }
+
     elsif ($text =~ /^(Plane of Disease|podisease)$/i) {
         CreateCustomDZ("podisease", "Plane of Disease");
     }
+
     elsif ($text =~ /^(Crypt of Decay|codecay)$/i) {
         CreateCustomDZ("codecay", "Crypt of Decay");
     }
+
+    elsif ($text =~ /^(Plane of Nightmare|ponightmare)$/i) {
+        CreateCustomDZ("ponightmare", "Plane of Nightmare");
+    }
+
+    elsif ($text =~ /^(Lair of Terris Thule|nightmareb)$/i) {
+        CreateCustomDZ("nightmareb", "Lair of Terris Thule");
+    }
+
     elsif ($text =~ /ready/i) {
         my $dz = $client->GetExpedition();
         if ($dz) {
@@ -41,38 +95,60 @@ sub EVENT_SAY {
 }
 
 sub EVENT_ITEM {
-    my $key                = "twilight_reliquary_total";
     my $reliquary_id       = 60461;
     my $reliquary_required = 20;
+    my $key                = "twilight_reliquary_total";
 
-    my $handin  = $itemcount{$reliquary_id} || 0;
-    my $current = quest::get_data($key) || 0;
-
-    if ($handin > 0) {
-        quest::removeitem($reliquary_id, $handin);
-
-        my $new_total = $current + $handin;
-        quest::set_data($key, $new_total);
-
-        if ($new_total >= $reliquary_required) {
-            plugin::Whisper("The final seal breaks. The Eclipse unfolds...");
-            quest::worldwidecastspell(12345);  # adjust spell ID as needed
-            ## Server‑wide marquee:
-            quest::worldwidemarquee(15, 510, 1, 1, 5000,
-                "The Shadowed Eclipse stirs... Nyseria’s gaze falls across the land.");
-            quest::delete_data($key);
-        } else {
-            #quest::ze(15, "The Envoy murmurs from beyond the veil: '$new_total of $reliquary_required relics bleed into the shadow... the convergence draws near.'");
+    # Count actual stacked items from all slots
+    my $turned_in = 0;
+    
+    for my $slot (1..4) {
+        my $item_id = plugin::val("item${slot}");
+        my $charges = plugin::val("item${slot}_charges");
+        
+        if ($item_id == $reliquary_id) {
+            $turned_in += ($charges > 0) ? $charges : 1;
         }
-    } else {
-        plugin::Whisper("These are not the offerings Nyseria seeks.");
     }
+    
+    # Use plugin::check_handin with the actual count to properly consume items
+    if ($turned_in > 0 && plugin::check_handin(\%itemcount, $reliquary_id => $turned_in)) {
+        my $current = quest::get_data($key) || 0;
+        
+        # Calculate new total
+        my $new_total = $current + $turned_in;
+        
+        # Check how many complete cycles we've triggered
+        my $cycles_completed = int($new_total / $reliquary_required);
+        my $remainder = $new_total % $reliquary_required;
+        
+        # Set the remainder as the new stored value (rollover)
+        quest::set_data($key, $remainder);
+        
+        # Announce progress
+        quest::we(14, "The Eclipse stirs... ($remainder / $reliquary_required) Twilight Reliquaries have been offered to Nyseria.");
+        
+        # Trigger completion event for each cycle completed
+        if ($cycles_completed > 0) {
+            for (my $i = 0; $i < $cycles_completed; $i++) {
+                plugin::Whisper("The final seal breaks. The Eclipse unfolds...");
+                quest::worldwidecastspell(41229);
+                quest::worldwidemarquee(15, 510, 1, 1, 5000,
+                    "The Shadowed Eclipse stirs... Nyseria's gaze falls across the land.");
+            }
+        }
+        
+        return;
+    }
+
+    # Wrong items - return them
+    plugin::Whisper("These are not the offerings Nyseria seeks.");
+    plugin::return_items(\%itemcount);
 }
 
-# Dynamic Zone (DZ) creation helper function
 sub CreateCustomDZ {
     my ($shortname, $fullname) = @_;
-    my $dz_duration = 43200; # 12 hours duration
+    my $dz_duration = 43200; # 12 hours
     my $min_players = 1;
     my $max_players = 6;
     my $expedition_name = "DZ - $fullname";

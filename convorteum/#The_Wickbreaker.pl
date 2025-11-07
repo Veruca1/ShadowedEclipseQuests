@@ -3,15 +3,16 @@
 # #The_Wickbreaker
 # -----------------------------------------------------------
 # • Invulnerable unless a nearby player has the Umbral Key (57164)
+# • 50% chance to drop era-appropriate loot on first combat engage
 # • Blocks damage / wipes hate from non-keyholders
-# • No signals to other NPCs (unlike 2233)
-# • Includes per-entity era + raid scaling (since default.pl won't run)
-# • On death: spawns 2244 at exact death location + spawns 2242 (Morghast)
+# • Includes per-entity era + raid scaling
+# • On death: spawns 2244 at death location + spawns 2242 (Morghast)
 # ===========================================================
 
 my $REQ_KEY_ID     = 57164;   # Umbral Key (Floor 5 → 6)
 my $CHECK_RADIUS   = 250;
 my $CHECK_INTERVAL = 5;
+my $LOOT_SEEDED    = 0;       # only roll loot once per spawn
 
 # ------------------------------ Era scaling helpers
 sub _mark_scaled { $npc->SetEntityVariable("se_scaled","1"); }
@@ -73,6 +74,22 @@ sub _scale_self_once {
     _mark_scaled();
 }
 
+# ------------------------------ Era Loot Tables
+my %ERA_POOLS = (
+    A => [600413,600417,600421,600425,600429,600433],
+    K => [600412,600416,600420,600424,600428,600432],
+    V => [600411,600415,600419,600423,600427,600431],
+    L => [600410,600414,600418,600422,600426,600430],
+    P => [600434,600435,600436,600437,600438,600439,600440,600441],
+);
+my %ERA_KEY = (
+    antonica => 'A',
+    kunark   => 'K',
+    velious  => 'V',
+    luclin   => 'L',
+    pop      => 'P',
+);
+
 # ------------------------------ Key checks
 sub _has_key_inv   { my($c)=@_; return ($c && $c->IsClient() && $c->CountItem($REQ_KEY_ID)>0) ? 1 : 0; }
 sub _has_key_ring  { my($c)=@_; return 0 unless $c && $c->IsClient(); my $ok=0; eval{ $ok=$c->KeyRingCheck($REQ_KEY_ID)?1:0; }; return $ok; }
@@ -132,7 +149,9 @@ sub EVENT_TIMER {
     }
 }
 
-# Block damage from anyone who lacks the Umbral Key
+# -----------------------------------------------------------
+# EVENT_DAMAGE – block hits from non-keyholders
+# -----------------------------------------------------------
 sub EVENT_DAMAGE {
     my($d,$sid,$cid)=@_;
     return $d unless $npc;
@@ -152,16 +171,53 @@ sub EVENT_DAMAGE {
     return $d;
 }
 
+# -----------------------------------------------------------
+# EVENT_COMBAT – 50% loot seed + key validation
+# -----------------------------------------------------------
 sub EVENT_COMBAT {
     if ($combat_state == 1) {
-        if (_any_keyholder_nearby($npc, $CHECK_RADIUS)) { _unlock_if_locked(); }
-        else { _lock_if_unlocked(); $npc->WipeHateList(); }
+        if (_any_keyholder_nearby($npc, $CHECK_RADIUS)) {
+            _unlock_if_locked();
+
+            # === 50% chance to seed era loot once per spawn ===
+            if (!$LOOT_SEEDED) {
+                $LOOT_SEEDED = 1;
+
+                # --- NEW: Check for cursed item wearers (pre-seed Curse Breaker loot)
+                my $attacker = $npc->GetHateTop();
+                if ($attacker && $attacker->IsClient()) {
+                    unless ($npc->GetEntityVariable("cursed_seeded")) {
+                        plugin::CheckForCursedItemsAndSeedLoot($npc, $attacker);
+                        $npc->SetEntityVariable("cursed_seeded", 1);
+                    }
+                }
+
+                if (int(rand(100)) < 50) {
+                    my $era = _determine_era_including_gm($entity_list);
+                    my $key = $ERA_KEY{$era} || 'A';
+                    if (exists $ERA_POOLS{$key}) {
+                        my @pool = @{$ERA_POOLS{$key}};
+                        my $itemid = $pool[int(rand(@pool))];
+                        my $was_invul = $npc->GetInvul();
+                        if ($was_invul) { _unlock_if_locked(); }
+                        eval { $npc->AddItem($itemid, 1); };
+                        if ($was_invul) { _lock_if_unlocked(); }
+                    }
+                }
+            }
+        }
+        else {
+            _lock_if_unlocked();
+            $npc->WipeHateList();
+        }
     } else {
         _lock_if_unlocked();
     }
 }
 
-# ------------------------------ Death: spawn 2244 and 2242
+# -----------------------------------------------------------
+# EVENT_DEATH_COMPLETE – spawn next encounter
+# -----------------------------------------------------------
 sub EVENT_DEATH_COMPLETE {
     quest::stoptimer("f6_keycheck");
     quest::stoptimer("retry_scale");

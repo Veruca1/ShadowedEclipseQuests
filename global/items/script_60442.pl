@@ -1,6 +1,6 @@
-sub EVENT_ITEM_CLICK_CLIENT {
+sub EVENT_ITEM_CLICK {
     my $backflag_item = 60442; # Lesser Seal of Expedience
-    return unless $item_id == $backflag_item;
+    return unless $itemid == $backflag_item;
 
     my @zone_flags = (
         # Antonica
@@ -19,7 +19,7 @@ sub EVENT_ITEM_CLICK_CLIENT {
         for (my $i = 0; $i < $group->GroupCount(); $i++) {
             my $member = $group->GetMember($i);
             next unless $member;
-            push @eligible_members, $member if $member->GetIP() == $ip;
+            push @eligible_members, $member if $member->GetIP() eq $ip;
         }
         quest::we(15, "$name and group members on the same IP have been flagged through Kunark.");
     }
@@ -27,7 +27,7 @@ sub EVENT_ITEM_CLICK_CLIENT {
         for (my $i = 0; $i < $raid->RaidCount(); $i++) {
             my $member = $raid->GetMember($i);
             next unless $member;
-            push @eligible_members, $member if $member->GetIP() == $ip;
+            push @eligible_members, $member if $member->GetIP() eq $ip;
         }
         quest::we(15, "$name and raid members on the same IP have been flagged through Kunark.");
     }
@@ -43,5 +43,5 @@ sub EVENT_ITEM_CLICK_CLIENT {
         $member->Message(15, "You have received access to all major zones through Kunark. Thank you for your support!");
     }
 
-    $client->RemoveItem($item_id); # One-and-done
+    $client->RemoveItem($itemid); # One-and-done
 }

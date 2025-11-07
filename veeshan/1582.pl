@@ -24,7 +24,11 @@ sub EVENT_TIMER {
         my $z = $npc->GetZ();
         my $h = $npc->GetHeading();
 
-        quest::spawn2(1585, 0, 0, $x, $y, $z, $h);
+        # 8% chance for rare version (2253), otherwise 1585
+        my $roll = int(rand(100)) + 1;
+        my $spawn_id = ($roll <= 8) ? 2253 : 1585;
+
+        quest::spawn2($spawn_id, 0, 0, $x, $y, $z, $h);
     }
 }
 
@@ -32,7 +36,7 @@ sub EVENT_SAY {
     my $char_id = $client->CharacterID();
     my $flag = "${char_id}_veeshan_secret_boss_flag";
     my $cooldown_key = "${char_id}_veeshan_hail_cd";
-    my $cooldown_time = 60;  # 1 minutes
+    my $cooldown_time = 60;  # 1 minute cooldown
     my $current_time = time();
 
     if ($text =~ /hail/i) {
@@ -42,7 +46,6 @@ sub EVENT_SAY {
             if (!$last_hail_time || ($current_time - $last_hail_time) > $cooldown_time) {
                 quest::set_data($cooldown_key, $current_time);
 
-                # Message and spawn the boss
                 $client->Message(15, "YOU BETTER GET BACK!!!...");
 
                 my $x = $npc->GetX();
@@ -50,7 +53,11 @@ sub EVENT_SAY {
                 my $z = $npc->GetZ();
                 my $h = $npc->GetHeading();
 
-                quest::spawn2(1585, 0, 0, $x, $y, $z, $h);  # Replace 1585 with your boss NPC ID if different
+                # 8% chance for rare version (2253), otherwise 1585
+                my $roll = int(rand(100)) + 1;
+                my $spawn_id = ($roll <= 15) ? 2253 : 1585;
+
+                quest::spawn2($spawn_id, 0, 0, $x, $y, $z, $h);
             } else {
                 my $remaining = $cooldown_time - ($current_time - $last_hail_time);
                 my $min = int($remaining / 60);

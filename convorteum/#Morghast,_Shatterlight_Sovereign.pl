@@ -3,11 +3,13 @@
 # #Morghast,_Shatterlight_Sovereign
 # -----------------------------------------------------------
 # • Era + raid scaling
-# • Faction normalized to 623
+# • 50% chance to drop era-appropriate loot on first combat engage
 # • Stage gating at HP 80/60/40/20/10:
 #     - Each threshold triggers its matching plinth (signal 10)
 #     - Boss is INVUL until correct plinth dies (signal 1..5)
 # ===========================================================
+
+my $LOOT_SEEDED = 0;  # only roll loot once per spawn
 
 # =========================
 # Client utilities
@@ -82,6 +84,24 @@ sub _scale_self_once {
     $npc->ModifyNPCStat("npc_faction_id", 623);
     _mark_scaled();
 }
+
+# =========================
+# Era Loot Tables
+# =========================
+my %ERA_POOLS = (
+    A => [600413,600417,600421,600425,600429,600433],
+    K => [600412,600416,600420,600424,600428,600432],
+    V => [600411,600415,600419,600423,600427,600431],
+    L => [600410,600414,600418,600422,600426,600430],
+    P => [600434,600435,600436,600437,600438,600439,600440,600441],
+);
+my %ERA_KEY = (
+    antonica => 'A',
+    kunark   => 'K',
+    velious  => 'V',
+    luclin   => 'L',
+    pop      => 'P',
+);
 
 # =========================
 # Invul / vulnerable controls
@@ -189,6 +209,48 @@ sub EVENT_TIMER {
 sub EVENT_COMBAT {
     if ($combat_state == 1) {
         $fight_active = 1;
+
+        # === Only roll loot once per spawn ===
+        if (!$LOOT_SEEDED) {
+            $LOOT_SEEDED = 1;
+            my $era = _determine_era_including_gm();
+
+            # === 50% chance to seed era loot ===
+            if (int(rand(100)) < 50) {
+                my $key = $ERA_KEY{$era} || 'A';
+                if (exists $ERA_POOLS{$key}) {
+                    my @pool = @{$ERA_POOLS{$key}};
+                    my $itemid = $pool[int(rand(@pool))];
+                    my $was_invul = $npc->GetInvul();
+                    if ($was_invul) { _unlock_if_locked(); }
+                    eval { $npc->AddItem($itemid, 1); };
+                    if ($was_invul) { _lock_if_unlocked(); }
+                }
+            }
+
+            # === 3% chance to drop 60470 - Hallow's Spell in Luclin or PoP ===
+            if ($era eq "luclin" || $era eq "pop") {
+                if (int(rand(100)) < 3) {
+                    my $was_invul = $npc->GetInvul();
+                    if ($was_invul) { _unlock_if_locked(); }
+                    eval { $npc->AddItem(60470, 1); };
+                    if ($was_invul) { _lock_if_unlocked(); }
+                }
+            }
+
+            # === 3% chance to drop one of 3 candy items in Velious/Luclin/PoP ===
+            if ($era eq "velious" || $era eq "luclin" || $era eq "pop") {
+                if (int(rand(100)) < 3) {
+                    my @candies = (62531, 62532, 62533);  # Scaley Corn Candy, Veruca's Mind Candy, Nightmare Before Issy
+                    my $candy_id = $candies[int(rand(@candies))];
+                    my $was_invul = $npc->GetInvul();
+                    if ($was_invul) { _unlock_if_locked(); }
+                    eval { $npc->AddItem($candy_id, 1); };
+                    if ($was_invul) { _lock_if_unlocked(); }
+                }
+            }
+        }
+
     } elsif ($npc->GetHPRatio() >= 99.5) {
         _reset_fight_state();
     }

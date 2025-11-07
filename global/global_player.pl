@@ -88,6 +88,44 @@ sub EVENT_ENTERZONE {
         my $text = "Lanterns burn with fractured light — extinguish their guardians to ascend the Tower.";
         $client->SendMarqueeMessage(15, 510, 1, 1, 9000, $text);
     }
+
+    # === Haunted Halloween Items (independent slot timers) ===
+    # Includes all variants: Temporary + PoP
+    my %haunted_slots = (
+        1  => [57148, 57150, 600441],  # Ear 1 - Horror
+        4  => [57148, 57150, 600441],  # Ear 2 - Horror
+        15 => [57147, 57149, 600440],  # Ring 1 - Fear
+        16 => [57147, 57149, 600440],  # Ring 2 - Fear
+    );
+
+    # Exclude haunted spawning in these zones
+    my %no_haunt_zones = map { $_ => 1 } qw(gfaydark thevoida arcstone);
+    my $zone_shortname = $zone->GetShortName() || "";
+    my $charid = $client->CharacterID();
+
+    # === NEW: Cursed immunity check ===
+    my $curse_flag = "CONV_Cursed_Broken_$charid";
+    my $cursed_broken = quest::get_data($curse_flag);
+
+    if ($cursed_broken && $cursed_broken == 1) {
+        quest::debug("Cursed immunity detected for charid $charid — haunting disabled.");
+        return;
+    }
+
+    if (exists $no_haunt_zones{$zone_shortname}) {
+        quest::debug("Haunted spawn skipped in $zone_shortname (excluded zone).");
+        return;
+    }
+
+    # Otherwise start independent timers per haunted slot
+    foreach my $slot_id (keys %haunted_slots) {
+        my $item_id = $client->GetItemIDAt($slot_id);
+        next unless (grep { $_ == $item_id } @{$haunted_slots{$slot_id}});
+
+        my $haunt_timer = int(rand(300)) + 1;  # random 1–300 seconds (within 5 min)
+        my $haunt_timer_name = "haunted_spawn_slot" . $slot_id . "_" . $charid;
+        quest::settimer($haunt_timer_name, $haunt_timer);
+    }
 }
 
 sub EVENT_LEVEL_UP {
@@ -107,9 +145,6 @@ sub EVENT_LEVEL_UP {
 		quest::whisper("Hello $name, I am Elondra Aradune. If you wish to seek extra help along your journey's please come see me in Greater Faydark, outside Felwithe.");
 	}
 }
-
-
-
 
 sub EVENT_EQUIP_ITEM_CLIENT {
 	# Check for Draco Malfoy's Mask in slot 3
@@ -161,10 +196,56 @@ sub EVENT_TIMER {
 			quest::stoptimer("malfoy_insult");  # Stop the timer if mask is removed
 		}
 	}
+
+           elsif ($timer =~ /^haunted_spawn_slot(\d+)_/) {
+        my $slot_id = $1;
+        my $charid  = $client->CharacterID();
+        my $curse_flag = "CONV_Cursed_Broken_$charid";
+        my $cursed_broken = quest::get_data($curse_flag);
+
+        # Skip spawns if cursed immunity is active
+        if ($cursed_broken && $cursed_broken == 1) {
+            quest::stoptimer($timer);
+            quest::debug("Cursed immunity active for charid $charid — no haunt spawn.");
+            return;
+        }
+
+        my $item_id = $client->GetItemIDAt($slot_id);
+        my %valid_items = (
+            1  => [57148, 57150, 600441],
+            4  => [57148, 57150, 600441],
+            15 => [57147, 57149, 600440],
+            16 => [57147, 57149, 600440],
+        );
+
+        if ($valid_items{$slot_id} && grep { $_ == $item_id } @{$valid_items{$slot_id}}) {
+            my ($x, $y, $z, $h) = ($client->GetX(), $client->GetY(), $client->GetZ(), $client->GetHeading());
+            my $spawn_id = quest::spawn2(2251, 0, 0, $x, $y, $z, $h);
+
+            my $tag_timer = "tag_haunt_slot${slot_id}_" . $spawn_id;
+            quest::settimer($tag_timer, 1);
+
+            $client->Message(13, "A chilling presence materializes nearby... something follows the cursed item in slot $slot_id.");
+
+            my $haunt_timer = int(rand(300)) + 1;
+            my $haunt_timer_name = "haunted_spawn_slot${slot_id}_" . $charid;
+            quest::settimer($haunt_timer_name, $haunt_timer);
+        } else {
+            quest::stoptimer($timer);
+        }
+    }
+
+elsif ($timer =~ /^tag_haunt_slot(\d+)_/) {
+    quest::stoptimer($timer);
+    my $spawn_id = $timer;
+    $spawn_id =~ s/^tag_haunt_slot\d+_//;
+    my $mob = $entity_list->GetMobByID($spawn_id);
+    if ($mob) {
+        $mob->SetEntityVariable("haunt_charid", $client->CharacterID());
+        quest::debug("Haunt tag applied to 2251 for charid " . $client->CharacterID());
+    }
 }
-
-
-
+}
 
 sub EVENT_DEATH {
 	quest::stoptimer("malfoy_insult");
@@ -188,8 +269,6 @@ sub EVENT_DEATH {
 	$dbh->disconnect();
 }
 
-
-
 sub EVENT_ZONE {
 	quest::stoptimer("malfoy_insult");  # Stop the timer while zoning
 }
@@ -206,15 +285,10 @@ sub EVENT_DAMAGE_TAKEN {
 	return int($damage);
 }
 
-
 sub EVENT_GROUP_CHANGE {
 	# Handle autoloot group functionality
 	plugin::handle_group_change($client);
 }
-
-
-
-
 
 sub EVENT_TARGET_CHANGE {
 	return unless ($client && $client->IsClient());
@@ -289,6 +363,7 @@ sub EVENT_CAST_BEGIN {
 sub EVENT_CONNECT {
 	my $client = $entity_list->GetClientByID($userid);
 	return unless $client;
+	plugin::HolidayItems($client);
 
 	my @item_ids = (40502, 45500);  # Items to give
 
@@ -401,16 +476,3 @@ sub EVENT_WARP {
 		$client->Message(15, "Warping is disabled in this zone. Further attempts will result in death.");
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
