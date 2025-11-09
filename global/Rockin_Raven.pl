@@ -38,6 +38,22 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_SAY {
+
+	# ===============================================
+	# New section — player can hail to get instructions
+	# ===============================================
+	if ($text =~ /hail/i) {
+		quest::whisper(
+			"Hail, friend! I am your Rockin Raven companion. " .
+			"You may direct me with your voice — use /say 'offensive' " .
+			"if you wish me to sing songs of war and valor during battle, " .
+			"or /say 'insight' if you prefer I bestow the Aura of Insight upon you and your allies. " .
+			"Remember, you may need to repeat this command each time you zone so that I remember your wishes!"
+		);
+		return;
+	}
+	# ===============================================
+
 	if ($text =~ /insight/i) {
 		quest::whisper("Casting Aura of Insight on you and your group!");
 
@@ -92,7 +108,7 @@ sub EVENT_SAY {
 			}
 		}
 	} elsif ($text =~ /offensive/i) {
-		quest::whisper("Switching to offensive mode!");
+		quest::whisper("Switching to offensive mode! I’ll sing songs of power in battle.");
 		quest::settimer("bard_offensive", 1); # Start a fast song rotation
 		$npc->SetEntityVariable("mode", "offensive");
 		$npc->SetEntityVariable("song_index", 0); # Start at the first song

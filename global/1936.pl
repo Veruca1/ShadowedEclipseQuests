@@ -22,6 +22,23 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_SAY {
+
+    # ===========================================================
+    # Added section: /hail dialogue explanation
+    # ===========================================================
+    if ($text =~ /hail/i) {
+        quest::whisper(
+            "I am your Rockin Raven of the Void, the song between the stars... " .
+            "You may guide my melodies through your words — " .
+            "use /say 'insight' if you wish me to channel the Aura of Insight, " .
+            "/say 'zealot' if you desire the Aura of the Zealot’s burning fervor, " .
+            "or /say 'offensive' if you would have me unleash the songs of the void in battle. " .
+            "Remember, my memory fades with each crossing between realms — you may need to repeat your command after zoning."
+        );
+        return;
+    }
+    # ===========================================================
+
     if ($text =~ /insight/i) {
         # Cast Aura of Insight (spell ID 8926) on the bard itself
         $npc->CastSpell(8926, $npc->GetID());
@@ -124,9 +141,9 @@ sub EVENT_SAY {
 
 sub EVENT_COMBAT {
     if ($combat_state == 1) {
-        quest::whisper("Engaging in combat! Offensive songs are active.");
+        quest::whisper("Engaging in combat! The void hums with dissonant power!");
     } else {
-        quest::whisper("Combat over. Offensive mode still active.");
+        quest::whisper("The echoes fade... but the void remembers.");
     }
 }
 

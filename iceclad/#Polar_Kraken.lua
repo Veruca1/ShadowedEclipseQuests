@@ -2,7 +2,7 @@ function event_spawn(e)
 	-- === Boss Stat Application ===
 	e.self:ModifyNPCStat("level", "60");
 	e.self:ModifyNPCStat("ac", "18000");
-	e.self:ModifyNPCStat("max_hp", "1500000");
+	e.self:ModifyNPCStat("max_hp", "1000000");
 	e.self:ModifyNPCStat("hp_regen", "2000");
 	e.self:ModifyNPCStat("mana_regen", "10000");
 	e.self:ModifyNPCStat("min_hit", "4000");

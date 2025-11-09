@@ -1,3 +1,5 @@
+#Nyseria Taunting and Controller
+
 my $client = $entity_list->GetClientByID($client_id);
 if ($client) {
     $client->Kill();

@@ -6,7 +6,7 @@ sub EVENT_SPAWN {
     # ✅ PET 2165 base stats (halved)
     $npc->ModifyNPCStat("level", 65);
     $npc->ModifyNPCStat("ac", 10000);
-    $npc->ModifyNPCStat("max_hp", 37750000);
+    $npc->ModifyNPCStat("max_hp", 3775000);
     $npc->ModifyNPCStat("hp_regen", 500);
     $npc->ModifyNPCStat("mana_regen", 5000);
     $npc->ModifyNPCStat("min_hit", 10000);

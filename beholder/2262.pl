@@ -96,9 +96,9 @@ sub EVENT_TIMER {
             my $itemid = $pool[int(rand(@pool))];
             eval { $npc->AddItem($itemid); };
             $npc->SetEntityVariable("seeded_item_2262", $itemid);
-            quest::debug("[Featherblight] Loot seeded for era '$era': itemid=$itemid");
+            #quest::debug("[Featherblight] Loot seeded for era '$era': itemid=$itemid");
         } else {
-            quest::debug("[Featherblight] No valid loot pool found for era '$era'");
+            #quest::debug("[Featherblight] No valid loot pool found for era '$era'");
         }
     }
 }
@@ -108,7 +108,7 @@ sub EVENT_TIMER {
 # ===========================================================
 sub EVENT_COMBAT {
     return unless $npc;
-    quest::debug("[Featherblight] EVENT_COMBAT triggered: state=$combat_state");
+    #quest::debug("[Featherblight] EVENT_COMBAT triggered: state=$combat_state");
 
     if ($combat_state == 1) {
         quest::settimer("seed_loot", 3); # seed loot shortly after combat starts

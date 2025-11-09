@@ -38,7 +38,7 @@ if ($zone_version == 1 && $npc_id != 1947) {
     if ($is_boss) {
         $npc->ModifyNPCStat("level", 63);
         $npc->ModifyNPCStat("ac", 20000);
-        $npc->ModifyNPCStat("max_hp", 12000000);
+        $npc->ModifyNPCStat("max_hp", 3000000);
         $npc->ModifyNPCStat("hp_regen", 1000);
         $npc->ModifyNPCStat("mana_regen", 10000);
         $npc->ModifyNPCStat("min_hit", 8500);
@@ -90,7 +90,7 @@ if ($zone_version == 1 && $npc_id != 1947) {
 
         $npc->ModifyNPCStat("level", 61);
         $npc->ModifyNPCStat("ac", 15000);
-        $npc->ModifyNPCStat("max_hp", 5000000);
+        $npc->ModifyNPCStat("max_hp", 750000);
         $npc->ModifyNPCStat("hp_regen", 800);
         $npc->ModifyNPCStat("mana_regen", 10000);
         $npc->ModifyNPCStat("min_hit", 8000);

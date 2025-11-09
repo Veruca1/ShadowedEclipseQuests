@@ -1,5 +1,5 @@
 sub EVENT_SPAWN {
-    $npc->SetHP(4000000); 
+    $npc->SetHP(2750000); 
     quest::settimer("special_ability", 15);  # Timer for special ability every 15 seconds
 }
 

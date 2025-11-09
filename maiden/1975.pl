@@ -4,7 +4,7 @@ sub EVENT_SPAWN {
     if (defined $npc) {
         $npc->ModifyNPCStat("level", 63);
         $npc->ModifyNPCStat("ac", 40000);
-        $npc->ModifyNPCStat("max_hp", 12000000);
+        $npc->ModifyNPCStat("max_hp", 5000000);
         $npc->SetHP($npc->GetMaxHP());
         $npc->ModifyNPCStat("hp_regen", 1000);
         $npc->ModifyNPCStat("mana_regen", 10000);

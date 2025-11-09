@@ -42,7 +42,7 @@ sub EVENT_SPAWN {
     my $base_stats = $is_boss ? {
         level       => 60,
         ac          => 20000,
-        max_hp      => 2200000,
+        max_hp      => 1200000,
         hp_regen    => 2500,
         min_hit     => 6000,
         max_hit     => 7000,
@@ -60,7 +60,7 @@ sub EVENT_SPAWN {
     } : {
         level       => 55,
         ac          => 9500,
-        max_hp      => 220000,
+        max_hp      => 110000,
         hp_regen    => 700,
         min_hit     => 4000,
         max_hit     => 5000,

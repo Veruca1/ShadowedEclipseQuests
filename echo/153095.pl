@@ -7,7 +7,7 @@ sub EVENT_SPAWN {
 
     my %stats = (
         ac                   => 18000,
-        max_hp               => 5500000,
+        max_hp               => 2750000,
         min_hit              => 7000,
         max_hit              => 8500,
         accuracy             => 2000,

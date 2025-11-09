@@ -15,7 +15,7 @@ sub EVENT_SPAWN {
     my $npc_id   = $npc->GetNPCTypeID() || 0;
     return if $npc->IsPet();
 
-       # ===========================================================
+    # ===========================================================
     # Exclusion list — ignore these NPCs for scaling/stat logic
     # ===========================================================
     my $exclusion_list = plugin::GetExclusionList();
@@ -44,7 +44,7 @@ sub EVENT_SPAWN {
     my $base_stats = $is_boss ? {
         level       => 60,
         ac          => 18000,
-        max_hp      => 1500000,
+        max_hp      => 1000000,
         hp_regen    => 2000,
         min_hit     => 4000,
         max_hit     => 5500,

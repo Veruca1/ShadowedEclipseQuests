@@ -1,3 +1,4 @@
+#a_sediment_delver
 my $wrath_triggered = 0;
 
 sub EVENT_SPAWN {
@@ -6,7 +7,7 @@ sub EVENT_SPAWN {
 
     my %base_stats = (
         ac                   => 11000, 
-        max_hp               => 1100000,     
+        max_hp               => 750000,     
         min_hit              => 6000,   
         max_hit              => 7500,
         accuracy             => 1800,

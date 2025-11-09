@@ -11,7 +11,7 @@ sub EVENT_SPAWN {
 
     $npc->ModifyNPCStat("level", 60);
     $npc->ModifyNPCStat("ac", 20000);
-    $npc->ModifyNPCStat("max_hp", 2750000);
+    $npc->ModifyNPCStat("max_hp", 1500000);
     $npc->ModifyNPCStat("hp_regen", 2500);
     $npc->ModifyNPCStat("mana_regen", 10000);
     $npc->ModifyNPCStat("min_hit", 7700);

@@ -1,5 +1,5 @@
 sub EVENT_SPAWN {
-    $npc->SetHP(10000000);  # Set NPC's hit points to 10000
+    $npc->SetHP(3000000);  # Set NPC's hit points to 10000
     quest::settimer("special_ability", 5);  # Timer for special ability every 15 seconds
     quest::settimer("monk_ability", 30);  # Timer for monk ability every 30 seconds
 }

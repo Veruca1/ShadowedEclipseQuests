@@ -1,0 +1,33 @@
+# ===========================================================
+# NPC: A_Swift_Tailor (ID: 2265)
+# Quest: The Eras Tour (Task ID: 45)
+# Cooldown: 9 days (777,600 seconds)
+# ===========================================================
+
+sub EVENT_SAY {
+    my $quest_id = 45;
+    my $lockout_var = "eras_tour_lockout";
+    my $lockout_seconds = 9 * 24 * 60 * 60; # 777,600 seconds
+    my $now = time();
+    my $expires = $client->GetEntityVariable($lockout_var);
+
+    if ($text =~ /hail/i) {
+        # If player has an active lockout
+        if ($expires && $expires > $now) {
+            my $remaining_days = int(($expires - $now) / 86400);
+            $client->Message(15, "Swift Tailor says, 'Patience, traveler... You may embark again in about $remaining_days day(s).'");
+            return;
+        }
+
+        # If they already have the task active
+        if ($client->IsTaskActive($quest_id)) {
+            $client->Message(15, "Swift Tailor says, 'You are already on The Eras Tour!'");
+            return;
+        }
+
+        # Assign the task and set the cooldown timer
+        $client->AssignTask($quest_id);
+        $client->SetEntityVariable($lockout_var, $now + $lockout_seconds);
+        $client->Message(15, "Swift Tailor says, 'Your journey through the Eras begins anew! Seek the Essence of each age and return triumphant.'");
+    }
+}

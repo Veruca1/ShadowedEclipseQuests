@@ -11,7 +11,7 @@ sub EVENT_SPAWN {
     # ✅ Boss base stats
     $npc->ModifyNPCStat("level", 65);
     $npc->ModifyNPCStat("ac", 20000);
-    $npc->ModifyNPCStat("max_hp", 75500000);
+    $npc->ModifyNPCStat("max_hp", 15550000);
     $npc->ModifyNPCStat("hp_regen", 1000);
     $npc->ModifyNPCStat("mana_regen", 10000);
     $npc->ModifyNPCStat("min_hit", 20000);

@@ -4,7 +4,7 @@ sub EVENT_SPAWN {
     # BOSS STATS
     $npc->ModifyNPCStat("level", 63);
     $npc->ModifyNPCStat("ac", 50000);             # More AC for melee mitigation
-    $npc->ModifyNPCStat("max_hp", 25000000);      # Big HP pool
+    $npc->ModifyNPCStat("max_hp", 40000000);      # Big HP pool
     $npc->ModifyNPCStat("hp_regen", 200000);      # Strong regen
     $npc->ModifyNPCStat("mana_regen", 10000);
 

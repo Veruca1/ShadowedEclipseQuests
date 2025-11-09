@@ -20,7 +20,7 @@ sub EVENT_SPAWN {
         # ✅ Boss stat block
         $npc->ModifyNPCStat("level", 63);
         $npc->ModifyNPCStat("ac", 30000);
-        $npc->ModifyNPCStat("max_hp", 55500000);
+        $npc->ModifyNPCStat("max_hp", 6250000);
         $npc->ModifyNPCStat("hp_regen", 1000);
         $npc->ModifyNPCStat("mana_regen", 10000);
         $npc->ModifyNPCStat("min_hit", 12000);
@@ -75,7 +75,7 @@ sub EVENT_SPAWN {
         # ✅ Non-boss stat block
         $npc->ModifyNPCStat("level", 61);
         $npc->ModifyNPCStat("ac", 20000);
-        $npc->ModifyNPCStat("max_hp", 15000000);
+        $npc->ModifyNPCStat("max_hp", 1100000);
         $npc->ModifyNPCStat("hp_regen", 1000);
         $npc->ModifyNPCStat("mana_regen", 10000);
         $npc->ModifyNPCStat("min_hit", 10000);

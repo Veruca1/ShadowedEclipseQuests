@@ -22,6 +22,23 @@ sub EVENT_SPAWN {
 }
 
 sub EVENT_SAY {
+
+    # ===========================================================
+    # New addition: Hail dialogue with command instructions
+    # ===========================================================
+    if ($text =~ /hail/i) {
+        quest::whisper(
+            "Greetings, friend! I am your Rockin Raven of Growth. " .
+            "You may guide my purpose with your words — " .
+            "use /say 'insight' if you wish me to bless you and your allies with the Aura of Insight, " .
+            "or /say 'zealot' if you would prefer the fiery Aura of the Zealot. " .
+            "If you wish me to sing the songs of battle, use /say 'offensive' to activate my war chants. " .
+            "Remember, you may need to repeat this command each time you zone so that I recall your intent!"
+        );
+        return;
+    }
+    # ===========================================================
+
     if ($text =~ /insight/i) {
         # Cast Aura of Insight (spell ID 8926) on the bard itself
         $npc->CastSpell(8926, $npc->GetID());

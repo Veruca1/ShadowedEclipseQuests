@@ -1,3 +1,13 @@
+# ===========================================================
+# default.pl — Ssraeshza Temple (ssratemple)
+# Shadowed Eclipse Scaling System
+# - Applies baseline stats to all non-excluded NPCs.
+# - Uses legacy "Old Ssra" raw stat tiers (no scaling multipliers).
+# - Bosses use the high-end Luclin-era baseline (25.5 M HP, 50k–70k hits).
+# - Trash uses mid-tier baseline (6.5 M HP, 24k–40k hits).
+# - Vision and detection fully enabled across all NPCs.
+# ===========================================================
+
 my $is_boss = 0;
 my $wrath_triggered = 0;
 
@@ -8,135 +18,131 @@ sub EVENT_SPAWN {
     my $npc_id   = $npc->GetNPCTypeID() || 0;
     return if $npc->IsPet();
 
-    # Use plugin to check exclusion list
-    my $exclusion_list = plugin::GetExclusionList();
+    # ===========================================================
+    # Exclusion list — skip scaling/stat logic for specific NPCs
+    # ===========================================================
+    my $exclusion_list = {
+        10   => 1,   # Zone_Controller
+        1595 => 1,   # Nyseria's Guard
+        1712 => 1,   # Nyseria
+    };
     return if exists $exclusion_list->{$npc_id};
 
-    $is_boss = ($raw_name =~ /^#/ || ($npc_id == 1919 && $npc_id != 1974)) ? 1 : 0;
+    # ===========================================================
+    # General setup
+    # ===========================================================
+    $is_boss = ($raw_name =~ /^#/) ? 1 : 0;
     $npc->SetNPCFactionID(623);
-    $wrath_triggered = 0;
 
-    # Check for raid presence: 6+ real clients (bots do NOT count)
-    my $client_count = 0;
-    foreach my $c ($entity_list->GetClientList()) {
-        $client_count++ if $c && $c->GetHP() > 0;
-    }
-    my $is_raid = ($client_count >= 6) ? 1 : 0;
+    # ===========================================================
+    # === BASELINE STATS (Old Ssra) ===
+    # ===========================================================
+    my $base_stats = $is_boss ? {
+        # --- Boss Baseline ---
+        level       => 65,
+        ac          => 30000,
+        max_hp      => 25000000,
+        hp_regen    => 2500,
+        min_hit     => 50000,
+        max_hit     => 70000,
+        atk         => 2500,
+        accuracy    => 2000,
+        hst         => 32,
+        slow_mit    => 90,
+        aggro       => 60,
+        assist      => 1,
+        str => 1200, sta => 1200, agi => 1200, dex => 1200,
+        wis => 1200, int => 1200, cha => 1000,
+        mr => 400, fr => 400, cr => 400, pr => 400, dr => 400,
+        corr => 500, phys => 1000,
+        sa => "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1",
+    } : {
+        # --- Trash Baseline ---
+        level       => 62,
+        ac          => 20000,
+        max_hp      => 1750000,
+        hp_regen    => 800,
+        min_hit     => 24000,
+        max_hit     => 40000,
+        atk         => 2500,
+        accuracy    => 1800,
+        hst         => 22,
+        slow_mit    => 80,
+        aggro       => 55,
+        assist      => 1,
+        str => 1000, sta => 1000, agi => 1000, dex => 1000,
+        wis => 1000, int => 1000, cha => 800,
+        mr => 300, fr => 300, cr => 300, pr => 300, dr => 300,
+        corr => 300, phys => 800,
+        sa => "3,1^5,1^7,1^8,1^9,1^10,1^14,1",
+    };
 
-    if ($is_boss) {
-        my $ac        = $is_raid ? 30000 * 1.5 : 30000;
-        my $hp        = $is_raid ? 25500000 * 1.5 : 25500000;
-        my $regen     = $is_raid ? 2500 * 1.5 : 2500;
-        my $min_hit   = $is_raid ? 50000 * 1.5 : 50000;
-        my $max_hit   = $is_raid ? 70000 * 1.5 : 70000;
-        my $atk       = $is_raid ? 2500 * 1.5 : 2500;
-        my $accuracy  = $is_raid ? 2000 * 1.5 : 2000;
+    # Apply baseline
+    _apply_baseline($base_stats);
+    $npc->ModifyNPCStat("attack_delay", $is_boss ? 9 : 10);
 
-        $npc->ModifyNPCStat("level", 65);
-        $npc->ModifyNPCStat("ac", int($ac));
-        $npc->ModifyNPCStat("max_hp", int($hp));
-        $npc->ModifyNPCStat("hp_regen", int($regen));
-        $npc->ModifyNPCStat("mana_regen", 10000);
-        $npc->ModifyNPCStat("min_hit", int($min_hit));
-        $npc->ModifyNPCStat("max_hit", int($max_hit));
-        $npc->ModifyNPCStat("atk", int($atk));
-        $npc->ModifyNPCStat("accuracy", int($accuracy));
-        $npc->ModifyNPCStat("avoidance", 50);
-        $npc->ModifyNPCStat("attack_delay", $is_raid ? 6 : 9);
-        $npc->ModifyNPCStat("attack_speed", 100);
-        $npc->ModifyNPCStat("slow_mitigation", 90);
-        $npc->ModifyNPCStat("attack_count", 100);
-        $npc->ModifyNPCStat("heroic_strikethrough", $is_raid ? 36 : 32);
-        $npc->ModifyNPCStat("aggro", 60);
-        $npc->ModifyNPCStat("assist", 1);
+    # ===========================================================
+    # Optional: Keep raid scaling if desired (disabled otherwise)
+    # ===========================================================
+    # plugin::RaidScaling($entity_list, $npc);
+    $scaled_spawn = 1;
 
-        $npc->ModifyNPCStat("str", 1200);
-        $npc->ModifyNPCStat("sta", 1200);
-        $npc->ModifyNPCStat("agi", 1200);
-        $npc->ModifyNPCStat("dex", 1200);
-        $npc->ModifyNPCStat("wis", 1200);
-        $npc->ModifyNPCStat("int", 1200);
-        $npc->ModifyNPCStat("cha", 1000);
+    $npc->ModifyNPCStat("heroic_strikethrough", $base_stats->{hst});
 
-        $npc->ModifyNPCStat("mr", 400);
-        $npc->ModifyNPCStat("fr", 400);
-        $npc->ModifyNPCStat("cr", 400);
-        $npc->ModifyNPCStat("pr", 400);
-        $npc->ModifyNPCStat("dr", 400);
-        $npc->ModifyNPCStat("corruption_resist", 500);
-        $npc->ModifyNPCStat("physical_resist", 1000);
+    my $max_hp = $npc->GetMaxHP();
+    $npc->SetHP($max_hp) if $max_hp > 0;
 
-        $npc->ModifyNPCStat("runspeed", 2);
-        $npc->ModifyNPCStat("trackable", 1);
-        $npc->ModifyNPCStat("see_invis", 1);
-        $npc->ModifyNPCStat("see_invis_undead", 1);
-        $npc->ModifyNPCStat("see_hide", 1);
-        $npc->ModifyNPCStat("see_improved_hide", 1);
+    quest::setnexthpevent(75) if $is_boss;
+}
 
-        $npc->ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1");
+# ===========================================================
+# Internal helper: apply baseline stats cleanly
+# ===========================================================
+sub _apply_baseline {
+    my ($s) = @_;
 
-        quest::setnexthpevent(75);
+    $npc->ModifyNPCStat("level",     $s->{level});
+    $npc->ModifyNPCStat("ac",        $s->{ac});
+    $npc->ModifyNPCStat("max_hp",    $s->{max_hp});
+    $npc->ModifyNPCStat("hp_regen",  $s->{hp_regen});
+    $npc->ModifyNPCStat("mana_regen", 10000);
+    $npc->ModifyNPCStat("min_hit",   $s->{min_hit});
+    $npc->ModifyNPCStat("max_hit",   $s->{max_hit});
+    $npc->ModifyNPCStat("atk",       $s->{atk});
+    $npc->ModifyNPCStat("accuracy",  $s->{accuracy});
+    $npc->ModifyNPCStat("avoidance", 50);
+    $npc->ModifyNPCStat("heroic_strikethrough", $s->{hst});
+    $npc->ModifyNPCStat("attack_speed", 100);
+    $npc->ModifyNPCStat("slow_mitigation", $s->{slow_mit});
+    $npc->ModifyNPCStat("aggro", $s->{aggro});
+    $npc->ModifyNPCStat("assist", $s->{assist});
 
-        # Set HP again after scaling
-        my $max_hp = $npc->GetMaxHP();
-        $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
+    $npc->ModifyNPCStat("str", $s->{str});
+    $npc->ModifyNPCStat("sta", $s->{sta});
+    $npc->ModifyNPCStat("agi", $s->{agi});
+    $npc->ModifyNPCStat("dex", $s->{dex});
+    $npc->ModifyNPCStat("wis", $s->{wis});
+    $npc->ModifyNPCStat("int", $s->{int});
+    $npc->ModifyNPCStat("cha", $s->{cha});
 
-    } else {
-        my $ac        = $is_raid ? 20000 * 1.5 : 20000;
-        my $hp        = $is_raid ? 6500000 * 1.5 : 6500000;
-        my $regen     = $is_raid ? 800 * 1.5 : 800;
-        my $min_hit   = $is_raid ? 24000 * 1.5 : 24000;
-        my $max_hit   = $is_raid ? 40000 * 1.5 : 40000;
-        my $atk       = $is_raid ? 2500 * 1.5 : 2500;
-        my $accuracy  = $is_raid ? 1800 * 1.5 : 1800;
+    $npc->ModifyNPCStat("mr", $s->{mr});
+    $npc->ModifyNPCStat("fr", $s->{fr});
+    $npc->ModifyNPCStat("cr", $s->{cr});
+    $npc->ModifyNPCStat("pr", $s->{pr});
+    $npc->ModifyNPCStat("dr", $s->{dr});
+    $npc->ModifyNPCStat("corruption_resist", $s->{corr});
+    $npc->ModifyNPCStat("physical_resist",   $s->{phys});
 
-        $npc->ModifyNPCStat("level", 62);
-        $npc->ModifyNPCStat("ac", int($ac));
-        $npc->ModifyNPCStat("max_hp", int($hp));
-        $npc->ModifyNPCStat("hp_regen", int($regen));
-        $npc->ModifyNPCStat("mana_regen", 10000);
-        $npc->ModifyNPCStat("min_hit", int($min_hit));
-        $npc->ModifyNPCStat("max_hit", int($max_hit));
-        $npc->ModifyNPCStat("atk", int($atk));
-        $npc->ModifyNPCStat("accuracy", int($accuracy));
-        $npc->ModifyNPCStat("avoidance", 50);
-        $npc->ModifyNPCStat("attack_delay", $is_raid ? 8 : 10);
-        $npc->ModifyNPCStat("attack_speed", 100);
-        $npc->ModifyNPCStat("slow_mitigation", 80);
-        $npc->ModifyNPCStat("attack_count", 100);
-        $npc->ModifyNPCStat("heroic_strikethrough", $is_raid ? 26 : 22);
-        $npc->ModifyNPCStat("aggro", 55);
-        $npc->ModifyNPCStat("assist", 1);
+    $npc->ModifyNPCStat("runspeed", 2);
+    $npc->ModifyNPCStat("trackable", 1);
+    $npc->ModifyNPCStat("see_invis", 1);
+    $npc->ModifyNPCStat("see_invis_undead", 1);
+    $npc->ModifyNPCStat("see_hide", 1);
+    $npc->ModifyNPCStat("see_improved_hide", 1);
+    $npc->ModifyNPCStat("special_abilities", $s->{sa});
 
-        $npc->ModifyNPCStat("str", 1000);
-        $npc->ModifyNPCStat("sta", 1000);
-        $npc->ModifyNPCStat("agi", 1000);
-        $npc->ModifyNPCStat("dex", 1000);
-        $npc->ModifyNPCStat("wis", 1000);
-        $npc->ModifyNPCStat("int", 1000);
-        $npc->ModifyNPCStat("cha", 800);
-
-        $npc->ModifyNPCStat("mr", 300);
-        $npc->ModifyNPCStat("fr", 300);
-        $npc->ModifyNPCStat("cr", 300);
-        $npc->ModifyNPCStat("pr", 300);
-        $npc->ModifyNPCStat("dr", 300);
-        $npc->ModifyNPCStat("corruption_resist", 300);
-        $npc->ModifyNPCStat("physical_resist", 800);
-
-        $npc->ModifyNPCStat("runspeed", 2);       
-        $npc->ModifyNPCStat("trackable", 1);
-        $npc->ModifyNPCStat("see_invis", 1);
-        $npc->ModifyNPCStat("see_invis_undead", 1);
-        $npc->ModifyNPCStat("see_hide", 1);
-        $npc->ModifyNPCStat("see_improved_hide", 1);
-
-        $npc->ModifyNPCStat("special_abilities", "3,1^5,1^7,1^8,1^9,1^10,1^14,1");
-
-        # Set HP again after scaling
-        my $max_hp = $npc->GetMaxHP();
-        $npc->SetHP($max_hp) if defined $max_hp && $max_hp > 0;
-    }
+    my $max_hp = $npc->GetMaxHP();
+    $npc->SetHP($max_hp) if $max_hp > 0;
 }
 
 # --- NEW: spawn Paradigm_of_Reflection (2178) 20s after a player enters,

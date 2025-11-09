@@ -2,7 +2,7 @@ sub EVENT_SPAWN {
     # === Trash Stat Application ===
     $npc->ModifyNPCStat("level", 55);
     $npc->ModifyNPCStat("ac", 9000);
-    $npc->ModifyNPCStat("max_hp", 150000);
+    $npc->ModifyNPCStat("max_hp", 100000);
     $npc->ModifyNPCStat("hp_regen", 600);
     $npc->ModifyNPCStat("mana_regen", 10000);
     $npc->ModifyNPCStat("min_hit", 3500);
