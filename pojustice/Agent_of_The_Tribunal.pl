@@ -16,73 +16,68 @@ sub EVENT_SAY {
    if ($text =~ /hail/i) {
       quest::say("Do you wish to [return]?");
    }
-   
+
    elsif($text =~ /return/i) {
       my $x = int($npc->GetX());
       my $y = int($npc->GetY());
-      
+      my $inst_id = $client->GetInstanceID();
+
       #Execution
       if (($x == 141) && ($y == -1045)) {
          if ($hold_execution == 0) {
             quest::say("Very well.");
-            quest::movepc(201,456,825,9); # Zone: pojustice
-         }
-         else {
-            quest::say("You have gotten this far, mortal, you must finish this or die trying.");#Text made up
+            quest::MovePCInstance(201, $inst_id, 456, 825, 9, 2);
+         } else {
+            quest::say("You have gotten this far, mortal, you must finish this or die trying.");
          }
       }
       #Flame
       elsif (($x == 911) && ($y == -794)) {
          if ($hold_flame == 0) {
             quest::say("Very well.");
-            quest::movepc(201,456,825,9); # Zone: pojustice
-         }
-         else {
-            quest::say("You have gotten this far, mortal, you must finish this or die trying.");#Text made up
+            quest::MovePCInstance(201, $inst_id, 456, 825, 9, 2);
+         } else {
+            quest::say("You have gotten this far, mortal, you must finish this or die trying.");
          }
       }
       #Hanging
       elsif (($x == 490) && ($y == -1047)) {
          if ($hold_hanging == 0) {
             quest::say("Very well.");
-            quest::movepc(201,456,825,9); # Zone: pojustice
-         }
-         else {
-            quest::say("You have gotten this far, mortal, you must finish this or die trying.");#Text made up
+            quest::MovePCInstance(201, $inst_id, 456, 825, 9, 2);
+         } else {
+            quest::say("You have gotten this far, mortal, you must finish this or die trying.");
          }
       }
       #Lashing
       elsif (($x == 1343) && ($y == -1138)) {
          if ($hold_lashing == 0) {
             quest::say("Very well.");
-            quest::movepc(201,456,825,9); # Zone: pojustice
-         }
-         else {
-            quest::say("You have gotten this far, mortal, you must finish this or die trying.");#Text made up
+            quest::MovePCInstance(201, $inst_id, 456, 825, 9, 2);
+         } else {
+            quest::say("You have gotten this far, mortal, you must finish this or die trying.");
          }
       }
       #Stoning
       elsif (($x == -149) && ($y == -1196)) {
          if ($hold_stoning == 0) {
             quest::say("Very well.");
-            quest::movepc(201,456,825,9); # Zone: pojustice
-         }
-         else {
-            quest::say("You have gotten this far, mortal, you must finish this or die trying.");#Text made up
+            quest::MovePCInstance(201, $inst_id, 456, 825, 9, 2);
+         } else {
+            quest::say("You have gotten this far, mortal, you must finish this or die trying.");
          }
       }
       #Torture
       elsif (($x == 772) && ($y == -1148)) {
          if ($hold_torture == 0) {
             quest::say("Very well.");
-            quest::movepc(201,456,825,9); # Zone: pojustice
-         }
-         else {
-            quest::say("You have gotten this far, mortal, you must finish this or die trying.");#Text made up
+            quest::MovePCInstance(201, $inst_id, 456, 825, 9, 2);
+         } else {
+            quest::say("You have gotten this far, mortal, you must finish this or die trying.");
          }
       }
    }
- }
+}
  
  sub EVENT_SIGNAL {
    my $x = int($npc->GetX());

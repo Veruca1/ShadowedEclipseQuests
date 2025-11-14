@@ -1,21 +1,86 @@
---depops in 2 mins of no aggro
-function event_spawn(e)
-eq.set_timer('depop', 120 * 1000);
-end
+-- ===============================================================
+-- Wraith_of_Retribution — Boss Stat Template (PoJustice Add)
+-- ===============================================================
+-- - Applies standardized boss-tier stats for Plane of Justice events.
+-- - Adds dynamic scaling based on raid size.
+-- - Depops after 2 minutes of no aggro.
+-- ===============================================================
 
-function event_timer(e)
-if (e.timer == 'depop') then
-eq.stop_timer('depop');
-eq.depop();
-end
+local scaled_spawn = false
+
+function event_spawn(e)
+    local npc = e.self
+    if not npc or npc:IsPet() or scaled_spawn then return end
+
+    -- Set faction and base level
+    npc:SetNPCFactionID(623)
+    npc:ModifyNPCStat("level", "66")
+
+    -- Boss-tier stats
+    npc:ModifyNPCStat("ac", "35000")
+    npc:ModifyNPCStat("max_hp", "200000000")
+    npc:ModifyNPCStat("hp_regen", "4000")
+    npc:ModifyNPCStat("mana_regen", "10000")
+    npc:ModifyNPCStat("min_hit", "60000")
+    npc:ModifyNPCStat("max_hit", "110000")
+    npc:ModifyNPCStat("atk", "2700")
+    npc:ModifyNPCStat("accuracy", "2200")
+    npc:ModifyNPCStat("avoidance", "75")
+    npc:ModifyNPCStat("heroic_strikethrough", "40")
+    npc:ModifyNPCStat("attack_delay", "6")
+    npc:ModifyNPCStat("slow_mitigation", "95")
+    npc:ModifyNPCStat("aggro", "100")
+    npc:ModifyNPCStat("assist", "1")
+
+    -- Attributes
+    npc:ModifyNPCStat("str", "1300")
+    npc:ModifyNPCStat("sta", "1300")
+    npc:ModifyNPCStat("agi", "1300")
+    npc:ModifyNPCStat("dex", "1300")
+    npc:ModifyNPCStat("wis", "1300")
+    npc:ModifyNPCStat("int", "1300")
+    npc:ModifyNPCStat("cha", "1000")
+
+    -- Resists
+    npc:ModifyNPCStat("mr", "450")
+    npc:ModifyNPCStat("fr", "450")
+    npc:ModifyNPCStat("cr", "450")
+    npc:ModifyNPCStat("pr", "450")
+    npc:ModifyNPCStat("dr", "450")
+    npc:ModifyNPCStat("corruption_resist", "600")
+    npc:ModifyNPCStat("physical_resist", "1100")
+
+    -- Special abilities
+    npc:ModifyNPCStat("special_abilities", "2,1^3,1^5,1^7,1^8,1^13,1^14,1^15,1^17,1^21,1")
+
+    -- Apply raid scaling
+    eq.call_plugin("RaidScaling", eq.get_entity_list(), npc)
+
+    -- Finalize HP
+    local max_hp = npc:GetMaxHP()
+    if max_hp > 0 then
+        npc:SetHP(max_hp)
+    end
+
+    scaled_spawn = true
+
+    -- Set depop timer
+    eq.set_timer("depop", 120 * 1000)
 end
 
 function event_combat(e)
-	if(e.joined) then
-		if(not eq.is_paused_timer("depop")) then
-			eq.pause_timer("depop");
-		end
-	else
-		eq.resume_timer("depop");
-	end
+    if e.joined then
+        if not eq.is_paused_timer("depop") then
+            eq.pause_timer("depop")
+        end
+    else
+        eq.resume_timer("depop")
+    end
+end
+
+function event_timer(e)
+    if e.timer == "depop" then
+        eq.stop_timer("depop")
+        eq.depop()
+    end
 end

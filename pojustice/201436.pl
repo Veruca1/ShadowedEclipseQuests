@@ -1,82 +1,78 @@
-#201436.pl
-#Trial of Hanging
-# items: 31842, 31796, 31960, 31845, 31844, 31846
+# Trial of Hanging
+# NPC ID 201436
 
 sub EVENT_SAY
 {
-	if(defined $qglobals{pop_poj_mavuin}) {
-		if($text=~/Hail/i) {
-			quest::emote(" fixes you with a dark, peircing gaze. 'What do you want, mortal? Are you [prepared]?");
+	if($text=~/Hail/i) {
+		my $prepared_link = quest::saylink("prepared", 1);
+		quest::emote(" fixes you with a dark, piercing gaze. 'What do you want, mortal? Are you $prepared_link?'");
+	}
+
+	elsif($text=~/prepared/i) {
+		my $begin_link = quest::saylink("begin the trial of hanging", 1);
+		quest::say("Very well. When you are ready, you may $begin_link. Act quickly to destroy the spirits of suffocation before their victims perish. We shall judge the mark of your success.");
+	}
+
+	elsif($text=~/begin the trial of hanging/i) {
+		my $inst_id = $client->GetInstanceID();
+		if (!defined $hanging) {
+			quest::say("Then begin.");
+
+			# 🔥 Spawn the trial controller (Event_Hanging_Control)
+			quest::spawn2(201448, 0, 0, 500, -1045, 73.1, 0); # NPC: Event_Hanging_Control
+
+			$client->MovePCInstance(201, $inst_id, 500, -1045, 73.1, 0);
+			quest::settimer(301, 30);
+			$hanging = 1;
 		}
-		
-		elsif($text=~/prepared/i) {
-			quest::say("Very well. When you are ready, you may begin the trial of hanging. Act quickly to destroy the spirits of suffocation before their victims perish. We shall judge the mark of your success.");
-		}
-		
-		elsif($text=~/begin the trial of hanging/i) {
-			if (!defined $hanging) {
+		else {
+			if (($hanging > 0) && ($hanging < 6)) {
 				quest::say("Then begin.");
-				quest::movepc(201,500,-1045,73.1); # Zone: pojustice
-				quest::settimer(301,30);
-				#quest::signal(201076,15000);
-				$hanging=1;
+				$client->MovePCInstance(201, $inst_id, 500, -1045, 73.1, 0);
+				$hanging++;
 			}
-			
 			else {
-				if (($hanging > 0) && ($hanging < 6)) {
-					quest::movepc(201,500,-1045,73.1); # Zone: pojustice
-					quest::say("Then begin.");		
-					$hanging++;
-				}
-				
-				else {
-					quest::say("I'm sorry, the Trial of Hanging is currently unavilable to you.");
-				}
+				quest::say("I'm sorry, the Trial of Hanging is currently unavailable to you.");
 			}
 		}
-		
-		elsif($text=~/what evidence of Mavuin/i) {
-			if(plugin::check_hasitem($client, 31842)) {
-				$client->Message(4,"You have completed a trial - impressive for mortals. You can tell Mavuin that we will hear his plea. We will seek him out as time befits us.");
-				quest::setglobal("pop_poj_tribunal", 1, 5, "F");
-				quest::setglobal("pop_poj_execution", 1, 5, "F");
-				$client->Message(4,"You receive a character flag!");
-			}
-			
-			elsif(plugin::check_hasitem($client, 31796)) {
-				$client->Message(4,"You have completed a trial - impressive for mortals. You can tell Mavuin that we will hear his plea. We will seek him out as time befits us.");
-				quest::setglobal("pop_poj_tribunal", 1, 5, "F");
-				quest::setglobal("pop_poj_flame", 1, 5, "F");
-				$client->Message(4,"You receive a character flag!");
-			}
-			
-			elsif(plugin::check_hasitem($client, 31960)) {
-				$client->Message(4,"You have completed a trial - impressive for mortals. You can tell Mavuin that we will hear his plea. We will seek him out as time befits us.");
-				quest::setglobal("pop_poj_tribunal", 1, 5, "F");
-				quest::setglobal("pop_poj_lashing", 1, 5, "F");
-				$client->Message(4,"You receive a character flag!");
-			}
-			
-			elsif(plugin::check_hasitem($client, 31845)) {
-				$client->Message(4,"You have completed a trial - impressive for mortals. You can tell Mavuin that we will hear his plea. We will seek him out as time befits us.");
-				quest::setglobal("pop_poj_tribunal", 1, 5, "F");
-				quest::setglobal("pop_poj_stoning", 1, 5, "F");
-				$client->Message(4,"You receive a character flag!");
-			}
-			
-			elsif(plugin::check_hasitem($client, 31844)) {
-				$client->Message(4,"You have completed a trial - impressive for mortals. You can tell Mavuin that we will hear his plea. We will seek him out as time befits us.");
-				quest::setglobal("pop_poj_tribunal", 1, 5, "F");
-				quest::setglobal("pop_poj_torture", 1, 5, "F");
-				$client->Message(4,"You receive a character flag!");
-			}
-			
-			elsif(plugin::check_hasitem($client, 31846)) {
-				$client->Message(4,"You have completed a trial - impressive for mortals. You can tell Mavuin that we will hear his plea. We will seek him out as time befits us.");
-				quest::setglobal("pop_poj_tribunal", 1, 5, "F");
-				quest::setglobal("pop_poj_hanging", 1, 5, "F");
-				$client->Message(4,"You receive a character flag!");
-			}
+	}
+
+	elsif($text=~/what evidence of Mavuin/i) {
+		if(plugin::check_hasitem($client, 31842)) {
+			$client->Message(4, "You have completed a trial - impressive for mortals. You can tell Mavuin that we will hear his plea. We will seek him out as time befits us.");
+			quest::setglobal("pop_poj_tribunal", 1, 5, "F");
+			quest::setglobal("pop_poj_execution", 1, 5, "F");
+			$client->Message(4, "You receive a character flag!");
+		}
+		elsif(plugin::check_hasitem($client, 31796)) {
+			$client->Message(4, "You have completed a trial - impressive for mortals. You can tell Mavuin that we will hear his plea. We will seek him out as time befits us.");
+			quest::setglobal("pop_poj_tribunal", 1, 5, "F");
+			quest::setglobal("pop_poj_flame", 1, 5, "F");
+			$client->Message(4, "You receive a character flag!");
+		}
+		elsif(plugin::check_hasitem($client, 31960)) {
+			$client->Message(4, "You have completed a trial - impressive for mortals. You can tell Mavuin that we will hear his plea. We will seek him out as time befits us.");
+			quest::setglobal("pop_poj_tribunal", 1, 5, "F");
+			quest::setglobal("pop_poj_lashing", 1, 5, "F");
+			$client->Message(4, "You receive a character flag!");
+		}
+		elsif(plugin::check_hasitem($client, 31845)) {
+			$client->Message(4, "You have completed a trial - impressive for mortals. You can tell Mavuin that we will hear his plea. We will seek him out as time befits us.");
+			quest::setglobal("pop_poj_tribunal", 1, 5, "F");
+			quest::setglobal("pop_poj_stoning", 1, 5, "F");
+			$client->Message(4, "You receive a character flag!");
+		}
+		elsif(plugin::check_hasitem($client, 31844)) {
+			$client->Message(4, "You have completed a trial - impressive for mortals. You can tell Mavuin that we will hear his plea. We will seek him out as time befits us.");
+			quest::setglobal("pop_poj_tribunal", 1, 5, "F");
+			quest::setglobal("pop_poj_torture", 1, 5, "F");
+			$client->Message(4, "You receive a character flag!");
+		}
+		elsif(plugin::check_hasitem($client, 31846)) {
+			$client->Message(4, "You have completed a trial - impressive for mortals. You can tell Mavuin that we will hear his plea. We will seek him out as time befits us.");
+			quest::setglobal("pop_poj_tribunal", 1, 5, "F");
+			quest::setglobal("pop_poj_hanging", 1, 5, "F");
+			$client->Message(4, "You receive a character flag!");
 		}
 	}
 }
@@ -99,10 +95,21 @@ sub EVENT_TIMER
 sub EVENT_SIGNAL
 {
 	if ($signal == 0) {
-		quest::shout("The Trial of Hanging is now available."); #notify once timer expires OR FAIL. (~25 minutes)
-		$hanging=undef;
-		quest::signal(201433);
+		# Reset or timer expired
+		quest::shout("The Trial of Hanging is now available.");
+		$hanging = undef;
+		quest::signal(201433); # signal the 'ready' agent
 		quest::stoptimer(300);
+	}
+	elsif ($signal == 1) {
+		# Trial completed successfully
+		quest::shout("Justice has been served. You have succeeded in the Trial of Hanging.");
+		quest::settimer(300, 1800); # 30-minute cooldown
+	}
+	elsif ($signal == 2) {
+		# Trial failed
+		quest::shout("The Trial of Hanging has been failed.");
+		quest::settimer(300, 1800); # 30-minute cooldown
 	}
 }
 

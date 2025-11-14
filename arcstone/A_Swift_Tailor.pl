@@ -6,7 +6,7 @@
 
 sub EVENT_SAY {
     my $quest_id = 45;
-    my $lockout_var = "eras_tour_lockout";
+    my $lockout_var = "eras_tour_testlockout3";  # Updated variable name for testing
     my $lockout_seconds = 9 * 24 * 60 * 60; # 777,600 seconds
     my $now = time();
     my $expires = $client->GetEntityVariable($lockout_var);
@@ -29,5 +29,6 @@ sub EVENT_SAY {
         $client->AssignTask($quest_id);
         $client->SetEntityVariable($lockout_var, $now + $lockout_seconds);
         $client->Message(15, "Swift Tailor says, 'Your journey through the Eras begins anew! Seek the Essence of each age and return triumphant.'");
+        quest::we(15, "The Swift Tailor has recruited another Swifty for the Eras Tour!");
     }
 }

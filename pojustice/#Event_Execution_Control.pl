@@ -105,227 +105,136 @@ sub EVENT_SIGNAL {
 }
 
 sub EVENT_TIMER {
-   if ($timer eq "proximity_check") {
-      quest::stoptimer("proximity_check");
-      
-      if ( defined $mob_check ) {
-         #Count mobs
-         my $found = 0;
-         my @moblist = $entity_list->GetMobList();
-         foreach $tempmob (@moblist) {
-            my $mobname = $tempmob->GetCleanName();
-            @m = grep(/^$mobname$/, @trial_mobs);
-            $matched = @m;
-            if ( $matched ) {
-               $found++;
-               $mob_id = $tempmob->GetID();
-               @m_id = grep(/^$mob_id$/, @mob_ids);
-               $found_id = @m_id;
-               if (!$found_id) {
-                  push(@mob_ids, $mob_id);
-               }
-            }
-         }
+    if ($timer eq "proximity_check") {
+        quest::stoptimer("proximity_check");
 
-         if (!$found) {
-            #Set an executioner to repop on Next wave.
-            $spawn_ex = 1;
-            $wave++;
-            if ($wave < 5) {
-               #Depop Executioner
-               quest::signalwith(201439, 5, 0); # NPC: An_Executioner
-               $mob_check = undef;
-            }
-            else {
-               #Depop Executioner
-               quest::signalwith(201439, 5, 0); # NPC: An_Executioner
-               #Prime_Executioner_Vathoch (201433)
-               quest::spawn2(201433,0,0,196,-1156,80.1,0); # NPC: Prime_Executioner_Vathoch
-               $mob_check = undef;
-               $boss = 1;
-            }
-         }
-         elsif ( $found < $mob_count ) {
-            $mob_count = $found;
-            #Reset the Executioner
-            quest::signalwith(201439, 0, 0); # NPC: An_Executioner
-         }
-      }
-      elsif (defined $boss){
-         my @moblist = $entity_list->GetMobList();
-         foreach $tempmob (@moblist) {
-            my $mobname = $tempmob->GetCleanName();
-            if ( $mobname eq "Prime Executioner Vathoch" ) {
-               $mob_id = $tempmob->GetID();
-               push(@mob_ids, $mob_id);
-               $boss = undef;
-            }
-         }
-      }
-      
-      $removed = 0;
-      #Make sure anyone that left zone is removed from trial
-      foreach $player (@trial_group) {
-         $ent = $entity_list->GetClientByName($player);
-         if (!$ent) {
-            $size = @trial_group;
-            for ($i = 0; $i < $size; $i++) {
-               if ($trial_group[$i] eq $player ) {
-                  $removed++;
-                  splice(@trial_group, $i, 1);
-                  last;
-               }
-            }
-         }         
-      }
-      
-      my @clientlist = $entity_list->GetClientList();
-      foreach $ent (@clientlist) {
-         my $ClientName = $ent->GetName();
-         @m = grep(/^$ClientName$/, @allowed);
-         $in_allowed = @m;
-         @m = grep(/^$ClientName$/, @trial_group);
-         $in_trial = @m;
-         $size = @trial_group;
-         
-         #Check if they are in the trial area
-         if ( $ent->CalculateDistance(194, -1120, 72) < 120 ) {
-            if (!$in_allowed) {
-               if ($allow_entry && $size < 6) {
-                  push(@allowed, $ClientName);
-               }
-               else {
-                  $ent->Message(15, 'You are not a part of this trial.');
-                  $ent->MovePC(201,456,825,9,2); # Zone: pojustice
-               }
-            }
-            
-            if (!$in_trial) {
-               if ( ($allow_entry || $in_allowed) && $size < 6 ) {
-                  push(@trial_group, $ClientName);
-               }
-            }
-         }
-         #See if they left trial
-         else {
-            if ($in_trial) {               
-               for ($i = 0; $i < $size; $i++) {
-                  if ($trial_group[$i] eq $ClientName ) {
-                     $removed++;
-                     splice(@trial_group, $i, 1);
-                     last;
-                  }
-               }
-            }
-         }
-      
-      }
-      
-      
-      
-      #Is everyone gone?
-      if ($removed) {
-         $size = @trial_group;
-         if (!$size) {
-            #Check for Boss
-            $found = 0;
+        # Handle active mobs in trial
+        if (defined $mob_check) {
+            my $found = 0;
             my @moblist = $entity_list->GetMobList();
             foreach $tempmob (@moblist) {
-               my $mobname = $tempmob->GetCleanName();
-               if ( $mobname eq "Prime Executioner Vathoch" ) {
-                  $found++;
-                  last;
-               }
+                my $mobname = $tempmob->GetCleanName();
+                if (grep(/^$mobname$/, @trial_mobs)) {
+                    $found++;
+                    my $mob_id = $tempmob->GetID();
+                    push(@mob_ids, $mob_id) unless grep(/^$mob_id$/, @mob_ids);
+                }
+            }
+
+            # When no mobs remain, move to next wave or spawn boss
+            if (!$found) {
+                $spawn_ex = 1;
+                $wave++;
+                if ($wave < 5) {
+                    quest::signalwith(201439, 5, 0); # Next wave
+                    $mob_check = undef;
+                } else {
+                    quest::signalwith(201439, 5, 0);
+                    quest::spawn2(201433, 0, 0, 196, -1156, 80.1, 0); # Boss
+                    $mob_check = undef;
+                    $boss = 1;
+                }
+            } elsif ($found < $mob_count) {
+                $mob_count = $found;
+                quest::signalwith(201439, 0, 0);
+            }
+        }
+
+        # Track boss spawn
+        elsif (defined $boss) {
+            my @moblist = $entity_list->GetMobList();
+            foreach $tempmob (@moblist) {
+                if ($tempmob->GetCleanName() eq "Prime Executioner Vathoch") {
+                    push(@mob_ids, $tempmob->GetID());
+                    $boss = undef;
+                }
+            }
+        }
+
+        # Remove players that left the zone
+        my $removed = 0;
+        foreach my $player (@trial_group) {
+            my $ent = $entity_list->GetClientByName($player);
+            if (!$ent) {
+                @trial_group = grep { $_ ne $player } @trial_group;
+                $removed++;
+            }
+        }
+
+        # Update player list (everyone in zone is allowed)
+        my @clientlist = $entity_list->GetClientList();
+        foreach my $ent (@clientlist) {
+            my $ClientName = $ent->GetName();
+            push(@allowed, $ClientName) unless grep { $_ eq $ClientName } @allowed;
+            push(@trial_group, $ClientName) unless grep { $_ eq $ClientName } @trial_group;
+        }
+
+        # If all players leave, cleanup
+        if ($removed && scalar(@trial_group) == 0) {
+            my $found = 0;
+            my @moblist = $entity_list->GetMobList();
+            foreach my $tempmob (@moblist) {
+                if ($tempmob->GetCleanName() eq "Prime Executioner Vathoch") {
+                    $found++;
+                    last;
+                }
             }
 
             if ($found) {
-               #Boss up when everyone exits - announce fail
-               quest::ze(15, "An unnatural silence falls around you. The justice of the Tribunal has been pronounced once again. The defendants have been found...lacking.");
-            }   
+                quest::ze(15, "An unnatural silence falls around you. The justice of the Tribunal has been pronounced once again. The defendants have been found...lacking.");
+            }
 
-            #Tell self it's over
-            quest::signalwith(201425,2,5); # NPC: #Event_Execution_Control
-            #Everyone exited - Tell the tribunal it's over
-            quest::signalwith(201078, 0, 5); # NPC: The_Tribunal Execution Trial
+            quest::signalwith(201425, 2, 5);
+            quest::signalwith(201078, 0, 5);
             quest::stoptimer("trial_eject");
-            #Make sure agent doesn't think boss is up
-            quest::signalwith(201075,11,2); # NPC: Agent_of_The_Tribunal
+            quest::signalwith(201075, 11, 2);
             @allowed = ();
             quest::settimer("clear_corpses", 60);
             HandleCorpses();
             $proximity_check_delay = 30;
+        }
+
+        quest::settimer("proximity_check", $proximity_check_delay);
+    }
+
+    # Execution waves
+    elsif ($timer =~ /execution_wave\d/) {
+        quest::stoptimer($timer);
+        SpawnExecutionMobs();
+        if (!defined $mob_check) {
+            $mob_check = 1;
+            $mob_count = 4;
+        }
+    }
+
+    # Eject after completion (optional)
+    elsif ($timer eq "trial_eject") {
+        quest::stoptimer("trial_eject");
+        quest::stoptimer("proximity_check");
+        foreach my $player (@trial_group) {
+            my $c = $entity_list->GetClientByName($player);
+            if ($c) {
+                my $inst_id = $c->GetInstanceID();
+                $c->MovePCInstance(201, $inst_id, 456, 825, 9, 2);
+                $c->Message(15, "A mysterious force translocates you.");
             }
-      }
-      
-      quest::settimer("proximity_check", $proximity_check_delay);
-   }
-   elsif ($timer eq "trial_lock") {
-      quest::stoptimer("trial_lock");
-      $allow_entry = 0;
-   }
-   elsif ($timer eq "execution_wave1") {
-      quest::stoptimer("execution_wave1");
-      SpawnExecutionMobs();      
-      if (!defined $mob_check) {
-         $mob_check = 1;
-         $mob_count = 4;
-      }   
-   }
-   elsif ($timer eq "execution_wave2") {
-      quest::stoptimer("execution_wave2");
-      SpawnExecutionMobs();      
-      if (!defined $mob_check) {
-         $mob_check = 1;
-         $mob_count = 4;
-      }      
-   }
-   elsif ($timer eq "execution_wave3") {
-      quest::stoptimer("execution_wave3");
-      SpawnExecutionMobs();      
-      if (!defined $mob_check) {
-         $mob_check = 1;
-         $mob_count = 4;
-      }
-   }
-   elsif ($timer eq "execution_wave4") {
-      quest::stoptimer("execution_wave4");
-      SpawnExecutionMobs();      
-      if (!defined $mob_check) {
-         $mob_check = 1;
-         $mob_count = 4;
-      }   
-   }   
-   elsif ($timer eq "trial_eject") {
-      quest::stoptimer("trial_eject");
-      quest::stoptimer("proximity_check");
-      
-      #Eject everyone from trial area
-      foreach $player (@trial_group) {
-         $c = $entity_list->GetClientByName($player);
-         
-         if ($c) {
-            $c->MovePC(201,456,825,9, 2); # Zone: pojustice
-            $c->Message(15, "A mysterious force translocates you.");
-         }
-      }
-      
-      #Clear lists
-      @allowed = ();
-      @trial_group = ();
-      #Tell the tribunal it's over
-      quest::signalwith(201078, 0, 5); # NPC: The_Tribunal Execution Trial
-      $proximity_check_delay = 30;
-      quest::settimer("proximity_check", $proximity_check_delay);
-   }
-   elsif ($timer eq "clear_corpses") {
-      quest::stoptimer("clear_corpses");
-      HandleCorpses();
-      quest::settimer("clear_corpses", 60);
-   }
+        }
+        @allowed = ();
+        @trial_group = ();
+        quest::signalwith(201078, 0, 5);
+        $proximity_check_delay = 30;
+        quest::settimer("proximity_check", $proximity_check_delay);
+    }
+
+    # Cleanup
+    elsif ($timer eq "clear_corpses") {
+        quest::stoptimer("clear_corpses");
+        HandleCorpses();
+        quest::settimer("clear_corpses", 60);
+    }
 }
 
 sub HandleCorpses {
-
    if ($move_client_corpses) {
       #Move player corpses to graveyard
       @clist = $entity_list->GetCorpseList();

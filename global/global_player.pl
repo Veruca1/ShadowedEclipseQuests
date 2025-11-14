@@ -72,7 +72,34 @@ sub EVENT_ENTERZONE {
         $client->Message(15, "Draco Malfoy's Mask shivers... the presence is still with you.");
     }
 
-    if ($zoneid == 205) {  # PoDisease
+	# ===========================================================
+    # Plane of Justice (201) — Mavuin Message
+    # ===========================================================
+
+	if ($zoneid == 201) {
+    	my $text = "You hear shouts from Mavuin to come see him in the jail area.";
+    	$client->SendMarqueeMessage(15, 510, 1, 1, 8000, $text);
+	}
+
+    # ===========================================================
+    # Plane of Nightmare (204) — Nyseria / Coven presence
+    # ===========================================================
+    if ($zoneid == 204) {
+        my @messages = (
+            "The dream bends and fractures... a soft laugh echoes from nowhere.",
+            "Your reflection in the dark water smiles when you do not.",
+            "A whisper threads through the mist: 'You cannot wake from what you’ve created.'",
+            "Cold fingers brush your mind — Nyseria’s voice murmurs, 'Still dreaming of me?'",
+            "You feel unseen eyes behind every shadow. The Coven watches. Always."
+        );
+        my $text = $messages[int(rand(@messages))];
+        $client->SendMarqueeMessage(15, 510, 1, 1, 8000, $text);
+    }
+
+    # ===========================================================
+    # Plane of Disease (205) — lingering corruption
+    # ===========================================================
+    if ($zoneid == 205) {
         my @messages = (
             "The wind carries whispers... your presence is felt by her.",
             "You feel her gaze — distant, but deliberate.",
@@ -82,6 +109,21 @@ sub EVENT_ENTERZONE {
         );
         my $text = $messages[int(rand(@messages))];
         $client->SendMarqueeMessage(15, 510, 1, 1, 8000, $text);
+    }
+
+    # ===========================================================
+    # Plane of Innovation (206) — Nyseria’s will in the machine
+    # ===========================================================
+    if ($zoneid == 206) {
+        my @messages = (
+            "The gears whisper in patterns that almost sound like a name — hers.",
+            "Every piston shudder feels deliberate, as though the factory itself is breathing.",
+            "A static pulse crawls along your skin. Her presence flickers through the circuitry.",
+            "Through the hum of machinery, you swear you hear: 'I improved upon creation... by breaking it.'",
+            "A dozen glass lenses twist toward you in unison. They have learned to watch through metal now."
+        );
+        my $text = $messages[int(rand(@messages))];
+        $client->SendMarqueeMessage(15, 510, 1, 1, 9000, $text);
     }
 
     if ($zoneid == 491) {  # Convorteum - Tower of Shattered Lanterns
@@ -386,93 +428,112 @@ sub EVENT_CONNECT {
 
 
 sub EVENT_WARP {
-	my $zone_blocklist = {
-		akheva         => 1,
-		frozenshadow   => 1,
-		fungusgrove    => 1,
-		katta          => 1,
-		maiden         => 1,
-		neriakb        => 1,
-		neriakc        => 1,
-		neriaka        => 1,
-		paludal        => 1,
-		shadeweaver    => 1,
-		ssratemple     => 1,
-		templeveeshan  => 1,
-		tenebrous      => 1,
-		thedeep        => 1,
-		veeshan        => 1,
-	};
+    my $zone_blocklist = {
+        ponightmare    => 1,
+        frozenshadow   => 1,
+        templeveeshan  => 1,
+        ssratemple     => 1,
+        veeshan        => 1,
+    };
 
-	# Define legitimate teleporter destinations by zone
-	my $teleporter_destinations = {
-		frozenshadow => [
-			{x => 660, y => 100, z => 40, radius => 30},   # Level 2 - Crystal Key
-			{x => 670, y => 750, z => 75, radius => 30},   # Level 3 - Three Toothed Key
-			{x => 170, y => 755, z => 175, radius => 30},  # Level 4 - Frosty Key
-			{x => -150, y => 160, z => 217, radius => 30}, # Level 5 - Small Rusty Key
-			{x => -320, y => 725, z => 12, radius => 30},  # Level 6 - Bone Finger Key
-			{x => -490, y => 175, z => 2, radius => 30},   # Level 7 - Bone Finger Key
-			{x => 10, y => 65, z => 310, radius => 30},    # Level 8 - Large Metal Key
-		],
-		# Add other zones with legitimate teleporters as needed
-	};
+    # Define legitimate teleporter destinations by zone
+    my $teleporter_destinations = {
+        frozenshadow => [
+            {x => 660,  y => 100, z => 40,  radius => 30},
+            {x => 670,  y => 750, z => 75,  radius => 30},
+            {x => 170,  y => 755, z => 175, radius => 30},
+            {x => -150, y => 160, z => 217, radius => 30},
+            {x => -320, y => 725, z => 12,  radius => 30},
+            {x => -490, y => 175, z => 2,   radius => 30},
+            {x => 10,   y => 65,  z => 310, radius => 30},
+        ],
+    };
 
-	return if $client->GetGM();
+    return if $client->GetGM();
 
-	my $char_id = $client->CharacterID();
-	my $donator_flag_key = "warp_donator_flag$char_id";
-	my $donator_flag = quest::get_data($donator_flag_key);
+    my $char_id = $client->CharacterID();
+    my $donator_flag_key = "warp_donator_flag$char_id";
+    my $donator_flag = quest::get_data($donator_flag_key);
 
-	my $zone_name = $zone->GetShortName();
-	return unless exists $zone_blocklist->{$zone_name};
+    my $zone_name = $zone->GetShortName();
+    return unless exists $zone_blocklist->{$zone_name};
 
-	# Check if this warp destination is a legitimate teleporter
-	if (exists $teleporter_destinations->{$zone_name}) {
-		my $current_x = $client->GetX();
-		my $current_y = $client->GetY();
-		my $current_z = $client->GetZ();
-		
-		foreach my $teleporter (@{$teleporter_destinations->{$zone_name}}) {
-			my $distance = sqrt(
-				($current_x - $teleporter->{x})**2 + 
-				($current_y - $teleporter->{y})**2 + 
-				($current_z - $teleporter->{z})**2
-			);
-			
-			if ($distance <= $teleporter->{radius}) {
-				# Allow legitimate teleporter usage - no logging needed for normal gameplay
-				return;
-			}
-		}
-	}
+    # Check if this warp destination is a legitimate teleporter
+    if (exists $teleporter_destinations->{$zone_name}) {
+        my $current_x = $client->GetX();
+        my $current_y = $client->GetY();
+        my $current_z = $client->GetZ();
 
-	# Allow donators to skip enforcement (except ssratemple override above)
-	if (defined $donator_flag && $donator_flag == 1) {
-		return;
-	}
+        foreach my $teleporter (@{$teleporter_destinations->{$zone_name}}) {
+            my $distance = sqrt(
+                ($current_x - $teleporter->{x})**2 +
+                ($current_y - $teleporter->{y})**2 +
+                ($current_z - $teleporter->{z})**2
+            );
 
-	my $suppress_key = "warp_suppress_$char_id";
-	if (quest::get_data($suppress_key)) {
-		quest::delete_data($suppress_key);
-		return;
-	}
+            if ($distance <= $teleporter->{radius}) {
+                return; # legit teleporter
+            }
+        }
+    }
 
-	my $safe_x = $zone->GetSafeX();
-	my $safe_y = $zone->GetSafeY();
-	my $safe_z = $zone->GetSafeZ();
-	my $safe_h = $zone->GetSafeHeading();
+    # Block warping in ponightmare ALWAYS, no donator bypass
+    my $no_donator_bypass = ($zone_name eq 'ponightmare');
 
-	my $warn_key = "warp_warning_given_$char_id";
-	my $warned = quest::get_data($warn_key);
+    # Allow donators in other zones
+    if (!$no_donator_bypass && defined $donator_flag && $donator_flag == 1) {
+        return;
+    }
 
-	if (defined $warned && $warned == 1) {
-		$client->Message(15, "You were warned. Warping is not allowed here.");
-		$client->Kill();
-	} else {
-		quest::set_data($warn_key, 1);
-		quest::set_data($suppress_key, 1, 2);
-		$client->MovePCInstance($zone_name, $client->GetInstanceID(), $safe_x, $safe_y, $safe_z, $safe_h);
-		$client->Message(15, "Warping is disabled in this zone. Further attempts will result in death.");
-	}
+    my $suppress_key = "warp_suppress_$char_id";
+    if (quest::get_data($suppress_key)) {
+        quest::delete_data($suppress_key);
+        return;
+    }
+
+    my $warn_key = "warp_warning_given_$char_id";
+    my $warned = quest::get_data($warn_key);
+
+    my $zone_id      = $zone->GetZoneID();
+    my $instance_id  = $client->GetInstanceID();
+
+    # ============================================================
+    # NEW — ponightmare EXCEPTION
+    # ============================================================
+    if ($zone_name eq 'ponightmare') {
+
+        # FIRST OFFENSE → teleports to your custom location
+        if (!defined $warned) {
+            quest::set_data($warn_key, 1);
+            quest::set_data($suppress_key, 1, 2);
+
+            $client->MovePCInstance($zone_id, $instance_id, -4774, 5198, 4, 0);
+            $client->Message(15, "Warp detection triggered — returned to designated Plane of Nightmare location.");
+            return;
+        }
+
+        # SECOND OFFENSE → kill them
+        $client->Message(15, "You were warned. Warping is not allowed in the Plane of Nightmare.");
+        #$client->Kill();
+        return;
+    }
+    # ============================================================
+
+    # Normal behavior for non-ponightmare zones
+    my $safe_x = $zone->GetSafeX();
+    my $safe_y = $zone->GetSafeY();
+    my $safe_z = $zone->GetSafeZ();
+    my $safe_h = $zone->GetSafeHeading();
+
+    if (defined $warned && $warned == 1) {
+        $client->Message(15, "You were warned. Warping is not allowed here.");
+        #$client->Kill();
+    } 
+    else {
+        quest::set_data($warn_key, 1);
+        quest::set_data($suppress_key, 1, 2);
+
+        $client->MovePCInstance($zone_id, $instance_id, $safe_x, $safe_y, $safe_z, $safe_h);
+        $client->Message(15, "Warping is disabled in this zone. Further attempts will result in death.");
+    }
 }

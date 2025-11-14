@@ -1,38 +1,48 @@
+# ===========================================================
+# #Manaetic_Behemoth.pl — Plane of Innovation (poinnovation)
+# Shadowed Eclipse: Endurance Testing Encounter
+# -----------------------------------------------------------
+# - Applies standard Shadowed Eclipse baseline stats.
+# - Uses RaidScaling for adaptive difficulty.
+# - Ensures full HP after scaling.
+# - Handles leash, aggro, and timed despawn logic.
+# - Signals Giwin_Mirakon (206038) and spider_controller (206087) on death.
+# ===========================================================
+
 sub EVENT_SPAWN {
-  #no aggro timer, respawn untargetable.
-  #added this because of the reports of MB going active and despawning on his own.
-  quest::settimer(9,1200);
-  #leash timer
-  quest::settimer(4,1);
-}
+    return unless $npc;
 
-sub EVENT_DEATH_COMPLETE    {
-  #signal to Giwin to give flags.
-  quest::signalwith(206038,1,1); # NPC: Giwin_Mirakon
-}
+    # Apply baseline stats and scaling
+    plugin::DefaultNPCStats($npc, $entity_list);
+    plugin::RaidScaling($entity_list, $npc);
 
-sub EVENT_TIMER {
-  if($timer == 9) {
-    #if targetable version has been up 20 minutes depop him.
-    #resest spawn timer on untargetable to respawn it in 5 seconds
-    quest::updatespawntimer(42135,5000);
-    quest::depop();
-  }
-  if($timer == 8) {
-    #failed. shorten respawn timer to 24 hours. 
-    quest::updatespawntimer(42135,86400000);
-    quest::depop();
-  }
-  if($timer == 4 && ($x < 1010 || $x > 1240)) {
-    #leash
-    $npc->GMMove(1125,0,12.5,0);
-    #signal to giwin about being out of room
-    quest::signalwith(206038,2,1); # NPC: Giwin_Mirakon
-  }
+    # Ensure full HP after scaling
+    my $max_hp = $npc->GetMaxHP();
+    $npc->SetHP($max_hp) if $max_hp > 0;
+
+    # Timers: despawn & leash
+    quest::settimer(9, 1200);  # Despawn after 20 minutes
+    quest::settimer(4, 1);     # Leash check
 }
 
 sub EVENT_AGGRO {
-  #fail timer
-  quest::settimer(8,1200);
-  quest::stoptimer(9);
+    quest::settimer(8, 1200);  # fail timer
+    quest::stoptimer(9);       # stop despawn timer
+}
+
+sub EVENT_TIMER {
+    if ($timer == 9) {
+        # Auto-despawn after 20 min if idle
+        quest::updatespawntimer(42135, 5000);
+        quest::depop();
+    }
+    elsif ($timer == 4 && ($x < 1010 || $x > 1240)) {
+        # Leash back to center area
+        $npc->GMMove(1125, 0, 12.5, 0);
+    }
+}
+
+sub EVENT_DEATH_COMPLETE {
+    # Instantly restart Behemoth event loop
+    quest::signalwith(206087, 1, 1);  # spider_controller
 }

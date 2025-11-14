@@ -11,7 +11,7 @@ my $checked_mirror = 0;
 my %allowed_damagers;
 
 # Reflected loot table — one of these will be randomly added when reflected
-my @reflected_loot = (60464, 60467); # Reflected Diseased Artifact | Symbol of the Reflected Plaguebringer
+my @reflected_loot = (80063, 80064, 79540, 80065); 
 
 sub EVENT_SPAWN {
     return unless $npc;
@@ -253,7 +253,7 @@ sub EVENT_HP {
         quest::setnexthpevent(25);
     }
         elsif ($hpevent == 25) {
-        if (int(rand(100)) < 35) {
+        if (int(rand(100)) < 40) {
             quest::spawn2(2189, 0, 0, -1758.12, -5.18, 134.58, 390.25);
         }
     }

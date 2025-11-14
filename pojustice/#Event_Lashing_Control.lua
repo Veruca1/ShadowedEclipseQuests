@@ -1,7 +1,7 @@
 -- 201449 #Event_Lashing_Control
 -- Trial of Lashing Controller
 --
---
+--3
 local trial_wave      = 0;
 
 -- Time from when the 1st mob in a wave is killed till 

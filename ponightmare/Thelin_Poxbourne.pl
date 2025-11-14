@@ -17,16 +17,16 @@ sub EVENT_SAY {
             . "<c \"#E0E070\">Veil of the Visage</c><br>"
             . "<c \"#E0E070\">Nightstalker Fang</c><br>"
             . "<c \"#E0E070\">Coven Wolf Paw</c><br><br>"
-            . "Return all five to me, and I shall summon the Construct of Nightmares. But beware—once called, it cannot be stopped."
+            . "Combine them in your Tier Kit to create the <c \"#E0E070\">Black Bastardsword</c>.<br>"
+            . "Return the sword to me, and I shall summon the Construct of Nightmares. But beware—once called, it cannot be stopped."
         );
     }
 }
 
 sub EVENT_ITEM {
-    if (plugin::check_handin(\%itemcount, 62546 => 1, 62547 => 1, 62548 => 1, 62549 => 1, 62550 => 1)) {
-        quest::say("The pieces of nightmare are complete. You have done well. Prepare yourself!");
+    if (plugin::check_handin(\%itemcount, 26039 => 1)) {
+        quest::say("The sword is complete. You have done well. Prepare yourself!");
         quest::spawn2(204064, 0, 0, $x, $y, $z, 0); # NPC: #a_construct_of_nightmares
-        quest::depop();
     }
     elsif (plugin::check_handin(\%itemcount, 9258 => 1)) {
         $dagger = 1;

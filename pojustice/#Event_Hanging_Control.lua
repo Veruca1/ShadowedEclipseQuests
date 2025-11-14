@@ -219,10 +219,10 @@ function MoveGroup(trial_group, src_x, src_y, src_z, distance, tgt_x, tgt_y, tgt
 				local client_v = mob_v:CastToClient();
 
 				if (client_v.valid) then
-					-- check the distance and port them up if close enough
+					-- check the distance and port them if close enough
 					if (client_v:CalculateDistance(src_x, src_y, src_z) <= distance) then
-						-- port the player up
-						client_v:MovePC(201, tgt_x, tgt_y, tgt_z, tgt_h); -- Zone: pojustice
+						local inst_id = client_v:GetInstanceID();
+						client_v:MovePCInstance(201, inst_id, tgt_x, tgt_y, tgt_z, tgt_h); -- stay in instance
 					end
 				end
 			end

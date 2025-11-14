@@ -32,16 +32,16 @@ sub EVENT_SIGNAL {
 sub EVENT_TIMER {
 	if ($timer eq "flame_dd") {
 		quest::stoptimer("flame_dd");
-		#AE Fiery Death
-		$npc->CastSpell(951, 201417); # Spell: Fiery Death
+		#AE Fiery Death II
+		$npc->CastSpell(41255, 201417); # Spell: Fiery Death II
 		#Timer for next AE
 		quest::settimer("flame_dot", 30);
 	}
 	
 	elsif ($timer eq "flame_dot") {
 		quest::stoptimer("flame_dot");
-		#AE Wave of Heat, DoT version
-		$npc->CastSpell(1131, 201417); # Spell: Wave of Heat
+		#AE Wave of Heat II, DoT version
+		$npc->CastSpell(41256, 201417); # Spell: Wave of Heat II
 		#Timer for next AE
 		quest::settimer("flame_dd", 30);
 	}
@@ -95,13 +95,13 @@ sub SpawnFlameMobs {
 			#Fiery Agressor, rare mob
 			quest::spawn2(201420, 0, 0, $locX[$count], $locY[$count], $locZ[$count], $locH[$count]); # NPC: #a_fiery_aggressor
 		}
-		
 		elsif (($test >= 10) && ($test < 20)) {
 			#Burning nemesis, rare
 			quest::spawn2(201447, 0, 0, $locX[$count], $locY[$count], $locZ[$count], $locH[$count]); # NPC: A_Burning_Nemesis
 		}
 		elsif ($test >= 20) {
-			quest::spawn2(quest::ChooseRandom(201426,201418), 0, 0, $locX[$count], $locY[$count], $locZ[$count], $locH[$count]); # spirit of flame / fiend of flame common mobs
+			#Common mobs
+			quest::spawn2(quest::ChooseRandom(201426,201418), 0, 0, $locX[$count], $locY[$count], $locZ[$count], $locH[$count]); # NPC: fiend_of_flame / spirit_of_flame
 		}
 	}
 }

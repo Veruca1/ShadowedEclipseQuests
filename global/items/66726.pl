@@ -41,7 +41,5 @@ sub EVENT_ITEM_CLICK {
     }
 
     # === Remove the item after successful click ===
-    if ($client->HasItem($item_id)) {
-        $client->RemoveItem($item_id, 1);
-    }
+    $client->RemoveItem($item_id, 1);
 }

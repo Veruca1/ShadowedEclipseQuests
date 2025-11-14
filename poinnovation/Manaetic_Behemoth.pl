@@ -1,43 +1,53 @@
+# Manaetic_Behemoth — Untargetable Version (206046)
+# Shadowed Eclipse: Plane of Innovation
+# -----------------------------------------------------------
+# Waits for spider activity to stop for 2 minutes before
+# spawning the real #Manaetic_Behemoth (206074).
+# -----------------------------------------------------------
+
 my $goactive = 0;
 my $first_signal = 0;
 
 sub EVENT_SPAWN {
-  $first_signal = 0;
-  $goactive = 0;
+    $first_signal = 0;
+    $goactive = 0;
+    quest::debug("Manaetic_Behemoth spawned (untargetable). Awaiting spider signals.");
 }
 
 sub EVENT_SIGNAL {
-  #signal 1 is from the spiders.
-  if($signal == 1 && $first_signal == 0) {
-    #timer to increment $goactive
-    quest::settimer(1,5);
-    $first_signal = 1;
-  } elsif($signal == 1 && $first_signal == 1) {
-    #if we received a signal and it was not the first signal reset goactive back to 0
-    $goactive = 0;
-  }
+    # Signal 1 comes from spiders
+    if ($signal == 1 && $first_signal == 0) {
+        quest::settimer(1, 5); # every 5 seconds
+        $first_signal = 1;
+        quest::debug("First spider signal received. Starting activation timer.");
+    } elsif ($signal == 1 && $first_signal == 1) {
+        # reset timer progress if spiders still active
+        $goactive = 0;
+        quest::debug("Spider signal received again — resetting activation countdown.");
+    }
 }
 
 sub EVENT_TIMER {
-  if($timer == 1) {
-    #increment $goactive
-    $goactive++;
-    #now check if we have been incrementing for 5 minutes.
-    #increments at +1 per 5 seconds means $goactive == 60 is 5 minutes.
-    if($goactive == 60) {
-      quest::stoptimer(1);
-      BEGIN_MB_EVENT();
-    } elsif($goactive > 60) {
-      #reset all the counters and start over something went wrong
-      $first_signal = 0;
-      $goactive = 0;
+    if ($timer == 1) {
+        $goactive++;
+        quest::debug("Activation counter: $goactive / 24");
+
+        # 24 * 5s = 120 seconds (2 minutes)
+        if ($goactive == 24) {
+            quest::stoptimer(1);
+            quest::debug("Timer reached 2 minutes with no spider activity. Activating Behemoth!");
+            BEGIN_MB_EVENT();
+        } elsif ($goactive > 24) {
+            # Safety reset
+            $first_signal = 0;
+            $goactive = 0;
+            quest::debug("Activation counter exceeded — resetting event.");
+        }
     }
-  }
 }
 
 sub BEGIN_MB_EVENT {
-  #spawn the targetable version and depop untargetable version.
-  quest::spawn2(206074,0,0,$x,$y,$z,0); # NPC: #Manaetic_Behemoth
-  #depop with respawn timer active.
-  quest::depop_withtimer();
+    quest::debug("Spawning targetable #Manaetic_Behemoth (206074).");
+    quest::spawn2(206074, 0, 0, $x, $y, $z, 0); # Targetable version
+    quest::depop_withtimer(); # Remove untargetable
 }

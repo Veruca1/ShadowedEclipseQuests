@@ -19,6 +19,9 @@ sub EVENT_SAY {
         plugin::Whisper("  - " . quest::saylink("Crypt of Decay", 1, "Crypt of Decay (codecay)"));
         plugin::Whisper("  - " . quest::saylink("Plane of Nightmare", 1, "Plane of Nightmare (ponightmare)"));
         plugin::Whisper("  - " . quest::saylink("Lair of Terris Thule", 1, "Lair of Terris Thule (nightmareb)"));
+        plugin::Whisper("  - " . quest::saylink("Plane of Innovation", 1, "Plane of Innovation (poinnovation)"));
+        plugin::Whisper("  - " . quest::saylink("Plane of Justice", 1, "Plane of Justice (pojustice)"));
+        plugin::Whisper("  - " . quest::saylink("Plane of Torment", 1, "Plane of Torment (potorment)"));
 
         # Flag entire IP-matched group/raid for Plane of Disease (zone ID 205) if not already flagged
         my $clicker_ip = $client->GetIP();
@@ -64,6 +67,9 @@ sub EVENT_SAY {
         plugin::Whisper("  - " . quest::saylink("Crypt of Decay", 1, "Crypt of Decay (codecay)"));
         plugin::Whisper("  - " . quest::saylink("Plane of Nightmare", 1, "Plane of Nightmare (ponightmare)"));
         plugin::Whisper("  - " . quest::saylink("Lair of Terris Thule", 1, "Lair of Terris Thule (nightmareb)"));
+        plugin::Whisper("  - " . quest::saylink("Plane of Innovation", 1, "Plane of Innovation (poinnovation)"));
+        plugin::Whisper("  - " . quest::saylink("Plane of Justice", 1, "Plane of Justice (pojustice)"));
+        plugin::Whisper("  - " . quest::saylink("Plane of Torment", 1, "Plane of Torment (potorment)"));
     }
 
     elsif ($text =~ /^(Plane of Disease|podisease)$/i) {
@@ -80,6 +86,18 @@ sub EVENT_SAY {
 
     elsif ($text =~ /^(Lair of Terris Thule|nightmareb)$/i) {
         CreateCustomDZ("nightmareb", "Lair of Terris Thule");
+    }
+
+    elsif ($text =~ /^(Plane of Innovation|poinnovation)$/i) {
+        CreateCustomDZ("poinnovation", "Plane of Innovation");
+    }
+
+    elsif ($text =~ /^(Plane of Justice|pojustice)$/i) {
+        CreateCustomDZ("pojustice", "Plane of Justice");
+    }
+
+    elsif ($text =~ /^(Plane of Torment|potorment)$/i) {
+        CreateCustomDZ("potorment", "Plane of Torment");
     }
 
     elsif ($text =~ /ready/i) {
@@ -101,33 +119,33 @@ sub EVENT_ITEM {
 
     # Count actual stacked items from all slots
     my $turned_in = 0;
-    
+
     for my $slot (1..4) {
         my $item_id = plugin::val("item${slot}");
         my $charges = plugin::val("item${slot}_charges");
-        
+
         if ($item_id == $reliquary_id) {
             $turned_in += ($charges > 0) ? $charges : 1;
         }
     }
-    
+
     # Use plugin::check_handin with the actual count to properly consume items
     if ($turned_in > 0 && plugin::check_handin(\%itemcount, $reliquary_id => $turned_in)) {
         my $current = quest::get_data($key) || 0;
-        
+
         # Calculate new total
         my $new_total = $current + $turned_in;
-        
+
         # Check how many complete cycles we've triggered
         my $cycles_completed = int($new_total / $reliquary_required);
         my $remainder = $new_total % $reliquary_required;
-        
+
         # Set the remainder as the new stored value (rollover)
         quest::set_data($key, $remainder);
-        
+
         # Announce progress
         quest::we(14, "The Eclipse stirs... ($remainder / $reliquary_required) Twilight Reliquaries have been offered to Nyseria.");
-        
+
         # Trigger completion event for each cycle completed
         if ($cycles_completed > 0) {
             for (my $i = 0; $i < $cycles_completed; $i++) {
@@ -137,7 +155,7 @@ sub EVENT_ITEM {
                     "The Shadowed Eclipse stirs... Nyseria's gaze falls across the land.");
             }
         }
-        
+
         return;
     }
 

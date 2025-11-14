@@ -139,6 +139,8 @@ sub EVENT_ITEM {
 		quest::whisper("You have earned the title 'Newbie No More'!");
 		quest::we(13, "$name has defeated the tutorial, and earned the title Newbie No More!");
 		quest::discordsend("titles", "$name has earned the title of Newbie No More!");
+
+		$client->SummonItem(59943); # <-- Grant Kobold Skull Charm
 	}
 
 	plugin::return_items(\%itemcount);

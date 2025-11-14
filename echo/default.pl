@@ -9,6 +9,7 @@ sub EVENT_SPAWN {
 
     my %exclusion_list = (
         153095 => 1,
+        1357 => 1,
         153146 => 1,
         500 => 1,
         857 => 1,

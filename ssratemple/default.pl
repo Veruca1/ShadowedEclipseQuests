@@ -18,14 +18,26 @@ sub EVENT_SPAWN {
     my $npc_id   = $npc->GetNPCTypeID() || 0;
     return if $npc->IsPet();
 
-    # ===========================================================
-    # Exclusion list — skip scaling/stat logic for specific NPCs
-    # ===========================================================
-    my $exclusion_list = {
-        10   => 1,   # Zone_Controller
-        1595 => 1,   # Nyseria's Guard
-        1712 => 1,   # Nyseria
-    };
+my $exclusion_list = {
+    10      => 1,   # Zone_Controller
+    163075  => 1,   # Grieg
+    1595    => 1,   # Nyseria's Guard
+    1712    => 1,   # Nyseria
+
+    # Cursed event NPCs (exclude from baseline/stat scaling)
+    162271  => 1,   # #cursed_two
+    162260  => 1,   # #cursed_one
+    162272  => 1,   # #cursed_three
+    162273  => 1,   # #cursed_four
+    162274  => 1,   # #cursed_five
+    162275  => 1,   # #cursed_six
+    162276  => 1,   # #cursed_seven
+    162277  => 1,   # #cursed_eight
+    162278  => 1,   # #cursed_nine
+    162279  => 1,   # #cursed_ten
+    162142  => 1,   # #cursed_ten
+    162280  => 1   # #cursed_controller
+};
     return if exists $exclusion_list->{$npc_id};
 
     # ===========================================================

@@ -139,7 +139,7 @@ sub EVENT_COMBAT {
         # Any NPC entering combat (excluding 2261 itself) signals The_Dreamforged_Horror (2261)
         if ($npc_id != 2261) {
             quest::signalwith(2261, 9, 0);
-            quest::debug("DEBUG: NPC [$npc_id - $raw_name] engaged in combat, signaled 2261.");
+            #quest::debug("DEBUG: NPC [$npc_id - $raw_name] engaged in combat, signaled 2261.");
         }
 
         # ===========================================================
@@ -164,7 +164,7 @@ sub EVENT_COMBAT {
         # ===========================================================
         if ($npc_id != 2261) {
             quest::signalwith(2261, 10, 0);
-            quest::debug("DEBUG: NPC [$npc_id - $raw_name] left combat, signaled 2261 stop.");
+            #quest::debug("DEBUG: NPC [$npc_id - $raw_name] left combat, signaled 2261 stop.");
         }
 
         quest::stoptimer("life_drain") if $is_boss;

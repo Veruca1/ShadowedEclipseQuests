@@ -1,11 +1,10 @@
 # ===========================================================
 # 2261.pl — #The_Dreamforged_Horror
-# Shadowed Eclipse: Custom Boss Logic (Debug Version)
+# Shadowed Eclipse: Custom Boss Logic (Release Version)
 # ===========================================================
 
 sub EVENT_SPAWN {
     return unless $npc;
-    quest::debug("DEBUG: 2261 (#The_Dreamforged_Horror) spawned at (" . $npc->GetX() . ", " . $npc->GetY() . ", " . $npc->GetZ() . ")");
 
     # === Base stats (boss-tier from default.pl) ===
     $npc->SetNPCFactionID(623);
@@ -52,16 +51,12 @@ sub EVENT_SPAWN {
 # Signal Handling
 # ===========================================================
 sub EVENT_SIGNAL {
-    quest::debug("DEBUG: 2261 received signal $signal");
-
     if ($signal == 9) {
         quest::stoptimer("spawn_2260");
         quest::settimer("spawn_2260", 30);
-        quest::we(15, "[DEBUG] #The_Dreamforged_Horror: signal 9 received — spawning adds every 30s");
     }
     elsif ($signal == 10) {
         quest::stoptimer("spawn_2260");
-        quest::we(15, "[DEBUG] #The_Dreamforged_Horror: signal 10 received — stopping add spawns");
     }
 }
 
@@ -70,7 +65,6 @@ sub EVENT_SIGNAL {
 # ===========================================================
 sub EVENT_TIMER {
     if ($timer eq "spawn_2260") {
-        quest::debug("DEBUG: 2261 spawning four 2260 adds");
         my $x = $npc->GetX();
         my $y = $npc->GetY();
         my $z = $npc->GetZ();
@@ -79,8 +73,7 @@ sub EVENT_TIMER {
         for (my $i = 0; $i < 4; $i++) {
             my $offset_x = $x + int(rand(60)) - 30;
             my $offset_y = $y + int(rand(60)) - 30;
-            my $spawn_id = quest::spawn2(2260, 0, 0, $offset_x, $offset_y, $z, $h);
-            quest::debug("DEBUG: 2261 spawned 2260 ID $spawn_id at ($offset_x, $offset_y, $z)");
+            quest::spawn2(2260, 0, 0, $offset_x, $offset_y, $z, $h);
         }
     }
 }

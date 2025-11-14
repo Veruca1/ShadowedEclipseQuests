@@ -46,7 +46,7 @@ sub EVENT_TIMER {
 
         quest::settimer("life_drain", 6);
         quest::settimer("spawn_adds", 60);
-        quest::settimer("maze_move", 180);
+        quest::settimer("maze_move", 480);
         quest::settimer("cast_silence", 60);
 
         quest::ze(13, "A vile energy seeps into your body — the hedge begins to feed on your life force!");
